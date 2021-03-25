@@ -92,8 +92,8 @@ struct device_mesh
     }
 
     //void  init(int _n_cv, int _n_cv_all, int _i0, int _maxQ_real)
-    template<class MAP_ELEMS>
-    void    init_elems(const MAP_ELEMS &map_e)
+    template<class MapElems>
+    void    init_elems(const MapElems &map_e)
     {
         //n_cv = _n_cv; n_cv_all = _n_cv_all; i0 = _i0;
         n_cv = map_e.get_size();
@@ -113,8 +113,8 @@ struct device_mesh
         faces_S.init(n_cv);
         Vol.init(n_cv_all, i0);
     }
-    template<class MAP_NODES>
-    void    init_nodes(const MAP_NODES &map_n)
+    template<class MapNodes>
+    void    init_nodes(const MapNodes &map_n)
     {
         n_nodes = map_n.get_size();
         n_nodes_all = map_n.max_loc_ind() - map_n.min_loc_ind() + 1;
@@ -129,8 +129,8 @@ struct device_mesh
     {
         elem_node_ids.init(n_cv);
     }
-    template<class MAP_ELEMS,class MAP_NODES,class CPU_MESH>
-    void    init_node_2_elem_graph(const MAP_ELEMS &map_e, const MAP_NODES &map_n, CPU_MESH &cpu_mesh)
+    template<class MapElems,class MapNodes,class CPU_MESH>
+    void    init_node_2_elem_graph(const MapElems &map_e, const MapNodes &map_n, CPU_MESH &cpu_mesh)
     {
         node_2_elem_graph_refs.init(n_nodes);
         node_2_elem_graph_sz = 0;
@@ -143,8 +143,8 @@ struct device_mesh
     }
 
     //TODO fix index calculation type (enumerate through map, not through view range)
-    template<class MAP_ELEMS,class CPU_MESH>
-    void    init_elems_data(const MAP_ELEMS &map_e, CPU_MESH &cpu_mesh)
+    template<class MapElems,class CPU_MESH>
+    void    init_elems_data(const MapElems &map_e, CPU_MESH &cpu_mesh)
     {
         t_tensor1_field_view_tml<T,Dim,strg>                    center_view(center, false);
         for (Ord i = center_view.begin();i < center_view.end();i++) {
@@ -244,8 +244,8 @@ struct device_mesh
         is_homogeneous = cpu_mesh.is_homogeneous;
         homogeneous_elem_type = cpu_mesh.homogeneous_elem_type;
     }
-    template<class MAP_NODES,class CPU_MESH>
-    void    init_nodes_data(const MAP_NODES &map_n, CPU_MESH &cpu_mesh)
+    template<class MapNodes,class CPU_MESH>
+    void    init_nodes_data(const MapNodes &map_n, CPU_MESH &cpu_mesh)
     {
         t_tensor1_field_view_tml<T,Dim,strg>                 node_coords_view(node_coords, false);
         for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
@@ -271,8 +271,8 @@ struct device_mesh
         }
         node_bnd_id_view.release();
     }
-    template<class MAP_ELEMS,class MAP_NODES,class CPU_MESH>
-    void    init_elem_node_ids_data(const MAP_ELEMS &map_e, const MAP_NODES &map_n, CPU_MESH &cpu_mesh)
+    template<class MapElems,class MapNodes,class CPU_MESH>
+    void    init_elem_node_ids_data(const MapElems &map_e, const MapNodes &map_n, CPU_MESH &cpu_mesh)
     {
         t_tensor1_field_view_tml<Ord,max_vert_n,strg>   elem_node_ids_view(elem_node_ids, false);
         for(Ord i_ = 0;i_ < map_e.get_size();i_++) {
@@ -284,8 +284,8 @@ struct device_mesh
         }
         elem_node_ids_view.release();
     }
-    template<class MAP_ELEMS,class MAP_NODES,class CPU_MESH>
-    void    init_node_2_elem_graph_data(const MAP_ELEMS &map_e, const MAP_NODES &map_n, CPU_MESH &cpu_mesh)
+    template<class MapElems,class MapNodes,class CPU_MESH>
+    void    init_node_2_elem_graph_data(const MapElems &map_e, const MapNodes &map_n, CPU_MESH &cpu_mesh)
     {
         t_tensor1_field_view_tml<Ord,2,strg>            node_2_elem_graph_refs_view(node_2_elem_graph_refs, false);
         t_tensor0_field_view_tml<Ord,strg>              node_2_elem_graph_elem_ids_view(node_2_elem_graph_elem_ids, false);
@@ -308,8 +308,8 @@ struct device_mesh
     }
 
     //TODO change bane
-    template<class MAP_ELEMS,class CPU_MESH>
-    void    dump_elems_geom_data(const MAP_ELEMS &map_e, CPU_MESH &cpu_mesh)const
+    template<class MapElems,class CPU_MESH>
+    void    dump_elems_geom_data(const MapElems &map_e, CPU_MESH &cpu_mesh)const
     {
         t_tensor1_field_view_tml<T,Dim,strg>                    center_view(center, true);
         for (Ord i = center_view.begin();i < center_view.end();i++) {
@@ -368,8 +368,8 @@ struct device_mesh
         }
         norm_view.release(false);
     }
-    template<class MAP_NODES,class CPU_MESH>
-    void    dump_nodes_geom_data(const MAP_NODES &map_n, CPU_MESH &cpu_mesh)const
+    template<class MapNodes,class CPU_MESH>
+    void    dump_nodes_geom_data(const MapNodes &map_n, CPU_MESH &cpu_mesh)const
     {
         t_tensor1_field_view_tml<T,Dim,strg>                    node_coords_view(node_coords, true);
         for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
