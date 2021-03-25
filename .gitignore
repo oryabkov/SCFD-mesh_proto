@@ -1,0 +1,17 @@
+.idea
+*.pyc
+*.data
+*.pkl
+*.ipynb_checkpoints
+**/build/*
+*.mm
+*.csv
+*.out
+*.ply
+*.stl
+*.pos
+*.csv
+*.o
+*.bin
+*.a
+generated
