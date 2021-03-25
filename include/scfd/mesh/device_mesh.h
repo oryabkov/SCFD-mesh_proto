@@ -17,7 +17,7 @@
 #ifndef __SCFD_MESH_DEVICE_MESH_H__
 #define __SCFD_MESH_DEVICE_MESH_H__
 
-#include <tensor_field/t_tensor_field_tml.h>
+#include <scfd/arrays/tensorN_array.h>
 
 //TODO rename these macroses somehow
 #ifndef  GPU_MESH_DEFAULT_MAX_FACES_N
@@ -45,6 +45,8 @@ namespace mesh
 template<class T,class Memory,int Dim = 3,class Ord = SCFD_ARRAYS_ORDINAL_TYPE>
 struct device_mesh
 {
+    using namespace arrays;
+
     //ISSUE neither n_cv
     //but i0, n_cv_all somehow does
 
@@ -57,34 +59,34 @@ struct device_mesh
     //if is_homogeneous == true then all elements in mesh have the same elem_type
     bool                                            is_homogeneous;
     int                                             homogeneous_elem_type;  //valid only if is_homogeneous == true
-    t_tensor1_field_tml<int,1,strg>                 elem_type;              //valid only if is_homogeneous == false
-    t_tensor1_field_tml<T,Dim,strg>                 center;
-    t_tensor2_field_tml<T,max_faces_n,Dim,strg>     center_neighbour;
-    t_tensor2_field_tml<T,max_faces_n,Dim,strg>     center_faces;
-    t_tensor2_field_tml<T,max_vert_n,Dim,strg>      vertexes;
-    t_tensor1_field_tml<Ord,max_faces_n,strg>       Neighbour;
-    t_tensor1_field_tml<Ord,max_faces_n,strg>       Neighbour_loc_iface;
-    t_tensor1_field_tml<Ord,max_faces_n,strg>       Boundary;
-    t_tensor1_field_tml<Ord,1,strg>                 Volume_id;
-    t_tensor2_field_tml<T,max_faces_n,Dim,strg>     Norm;
-    t_tensor1_field_tml<T,max_faces_n,strg>         faces_S;
-    t_tensor1_field_tml<T,1,strg>                   Vol;
+    tensor1_array<int,Memory,1>                     elem_type;              //valid only if is_homogeneous == false
+    tensor1_array<T,Memory,Dim>                     center;
+    tensor2_array<T,Memory,max_faces_n,Dim>         center_neighbour;
+    tensor2_array<T,Memory,max_faces_n,Dim>         center_faces;
+    tensor2_array<T,Memory,max_vert_n,Dim>          vertexes;
+    tensor1_array<Ord,Memory,max_faces_n>           Neighbour;
+    tensor1_array<Ord,Memory,max_faces_n>           Neighbour_loc_iface;
+    tensor1_array<Ord,Memory,max_faces_n>           Boundary;
+    tensor1_array<Ord,Memory,1>                     Volume_id;
+    tensor2_array<T,Memory,max_faces_n,Dim>         Norm;
+    tensor1_array<T,Memory,max_faces_n>             faces_S;
+    tensor1_array<T,Memory,1>                       Vol;
 
     //nodes data part
     Ord                                             i0_nodes, n_nodes_all;
     Ord                                             n_nodes;
-    t_tensor1_field_tml<T,Dim,strg>                 node_coords;
-    t_tensor0_field_tml<Ord,strg>                   node_vol_id;
-    t_tensor0_field_tml<Ord,strg>                   node_bnd_id;
+    tensor1_array<T,Memory,Dim>                     node_coords;
+    t_tensor0_field_tml<Ord,Memory>                 node_vol_id;
+    t_tensor0_field_tml<Ord,Memory>                 node_bnd_id;
 
     //elements to nodes graph part
-    t_tensor1_field_tml<Ord,max_vert_n,strg>        elem_node_ids;
+    tensor1_array<Ord,Memory,max_vert_n>            elem_node_ids;
 
     //nodes to elements graph part
     Ord                                             node_2_elem_graph_sz;
-    t_tensor1_field_tml<Ord,2,strg>                 node_2_elem_graph_refs;
-    t_tensor0_field_tml<Ord,strg>                   node_2_elem_graph_elem_ids;
-    t_tensor0_field_tml<Ord,strg>                   node_2_elem_graph_node_ids;
+    tensor1_array<Ord,Memory,2>                     node_2_elem_graph_refs;
+    t_tensor0_field_tml<Ord,Memory>                 node_2_elem_graph_elem_ids;
+    t_tensor0_field_tml<Ord,Memory>                 node_2_elem_graph_node_ids;
 
     __DEVICE_TAG__ int      get_elem_type(Ord i)const
     {
