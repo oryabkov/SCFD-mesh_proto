@@ -45,6 +45,13 @@ namespace mesh
 template<class T,class Memory,int Dim = 3,class Ord = SCFD_ARRAYS_ORDINAL_TYPE>
 struct device_mesh
 {
+    using scalar_type = T;
+    using memory_type = Memory;
+    static const int dim = Dim;
+    using ordinal_type = Ord;
+    //using glob_ordinal_type = int;
+    using elem_type_ordinal_type = int;
+
     using namespace arrays;
 
     //ISSUE neither n_cv
@@ -58,8 +65,8 @@ struct device_mesh
     Ord                                             n_cv;
     //if is_homogeneous == true then all elements in mesh have the same elem_type
     bool                                            is_homogeneous;
-    int                                             homogeneous_elem_type;  //valid only if is_homogeneous == true
-    tensor1_array<int,Memory,1>                     elem_type;              //valid only if is_homogeneous == false
+    elem_type_ordinal_type                          homogeneous_elem_type;  //valid only if is_homogeneous == true
+    tensor1_array<elem_type_ordinal_type,Memory,1>  elem_type;              //valid only if is_homogeneous == false
     tensor1_array<T,Memory,Dim>                     center;
     tensor2_array<T,Memory,max_faces_n,Dim>         center_neighbour;
     tensor2_array<T,Memory,max_faces_n,Dim>         center_faces;
@@ -88,7 +95,7 @@ struct device_mesh
     tensor0_array<Ord,Memory>                       node_2_elem_graph_elem_ids;
     tensor0_array<Ord,Memory>                       node_2_elem_graph_node_ids;
 
-    __DEVICE_TAG__ int      get_elem_type(Ord i)const
+    __DEVICE_TAG__ elem_type_ordinal_type  get_elem_type(Ord i)const
     {
         if (is_homogeneous) return homogeneous_elem_type; else return elem_type(i,0);
     }
