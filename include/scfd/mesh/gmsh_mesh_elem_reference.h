@@ -79,6 +79,11 @@
 #define MESH_ELEM_REFERENCE_MAX_VERT_N 8
 #define MESH_ELEM_REFERENCE_FACE_MAX_VERT_N 4
 
+namespace scfd
+{
+namespace mesh
+{
+
 template<class T>
 struct gmsh_mesh_elem_reference
 {
@@ -517,5 +522,8 @@ struct gmsh_mesh_elem_reference
                 //TODO other types
         }
 };
+
+}  /// namespace mesh
+}  /// namespace scfd
 
 #endif

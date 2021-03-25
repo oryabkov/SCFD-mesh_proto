@@ -30,6 +30,11 @@
 //TODO
 #define CUDA_EMPTY_IDX  -1000000000
 
+namespace scfd
+{
+namespace mesh
+{
+
 //GPU-oriented classes
 
 //man_n (nodes map) and map_e (element map) during all calls must be the same 
@@ -380,5 +385,8 @@ struct device_mesh
         {
         }
 };
+
+}  /// namespace mesh
+}  /// namespace scfd
 
 #endif
