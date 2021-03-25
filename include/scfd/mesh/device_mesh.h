@@ -35,15 +35,14 @@ namespace scfd
 namespace mesh
 {
 
-//GPU-oriented classes
-
-//man_n (nodes map) and map_e (element map) during all calls must be the same 
-//ISSUE perhaps, better to make cope of maps inside (but what to do with gpu in this case?)
-
-//TODO should be renamed to device_mesh
+//map_n (nodes map) and map_e (element map) during all calls must be the same 
+//ISSUE perhaps, better to make copy of maps inside (but what to do with gpu in this case?)
 
 //ISSUE should not we make own flag?? (because this structure is copied to const memory)
-template<class T,int dim = 3, int max_faces_n = GPU_MESH_DEFAULT_MAX_FACES_N, int max_vert_n = GPU_MESH_DEFAULT_MAX_VERT_N, t_tensor_field_storage strg = TFS_DEVICE>
+
+//TODO for now Ord = SCFD_ARRAYS_ORDINAL_TYPE is only supported (arrays don't have Ord template parameter for now)
+
+template<class T,class Memory,int Dim = 3,class Ord = SCFD_ARRAYS_ORDINAL_TYPE>
 struct device_mesh
 {
     //ISSUE neither n_cv
@@ -52,42 +51,42 @@ struct device_mesh
     //elements data part
 
     //vars buffers CONTAINS space for elements in [i0, i0+n_cv_all)
-    int                                             i0, n_cv_all;
+    Ord                                             i0, n_cv_all;
     //gpu OWN elements in [0,n_cv)
-    int                                             n_cv;
+    Ord                                             n_cv;
     //if is_homogeneous == true then all elements in mesh have the same elem_type
     bool                                            is_homogeneous;
     int                                             homogeneous_elem_type;  //valid only if is_homogeneous == true
     t_tensor1_field_tml<int,1,strg>                 elem_type;              //valid only if is_homogeneous == false
-    t_tensor1_field_tml<T,dim,strg>                 center;
-    t_tensor2_field_tml<T,max_faces_n,dim,strg>     center_neighbour;
-    t_tensor2_field_tml<T,max_faces_n,dim,strg>     center_faces;
-    t_tensor2_field_tml<T,max_vert_n,dim,strg>      vertexes;
-    t_tensor1_field_tml<int,max_faces_n,strg>       Neighbour;
-    t_tensor1_field_tml<int,max_faces_n,strg>       Neighbour_loc_iface;
-    t_tensor1_field_tml<int,max_faces_n,strg>       Boundary;
-    t_tensor1_field_tml<int,1,strg>                 Volume_id;
-    t_tensor2_field_tml<T,max_faces_n,dim,strg>     Norm;
+    t_tensor1_field_tml<T,Dim,strg>                 center;
+    t_tensor2_field_tml<T,max_faces_n,Dim,strg>     center_neighbour;
+    t_tensor2_field_tml<T,max_faces_n,Dim,strg>     center_faces;
+    t_tensor2_field_tml<T,max_vert_n,Dim,strg>      vertexes;
+    t_tensor1_field_tml<Ord,max_faces_n,strg>       Neighbour;
+    t_tensor1_field_tml<Ord,max_faces_n,strg>       Neighbour_loc_iface;
+    t_tensor1_field_tml<Ord,max_faces_n,strg>       Boundary;
+    t_tensor1_field_tml<Ord,1,strg>                 Volume_id;
+    t_tensor2_field_tml<T,max_faces_n,Dim,strg>     Norm;
     t_tensor1_field_tml<T,max_faces_n,strg>         faces_S;
     t_tensor1_field_tml<T,1,strg>                   Vol;
 
     //nodes data part
-    int                                             i0_nodes, n_nodes_all;
-    int                                             n_nodes;
-    t_tensor1_field_tml<T,dim,strg>                 node_coords;
-    t_tensor0_field_tml<int,strg>                   node_vol_id;
-    t_tensor0_field_tml<int,strg>                   node_bnd_id;
+    Ord                                             i0_nodes, n_nodes_all;
+    Ord                                             n_nodes;
+    t_tensor1_field_tml<T,Dim,strg>                 node_coords;
+    t_tensor0_field_tml<Ord,strg>                   node_vol_id;
+    t_tensor0_field_tml<Ord,strg>                   node_bnd_id;
 
     //elements to nodes graph part
-    t_tensor1_field_tml<int,max_vert_n,strg>        elem_node_ids;
+    t_tensor1_field_tml<Ord,max_vert_n,strg>        elem_node_ids;
 
     //nodes to elements graph part
-    int                                             node_2_elem_graph_sz;
-    t_tensor1_field_tml<int,2,strg>                 node_2_elem_graph_refs;
-    t_tensor0_field_tml<int,strg>                   node_2_elem_graph_elem_ids;
-    t_tensor0_field_tml<int,strg>                   node_2_elem_graph_node_ids;
+    Ord                                             node_2_elem_graph_sz;
+    t_tensor1_field_tml<Ord,2,strg>                 node_2_elem_graph_refs;
+    t_tensor0_field_tml<Ord,strg>                   node_2_elem_graph_elem_ids;
+    t_tensor0_field_tml<Ord,strg>                   node_2_elem_graph_node_ids;
 
-    __DEVICE_TAG__ int      get_elem_type(int i)const
+    __DEVICE_TAG__ int      get_elem_type(Ord i)const
     {
         if (is_homogeneous) return homogeneous_elem_type; else return elem_type(i,0);
     }
@@ -135,7 +134,7 @@ struct device_mesh
     {
         node_2_elem_graph_refs.init(n_nodes);
         node_2_elem_graph_sz = 0;
-        for(int i_ = 0;i_ < map_n.get_size();++i_) {
+        for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
             int     i_node_glob = map_n.own_glob_ind(i_);
             node_2_elem_graph_sz += cpu_mesh.node_2_cv_ids_ref[i_node_glob].second - cpu_mesh.node_2_cv_ids_ref[i_node_glob].first;
         }
@@ -147,96 +146,96 @@ struct device_mesh
     template<class MAP_ELEMS,class CPU_MESH>
     void    init_elems_data(const MAP_ELEMS &map_e, CPU_MESH &cpu_mesh)
     {
-        t_tensor1_field_view_tml<T,dim,strg>                    center_view(center, false);
-        for (int i = center_view.begin();i < center_view.end();i++) {
+        t_tensor1_field_view_tml<T,Dim,strg>                    center_view(center, false);
+        for (Ord i = center_view.begin();i < center_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             center_view.setv(i, cpu_mesh.cv[i_glob].center);
         }
         center_view.release();
 
-        t_tensor2_field_view_tml<T,max_faces_n,dim,strg>        center_neighbour_view(center_neighbour, false);
-        for (int i = center_neighbour_view.begin();i < center_neighbour_view.end();i++) {
+        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        center_neighbour_view(center_neighbour, false);
+        for (Ord i = center_neighbour_view.begin();i < center_neighbour_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
                 if (cpu_mesh.cv[i_glob].neighbours[j] != -1) 
                     center_neighbour_view.setv(i,j,cpu_mesh.cv[cpu_mesh.cv[i_glob].neighbours[j]].center);
         }
         center_neighbour_view.release();
 
-        t_tensor2_field_view_tml<T,max_faces_n,dim,strg>        center_faces_view(center_faces, false);
-        for (int i = center_faces_view.begin();i < center_faces_view.end();i++) {
+        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        center_faces_view(center_faces, false);
+        for (Ord i = center_faces_view.begin();i < center_faces_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
                 center_faces_view.setv(i,j,cpu_mesh.cv[i_glob].face_centers[j]);
         }
         center_faces_view.release();
 
-        t_tensor2_field_view_tml<T,max_vert_n,dim,strg>         vertexes_view(vertexes, false);
-        for (int i = vertexes_view.begin();i < vertexes_view.end();i++) {
+        t_tensor2_field_view_tml<T,max_vert_n,Dim,strg>         vertexes_view(vertexes, false);
+        for (Ord i = vertexes_view.begin();i < vertexes_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].vert_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].vert_n;++j)
                 vertexes_view.setv(i,j,cpu_mesh.cv[i_glob].vertexes[j]);
         }
         vertexes_view.release();
 
         t_tensor1_field_view_tml<T,1,strg>                      vol_view(Vol, false);
-        for (int i = vol_view.begin();i < vol_view.end();i++) {
+        for (Ord i = vol_view.begin();i < vol_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             vol_view(i,0) = cpu_mesh.cv[i_glob].vol;
         }
         vol_view.release();
 
         t_tensor1_field_view_tml<T,max_faces_n,strg>            faces_S_view(faces_S, false);
-        for (int i = faces_S_view.begin();i < faces_S_view.end();i++) {
+        for (Ord i = faces_S_view.begin();i < faces_S_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
                 faces_S_view(i,j) = cpu_mesh.cv[i_glob].S[j];
         }
         faces_S_view.release();
 
         //TODO add cv index-accessors
 
-        t_tensor2_field_view_tml<T,max_faces_n,dim,strg>        norm_view(Norm, false);
-        for(int i = norm_view.begin();i < norm_view.end();i++) {
+        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        norm_view(Norm, false);
+        for(Ord i = norm_view.begin();i < norm_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
                 norm_view.setv(i,j,cpu_mesh.cv[i_glob].norms[j]);
         }
         norm_view.release();
 
-        t_tensor1_field_view_tml<int,max_faces_n,strg>          neighbours_view(Neighbour, false);
-        for(int i = neighbours_view.begin();i < neighbours_view.end();i++) {
+        t_tensor1_field_view_tml<Ord,max_faces_n,strg>          neighbours_view(Neighbour, false);
+        for(Ord i = neighbours_view.begin();i < neighbours_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
                 if (cpu_mesh.cv[i_glob].neighbours[j] != -1) neighbours_view(i,j) = map_e.glob2loc(cpu_mesh.cv[i_glob].neighbours[j]); else neighbours_view(i,j) = CUDA_EMPTY_IDX;
         }
         neighbours_view.release();
 
-        t_tensor1_field_view_tml<int,max_faces_n,strg>          neighbours_loc_iface_view(Neighbour_loc_iface, false);
-        for(int i = neighbours_loc_iface_view.begin();i < neighbours_loc_iface_view.end();i++) {
+        t_tensor1_field_view_tml<Ord,max_faces_n,strg>          neighbours_loc_iface_view(Neighbour_loc_iface, false);
+        for(Ord i = neighbours_loc_iface_view.begin();i < neighbours_loc_iface_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
                 neighbours_loc_iface_view(i,j) = cpu_mesh.cv[i_glob].neighbours_loc_iface[j];
         }
         neighbours_loc_iface_view.release();
 
-        t_tensor1_field_view_tml<int,max_faces_n,strg>          boundaries_view(Boundary, false);
-        for(int i = boundaries_view.begin();i < boundaries_view.end();i++) {
+        t_tensor1_field_view_tml<Ord,max_faces_n,strg>          boundaries_view(Boundary, false);
+        for(Ord i = boundaries_view.begin();i < boundaries_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
                 boundaries_view(i,j) = cpu_mesh.cv[i_glob].boundaries[j];
         }
         boundaries_view.release();
 
-        t_tensor1_field_view_tml<int,1,strg>                    vol_id_view(Volume_id, false);
-        for(int i = vol_id_view.begin();i < vol_id_view.end();i++) {
+        t_tensor1_field_view_tml<Ord,1,strg>                    vol_id_view(Volume_id, false);
+        for(Ord i = vol_id_view.begin();i < vol_id_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             vol_id_view(i,0) = cpu_mesh.cv[i_glob].vol_id;
         }
         vol_id_view.release();
 
-        t_tensor1_field_view_tml<int,1,strg>                    elem_type_view(elem_type, false);
-        for(int i = elem_type_view.begin();i < elem_type_view.end();i++) {
+        t_tensor1_field_view_tml<Ord,1,strg>                    elem_type_view(elem_type, false);
+        for(Ord i = elem_type_view.begin();i < elem_type_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             elem_type_view(i,0) = cpu_mesh.cv[i_glob].elem_type;
         }
@@ -248,24 +247,24 @@ struct device_mesh
     template<class MAP_NODES,class CPU_MESH>
     void    init_nodes_data(const MAP_NODES &map_n, CPU_MESH &cpu_mesh)
     {
-        t_tensor1_field_view_tml<T,dim,strg>                 node_coords_view(node_coords, false);
-        for(int i_ = 0;i_ < map_n.get_size();++i_) {
+        t_tensor1_field_view_tml<T,Dim,strg>                 node_coords_view(node_coords, false);
+        for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
             int     i_glob = map_n.own_glob_ind(i_),
                 i_loc = map_n.own_loc_ind(i_);
             node_coords_view.setv(i_loc, cpu_mesh.nodes[i_glob].c);
         }
         node_coords_view.release();
 
-        t_tensor0_field_view_tml<int,strg>                   node_vol_id_view(node_vol_id, false);
-        for(int i_ = 0;i_ < map_n.get_size();++i_) {
+        t_tensor0_field_view_tml<Ord,strg>                   node_vol_id_view(node_vol_id, false);
+        for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
             int     i_glob = map_n.own_glob_ind(i_),
                 i_loc = map_n.own_loc_ind(i_);
             node_vol_id_view(i_loc) = cpu_mesh.nodes[i_glob].vol_id;
         }
         node_vol_id_view.release();
 
-        t_tensor0_field_view_tml<int,strg>                   node_bnd_id_view(node_bnd_id, false);
-        for(int i_ = 0;i_ < map_n.get_size();++i_) {
+        t_tensor0_field_view_tml<Ord,strg>                   node_bnd_id_view(node_bnd_id, false);
+        for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
             int     i_glob = map_n.own_glob_ind(i_),
                 i_loc = map_n.own_loc_ind(i_);
             node_bnd_id_view(i_loc) = cpu_mesh.nodes[i_glob].bnd_id;
@@ -275,11 +274,11 @@ struct device_mesh
     template<class MAP_ELEMS,class MAP_NODES,class CPU_MESH>
     void    init_elem_node_ids_data(const MAP_ELEMS &map_e, const MAP_NODES &map_n, CPU_MESH &cpu_mesh)
     {
-        t_tensor1_field_view_tml<int,max_vert_n,strg>   elem_node_ids_view(elem_node_ids, false);
-        for(int i_ = 0;i_ < map_e.get_size();i_++) {
+        t_tensor1_field_view_tml<Ord,max_vert_n,strg>   elem_node_ids_view(elem_node_ids, false);
+        for(Ord i_ = 0;i_ < map_e.get_size();i_++) {
             int     i_glob = map_e.own_glob_ind(i_),
                 i_loc = map_e.own_loc_ind(i_);
-            for (int vert_i = 0;vert_i < cpu_mesh.cv[i_glob].vert_n;++vert_i) {
+            for (Ord vert_i = 0;vert_i < cpu_mesh.cv[i_glob].vert_n;++vert_i) {
                 elem_node_ids_view(i_loc,vert_i) = map_n.glob2loc( cpu_mesh.cv_2_node_ids[i_glob].ids[vert_i] );
             }
         }
@@ -288,11 +287,11 @@ struct device_mesh
     template<class MAP_ELEMS,class MAP_NODES,class CPU_MESH>
     void    init_node_2_elem_graph_data(const MAP_ELEMS &map_e, const MAP_NODES &map_n, CPU_MESH &cpu_mesh)
     {
-        t_tensor1_field_view_tml<int,2,strg>            node_2_elem_graph_refs_view(node_2_elem_graph_refs, false);
-        t_tensor0_field_view_tml<int,strg>              node_2_elem_graph_elem_ids_view(node_2_elem_graph_elem_ids, false);
-        t_tensor0_field_view_tml<int,strg>              node_2_elem_graph_node_ids_view(node_2_elem_graph_node_ids, false);
-        int                                             curr_graph_loc_idx = 0;
-        for(int i_ = 0;i_ < map_n.get_size();++i_) {
+        t_tensor1_field_view_tml<Ord,2,strg>            node_2_elem_graph_refs_view(node_2_elem_graph_refs, false);
+        t_tensor0_field_view_tml<Ord,strg>              node_2_elem_graph_elem_ids_view(node_2_elem_graph_elem_ids, false);
+        t_tensor0_field_view_tml<Ord,strg>              node_2_elem_graph_node_ids_view(node_2_elem_graph_node_ids, false);
+        Ord                                             curr_graph_loc_idx = 0;
+        for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
             int     i_node_glob = map_n.own_glob_ind(i_),
                 i_node_loc = map_n.own_loc_ind(i_);
             node_2_elem_graph_refs_view(i_node_loc, 0) = curr_graph_loc_idx;
@@ -312,59 +311,59 @@ struct device_mesh
     template<class MAP_ELEMS,class CPU_MESH>
     void    dump_elems_geom_data(const MAP_ELEMS &map_e, CPU_MESH &cpu_mesh)const
     {
-        t_tensor1_field_view_tml<T,dim,strg>                    center_view(center, true);
-        for (int i = center_view.begin();i < center_view.end();i++) {
+        t_tensor1_field_view_tml<T,Dim,strg>                    center_view(center, true);
+        for (Ord i = center_view.begin();i < center_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             center_view.getv(i, cpu_mesh.cv[i_glob].center);
         }
         center_view.release(false);
 
-        t_tensor2_field_view_tml<T,max_faces_n,dim,strg>        center_neighbour_view(center_neighbour, true);
-        for (int i = center_neighbour_view.begin();i < center_neighbour_view.end();i++) {
+        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        center_neighbour_view(center_neighbour, true);
+        for (Ord i = center_neighbour_view.begin();i < center_neighbour_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
                 if (cpu_mesh.cv[i_glob].neighbours[j] != -1) 
                     center_neighbour_view.getv(i,j,cpu_mesh.cv[cpu_mesh.cv[i_glob].neighbours[j]].center);
         }
         center_neighbour_view.release(false);
 
-        t_tensor2_field_view_tml<T,max_faces_n,dim,strg>        center_faces_view(center_faces, true);
-        for (int i = center_faces_view.begin();i < center_faces_view.end();i++) {
+        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        center_faces_view(center_faces, true);
+        for (Ord i = center_faces_view.begin();i < center_faces_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
                 center_faces_view.getv(i,j,cpu_mesh.cv[i_glob].face_centers[j]);
         }
         center_faces_view.release(false);
 
-        t_tensor2_field_view_tml<T,max_vert_n,dim,strg>         vertexes_view(vertexes, true);
-        for (int i = vertexes_view.begin();i < vertexes_view.end();i++) {
+        t_tensor2_field_view_tml<T,max_vert_n,Dim,strg>         vertexes_view(vertexes, true);
+        for (Ord i = vertexes_view.begin();i < vertexes_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].vert_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].vert_n;++j)
                 vertexes_view.getv(i,j,cpu_mesh.cv[i_glob].vertexes[j]);
         }
         vertexes_view.release(false);
 
         t_tensor1_field_view_tml<T,1,strg>                      vol_view(Vol, true);
-        for (int i = vol_view.begin();i < vol_view.end();i++) {
+        for (Ord i = vol_view.begin();i < vol_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             cpu_mesh.cv[i_glob].vol = vol_view(i,0);
         }
         vol_view.release(false);
 
         t_tensor1_field_view_tml<T,max_faces_n,strg>            faces_S_view(faces_S, true);
-        for (int i = faces_S_view.begin();i < faces_S_view.end();i++) {
+        for (Ord i = faces_S_view.begin();i < faces_S_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
                 cpu_mesh.cv[i_glob].S[j] = faces_S_view(i,j);
         }
         faces_S_view.release(false);
 
         //TODO add cv index-accessors
 
-        t_tensor2_field_view_tml<T,max_faces_n,dim,strg>        norm_view(Norm, true);
-        for(int i = norm_view.begin();i < norm_view.end();i++) {
+        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        norm_view(Norm, true);
+        for(Ord i = norm_view.begin();i < norm_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
-            for (int j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
+            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
                 norm_view.getv(i,j,cpu_mesh.cv[i_glob].norms[j]);
         }
         norm_view.release(false);
@@ -372,8 +371,8 @@ struct device_mesh
     template<class MAP_NODES,class CPU_MESH>
     void    dump_nodes_geom_data(const MAP_NODES &map_n, CPU_MESH &cpu_mesh)const
     {
-        t_tensor1_field_view_tml<T,dim,strg>                    node_coords_view(node_coords, true);
-        for(int i_ = 0;i_ < map_n.get_size();++i_) {
+        t_tensor1_field_view_tml<T,Dim,strg>                    node_coords_view(node_coords, true);
+        for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
             int     i_glob = map_n.own_glob_ind(i_),
                 i_loc = map_n.own_loc_ind(i_);
             node_coords_view.getv(i_loc, cpu_mesh.nodes[i_glob].c);

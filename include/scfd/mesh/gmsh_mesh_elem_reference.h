@@ -69,32 +69,39 @@
 
 */
 
-
-//TODO we don't account for these macros below when initilize this structure (i.e. we initialize data for hexahedra whatever MESH_ELEM_REFERENCE_ELEM_TYPES_N equals)
-//if these macros somehow will be changed we can get some errors
-//on the other hand i don't see any porblems with storing ALL possible element types data
-
-#define MESH_ELEM_REFERENCE_ELEM_TYPES_N 8
-#define MESH_ELEM_REFERENCE_MAX_FACES_N 6
-#define MESH_ELEM_REFERENCE_MAX_VERT_N 8
-#define MESH_ELEM_REFERENCE_FACE_MAX_VERT_N 4
-
 namespace scfd
 {
 namespace mesh
 {
 
-template<class T>
+/**
+* Think that Dim abstraction is not needed (on level of mesh all elements are 3d)
+* Ordinal is also not needed (not much elements, int is more then enoght)
+*/
+
+//TODO we don't account for these parameters (ElemTypesNum,...) below when initilize this 
+//structure (i.e. we initialize data for hexahedra whatever ElemTypesNum equals)
+//if these macros somehow will be changed we can get some errors
+//on the other hand i don't see any porblems with storing ALL possible element types data
+
+template
+<
+    class T,
+    int ElemTypesNum = 8,
+    int MaxFacesNum = 6,
+    int MaxVertsNum = 8,
+    int FaceMaxVertsNum = 4
+>
 struct gmsh_mesh_elem_reference
 {
     typedef t_vec_tml<T,3>  t_vec;
 
-    int             faces_n[MESH_ELEM_REFERENCE_ELEM_TYPES_N];
-    int             verts_n[MESH_ELEM_REFERENCE_ELEM_TYPES_N];
-    t_vec           verts[MESH_ELEM_REFERENCE_ELEM_TYPES_N][MESH_ELEM_REFERENCE_MAX_VERT_N];
-    int             face_elem_type[MESH_ELEM_REFERENCE_ELEM_TYPES_N][MESH_ELEM_REFERENCE_MAX_FACES_N];
-    int             face_verts_n[MESH_ELEM_REFERENCE_ELEM_TYPES_N][MESH_ELEM_REFERENCE_MAX_FACES_N];
-    int             face_verts[MESH_ELEM_REFERENCE_ELEM_TYPES_N][MESH_ELEM_REFERENCE_MAX_FACES_N][MESH_ELEM_REFERENCE_FACE_MAX_VERT_N];
+    int             faces_n[ElemTypesNum];
+    int             verts_n[ElemTypesNum];
+    t_vec           verts[ElemTypesNum][MaxVertsNum];
+    int             face_elem_type[ElemTypesNum][MaxFacesNum];
+    int             face_verts_n[ElemTypesNum][MaxFacesNum];
+    int             face_verts[ElemTypesNum][MaxFacesNum][FaceMaxVertsNum];
 
     __DEVICE_TAG__ int              get_faces_n(int elem_type)const
     {
@@ -146,21 +153,21 @@ struct gmsh_mesh_elem_reference
     {
         return verts[elem_type][ face_verts[elem_type][face_i][vert_i] ][j];
     }
-    __DEVICE_TAG__ void             get_face_verts(int elem_type,int face_i, t_vec vertexes[MESH_ELEM_REFERENCE_FACE_MAX_VERT_N])const
+    __DEVICE_TAG__ void             get_face_verts(int elem_type,int face_i, t_vec vertexes[FaceMaxVertsNum])const
     {
         //to make unroll possible
         //TODO excplicit unroll??
-        for (int i = 0;i < MESH_ELEM_REFERENCE_FACE_MAX_VERT_N;++i) {
+        for (int i = 0;i < FaceMaxVertsNum;++i) {
             if (i == get_face_verts_n(elem_type, face_i)) break;
             vertexes[i] = get_face_vert(elem_type,face_i, i);
         }
     }
 
-    __DEVICE_TAG__ void             get_face_verts_phys(int elem_type, const t_vec *elem_vertexes,int face_i, t_vec vertexes[MESH_ELEM_REFERENCE_FACE_MAX_VERT_N])const
+    __DEVICE_TAG__ void             get_face_verts_phys(int elem_type, const t_vec *elem_vertexes,int face_i, t_vec vertexes[FaceMaxVertsNum])const
     {
         //to make unroll possible
         //TODO excplicit unroll??
-        for (int i = 0;i < MESH_ELEM_REFERENCE_FACE_MAX_VERT_N;++i) {
+        for (int i = 0;i < FaceMaxVertsNum;++i) {
             if (i == get_face_verts_n(elem_type, face_i)) break;
             ref_to_phys(elem_type, elem_vertexes, get_face_vert(elem_type,face_i, i), vertexes[i]);
         }
