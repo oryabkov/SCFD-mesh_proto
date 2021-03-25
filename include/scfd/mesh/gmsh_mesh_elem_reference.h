@@ -19,8 +19,8 @@
 
 //TODO mesh/device_tag.h is temporal
 
-#include <utils/device_tag.h>
-#include <vecs_mats/t_vec_tml.h>
+#include <scfd/utils/device_tag.h>
+#include <scfd/static_vec/vec.h>
 
 //NOTE all element types, vertexes and faces enumerations, local coordinate systes are synced with gmsh system
 //for more visit http://gmsh.info/doc/texinfo/gmsh.html :
@@ -94,11 +94,11 @@ template
 >
 struct gmsh_mesh_elem_reference
 {
-    typedef t_vec_tml<T,3>  t_vec;
+    using vec = static_vec::vec<T,3>;
 
     int             faces_n[ElemTypesNum];
     int             verts_n[ElemTypesNum];
-    t_vec           verts[ElemTypesNum][MaxVertsNum];
+    vec             verts[ElemTypesNum][MaxVertsNum];
     int             face_elem_type[ElemTypesNum][MaxFacesNum];
     int             face_verts_n[ElemTypesNum][MaxFacesNum];
     int             face_verts[ElemTypesNum][MaxFacesNum][FaceMaxVertsNum];
@@ -113,12 +113,12 @@ struct gmsh_mesh_elem_reference
         return verts_n[elem_type];
         //TODO elem_type error
     }
-    __DEVICE_TAG__ const t_vec      &get_vert(int elem_type,int vert_i)const
+    __DEVICE_TAG__ const vec        &get_vert(int elem_type,int vert_i)const
     {
         return verts[elem_type][vert_i];
         //TODO elem_type/vert_i error
     }
-    __DEVICE_TAG__ void             get_vert(int elem_type,int vert_i, t_vec &res)const
+    __DEVICE_TAG__ void             get_vert(int elem_type,int vert_i, vec &res)const
     {
         res = verts[elem_type][vert_i];
         //TODO elem_type/vert_i error
@@ -141,11 +141,11 @@ struct gmsh_mesh_elem_reference
     {
         return face_verts[elem_type][face_i][face_vert_i];
     }
-    __DEVICE_TAG__ const t_vec      &get_face_vert(int elem_type,int face_i, int vert_i)const
+    __DEVICE_TAG__ const vec        &get_face_vert(int elem_type,int face_i, int vert_i)const
     {
         return verts[elem_type][ face_verts[elem_type][face_i][vert_i] ];
     }
-    __DEVICE_TAG__ void             get_face_vert(int elem_type,int face_i, int vert_i, t_vec &res)const
+    __DEVICE_TAG__ void             get_face_vert(int elem_type,int face_i, int vert_i, vec &res)const
     {
         res = verts[elem_type][ face_verts[elem_type][face_i][vert_i] ];
     }
@@ -153,7 +153,7 @@ struct gmsh_mesh_elem_reference
     {
         return verts[elem_type][ face_verts[elem_type][face_i][vert_i] ][j];
     }
-    __DEVICE_TAG__ void             get_face_verts(int elem_type,int face_i, t_vec vertexes[FaceMaxVertsNum])const
+    __DEVICE_TAG__ void             get_face_verts(int elem_type,int face_i, vec vertexes[FaceMaxVertsNum])const
     {
         //to make unroll possible
         //TODO excplicit unroll??
@@ -163,7 +163,7 @@ struct gmsh_mesh_elem_reference
         }
     }
 
-    __DEVICE_TAG__ void             get_face_verts_phys(int elem_type, const t_vec *elem_vertexes,int face_i, t_vec vertexes[FaceMaxVertsNum])const
+    __DEVICE_TAG__ void             get_face_verts_phys(int elem_type, const vec *elem_vertexes,int face_i, vec   vertexes[FaceMaxVertsNum])const
     {
         //to make unroll possible
         //TODO excplicit unroll??
@@ -180,7 +180,7 @@ struct gmsh_mesh_elem_reference
     //TODO for now seems that it has too many if's clauses so it's better not use it frequently; for now it's used only in preface
     //unfortunatly i did not figure out how to make all this static (there is no template methods specialization inside template classes)
     //NOTE for plananr elements 3rd component in reference coordinates is simply ignored
-    __DEVICE_TAG__ T                shape_func(int elem_type, int vert_i,const t_vec &ref)const
+    __DEVICE_TAG__ T                shape_func(int elem_type, int vert_i,const vec &ref)const
     {
         if (elem_type == 2) {
             if (vert_i == 0) return (T(1.f) - ref[0] - ref[1]); else
@@ -212,7 +212,7 @@ struct gmsh_mesh_elem_reference
             //TODO others
         }
     }
-    __DEVICE_TAG__ T                shape_func_der(int elem_type, int vert_i,const t_vec &ref, int j)const
+    __DEVICE_TAG__ T                shape_func_der(int elem_type, int vert_i,const vec &ref, int j)const
     {
         if (elem_type == 2) {
             if (j == 2) return T(0.f);
@@ -253,9 +253,9 @@ struct gmsh_mesh_elem_reference
             //TODO others
         }
     }
-    //TODO we use pointer to t_vec here which is unaccaptable for __device__ code
+    //TODO we use pointer to vec   here which is unaccaptable for __device__ code
     //for 2d elements eembedded in 3d this is not actualy Jacobian but rather metric multiplier that appears in surface integral
-    __DEVICE_TAG__ T                ref_to_phys_jacob_det(int elem_type, const t_vec *vertexes, const t_vec &ref)const
+    __DEVICE_TAG__ T                ref_to_phys_jacob_det(int elem_type, const vec *vertexes, const vec   &ref)const
     {
         if (is_3d(elem_type)) {
             T       J[3][3];
@@ -269,7 +269,7 @@ struct gmsh_mesh_elem_reference
             }
             return mat33_det(J);
         } else {
-            t_vec   r_u, r_v;
+            vec     r_u, r_v;
             for (int i = 0;i < 3;++i) {
                 r_u[i] = T(0.f);
                 r_v[i] = T(0.f);
@@ -287,7 +287,7 @@ struct gmsh_mesh_elem_reference
     }
     //TODO see shape_func comment and ref_to_phys_jacob_det comment
     //NOTE for plananr elements 3rd component in reference coordinates is simply ignored
-    __DEVICE_TAG__ void             ref_to_phys(int elem_type, const t_vec *vertexes, const t_vec &ref, t_vec &res)const
+    __DEVICE_TAG__ void             ref_to_phys(int elem_type, const vec *vertexes, const vec &ref, vec &res)const
     {
         if (elem_type == 2) {
             for (int j = 0;j < 3;++j) {
@@ -354,35 +354,35 @@ struct gmsh_mesh_elem_reference
         //from gmsh source files, i.e. Geo/MTetrahedron.h, Geo/MHexahedron.h, etc (getNode method)
 
         //triangle vertexes
-        verts[2][0] = t_vec(0., 0., 0.);
-        verts[2][1] = t_vec(1., 0., 0.);
-        verts[2][2] = t_vec(0., 1., 0.);
+        verts[2][0] = vec(0., 0., 0.);
+        verts[2][1] = vec(1., 0., 0.);
+        verts[2][2] = vec(0., 1., 0.);
         //quadrangle vertexes
-        verts[3][0] = t_vec(-1., -1., 0.);
-        verts[3][1] = t_vec( 1., -1., 0.);
-        verts[3][2] = t_vec( 1.,  1., 0.);
-        verts[3][3] = t_vec(-1.,  1., 0.);
+        verts[3][0] = vec(-1., -1., 0.);
+        verts[3][1] = vec( 1., -1., 0.);
+        verts[3][2] = vec( 1.,  1., 0.);
+        verts[3][3] = vec(-1.,  1., 0.);
         //tetrahedron vertexes
-        verts[4][0] = t_vec(0., 0., 0.);
-        verts[4][1] = t_vec(1., 0., 0.);
-        verts[4][2] = t_vec(0., 1., 0.);
-        verts[4][3] = t_vec(0., 0., 1.);
+        verts[4][0] = vec(0., 0., 0.);
+        verts[4][1] = vec(1., 0., 0.);
+        verts[4][2] = vec(0., 1., 0.);
+        verts[4][3] = vec(0., 0., 1.);
         //hexahedron vertexes
-        verts[5][0] = t_vec(-1., -1., -1.);
-        verts[5][1] = t_vec( 1., -1., -1.);
-        verts[5][2] = t_vec( 1.,  1., -1.);
-        verts[5][3] = t_vec(-1.,  1., -1.);
-        verts[5][4] = t_vec(-1., -1.,  1.);
-        verts[5][5] = t_vec( 1., -1.,  1.);
-        verts[5][6] = t_vec( 1.,  1.,  1.);
-        verts[5][7] = t_vec(-1.,  1.,  1.);
+        verts[5][0] = vec(-1., -1., -1.);
+        verts[5][1] = vec( 1., -1., -1.);
+        verts[5][2] = vec( 1.,  1., -1.);
+        verts[5][3] = vec(-1.,  1., -1.);
+        verts[5][4] = vec(-1., -1.,  1.);
+        verts[5][5] = vec( 1., -1.,  1.);
+        verts[5][6] = vec( 1.,  1.,  1.);
+        verts[5][7] = vec(-1.,  1.,  1.);
         //prism vertexes
-        verts[6][0] = t_vec( 0.,  0., -1.);
-        verts[6][1] = t_vec( 1.,  0., -1.);
-        verts[6][2] = t_vec( 0.,  1., -1.);
-        verts[6][3] = t_vec( 0.,  0.,  1.);
-        verts[6][4] = t_vec( 1.,  0.,  1.);
-        verts[6][5] = t_vec( 0.,  1.,  1.);
+        verts[6][0] = vec( 0.,  0., -1.);
+        verts[6][1] = vec( 1.,  0., -1.);
+        verts[6][2] = vec( 0.,  1., -1.);
+        verts[6][3] = vec( 0.,  0.,  1.);
+        verts[6][4] = vec( 1.,  0.,  1.);
+        verts[6][5] = vec( 0.,  1.,  1.);
         //TODO other types
 
         //faces types
