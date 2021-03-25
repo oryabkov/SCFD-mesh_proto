@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef __T_GPU_MESH_TML_H__
-#define __T_GPU_MESH_TML_H__
+#ifndef __SCFD_MESH_DEVICE_MESH_H__
+#define __SCFD_MESH_DEVICE_MESH_H__
 
 #include <tensor_field/t_tensor_field_tml.h>
 
@@ -39,7 +39,7 @@
 
 //ISSUE should not we make own flag?? (because this structure is copied to const memory)
 template<class T,int dim = 3, int max_faces_n = GPU_MESH_DEFAULT_MAX_FACES_N, int max_vert_n = GPU_MESH_DEFAULT_MAX_VERT_N, t_tensor_field_storage strg = TFS_DEVICE>
-struct t_gpu_mesh_tml
+struct device_mesh
 {
         //ISSUE neither n_cv
         //but i0, n_cv_all somehow does
@@ -376,7 +376,7 @@ struct t_gpu_mesh_tml
                 node_coords_view.release(false);
         }
 
-        ~t_gpu_mesh_tml()
+        ~device_mesh()
         {
         }
 };

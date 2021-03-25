@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef __T_MESH_ELEM_REFERENCE_TML_H__
-#define __T_MESH_ELEM_REFERENCE_TML_H__
+#ifndef __SCFD_MESH_GMSH_MESH_ELEM_REFERENCE_H__
+#define __SCFD_MESH_GMSH_MESH_ELEM_REFERENCE_H__
 
 //TODO mesh/device_tag.h is temporal
 
@@ -80,7 +80,7 @@
 #define MESH_ELEM_REFERENCE_FACE_MAX_VERT_N 4
 
 template<class T>
-struct t_mesh_elem_reference_tml
+struct gmsh_mesh_elem_reference
 {
         typedef t_vec_tml<T,3>  t_vec;
 
@@ -322,7 +322,7 @@ struct t_mesh_elem_reference_tml
                 }
         }
 
-        t_mesh_elem_reference_tml()
+        gmsh_mesh_elem_reference()
         {
                 faces_n[2] = 3;
                 faces_n[3] = 4;
