@@ -76,8 +76,8 @@ struct device_mesh
     Ord                                             i0_nodes, n_nodes_all;
     Ord                                             n_nodes;
     tensor1_array<T,Memory,Dim>                     node_coords;
-    t_tensor0_field_tml<Ord,Memory>                 node_vol_id;
-    t_tensor0_field_tml<Ord,Memory>                 node_bnd_id;
+    tensor0_array<Ord,Memory>                       node_vol_id;
+    tensor0_array<Ord,Memory>                       node_bnd_id;
 
     //elements to nodes graph part
     tensor1_array<Ord,Memory,max_vert_n>            elem_node_ids;
@@ -85,8 +85,8 @@ struct device_mesh
     //nodes to elements graph part
     Ord                                             node_2_elem_graph_sz;
     tensor1_array<Ord,Memory,2>                     node_2_elem_graph_refs;
-    t_tensor0_field_tml<Ord,Memory>                 node_2_elem_graph_elem_ids;
-    t_tensor0_field_tml<Ord,Memory>                 node_2_elem_graph_node_ids;
+    tensor0_array<Ord,Memory>                       node_2_elem_graph_elem_ids;
+    tensor0_array<Ord,Memory>                       node_2_elem_graph_node_ids;
 
     __DEVICE_TAG__ int      get_elem_type(Ord i)const
     {
