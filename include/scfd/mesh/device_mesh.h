@@ -155,14 +155,14 @@ struct device_mesh
     template<class MapElems,class CPU_MESH>
     void    init_elems_data(const MapElems &map_e, CPU_MESH &cpu_mesh)
     {
-        t_tensor1_field_view_tml<T,Dim,strg>                    center_view = center.create_view(false);
+        auto                    center_view = center.create_view(false);
         for (Ord i = center_view.begin();i < center_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             center_view.setv(i, cpu_mesh.cv[i_glob].center);
         }
         center_view.release();
 
-        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        center_neighbour_view = center_neighbour.create_view(false);
+        auto        center_neighbour_view = center_neighbour.create_view(false);
         for (Ord i = center_neighbour_view.begin();i < center_neighbour_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
@@ -171,7 +171,7 @@ struct device_mesh
         }
         center_neighbour_view.release();
 
-        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        center_faces_view = center_faces.create_view(false);
+        auto        center_faces_view = center_faces.create_view(false);
         for (Ord i = center_faces_view.begin();i < center_faces_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
@@ -179,7 +179,7 @@ struct device_mesh
         }
         center_faces_view.release();
 
-        t_tensor2_field_view_tml<T,max_vert_n,Dim,strg>         vertexes_view = vertexes.create_view(false);
+        auto         vertexes_view = vertexes.create_view(false);
         for (Ord i = vertexes_view.begin();i < vertexes_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             for (Ord j = 0;j < cpu_mesh.cv[i_glob].vert_n;++j)
@@ -204,7 +204,7 @@ struct device_mesh
 
         //TODO add cv index-accessors
 
-        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        norm_view = Norm.create_view(false);
+        auto        norm_view = Norm.create_view(false);
         for(Ord i = norm_view.begin();i < norm_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
@@ -327,7 +327,7 @@ struct device_mesh
         }
         center_view.release(false);
 
-        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        center_neighbour_view = center_neighbour.create_view(true);
+        auto        center_neighbour_view = center_neighbour.create_view(true);
         for (Ord i = center_neighbour_view.begin();i < center_neighbour_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
@@ -336,7 +336,7 @@ struct device_mesh
         }
         center_neighbour_view.release(false);
 
-        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        center_faces_view = center_faces.create_view(true);
+        auto        center_faces_view = center_faces.create_view(true);
         for (Ord i = center_faces_view.begin();i < center_faces_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
@@ -344,7 +344,7 @@ struct device_mesh
         }
         center_faces_view.release(false);
 
-        t_tensor2_field_view_tml<T,max_vert_n,Dim,strg>         vertexes_view = vertexes.create_view(true);
+        auto         vertexes_view = vertexes.create_view(true);
         for (Ord i = vertexes_view.begin();i < vertexes_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             for (Ord j = 0;j < cpu_mesh.cv[i_glob].vert_n;++j)
@@ -369,7 +369,7 @@ struct device_mesh
 
         //TODO add cv index-accessors
 
-        t_tensor2_field_view_tml<T,max_faces_n,Dim,strg>        norm_view = Norm.create_view(true);
+        auto        norm_view = Norm.create_view(true);
         for(Ord i = norm_view.begin();i < norm_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
             for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
