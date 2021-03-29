@@ -31,3 +31,10 @@ gmsh save, Salome does not support this format).
 
 For now, this is only prototype and no direct relation with SCFD is supported (for example, not copied in 'all' repo of SCFD). When main features are outlined new module (perhaps, called 'mesh')
 will be created and this repo will be depricated.
+
+  #Abstractions
+We need some low-level host mesh wrap (elements,nodes,tags). Because of tags organization in gmsh
+we cannot directly use GModel + some traits, distinct class is needed. Also types conversion will be performed there.
+
+We also need some higher level host mesh abstraction that will create more internal information
+(faces, neigbours, nodes to elements graph, etc...).
