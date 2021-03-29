@@ -79,7 +79,27 @@ public:
     {
 
     }
+    Ord get_elems_max_prim_nodes_num()const
+    {
+                
+    }
+    Ord get_elems_max_nodes_num()const
+    {
+
+    }
+    Ord get_elem_prim_nodes_num(Ord i)const
+    {
+
+    }
     void get_elem_prim_nodes(Ord i, Ord *nodes)const
+    {
+
+    }
+    Ord get_elem_nodes_num(Ord i)const
+    {
+
+    }
+    void get_elem_nodes(Ord i, Ord *nodes)const
     {
 
     }
