@@ -54,12 +54,27 @@ public:
 
 public:
     /// No 'empty' state
-    gmsh_mesh_wrap(const std::string &fn)
+    gmsh_mesh_wrap()
     {
         /// Initialization
-
-        /// Read mesh
         g_model_ = std::make_shared<GModel>();
+    }
+
+    void set_mesh_filename(const std::string &fn)
+    {
+        fn_ = fn;
+    }
+    void read()
+    {
+        /// Read mesh
+        gmsh::open(fn_);
+        /// Check for errors
+        
+    }
+    template<class MapElems>
+    void read(const MapElems &map, Ord ghost_level = 1)
+    {
+        
         if (!g_model_->readMSH(fn)) 
         {
             throw file_read_error("gmsh_mesh_wrap::gmsh_mesh_wrap()",fn);
@@ -68,7 +83,6 @@ public:
         /// Calculate elements_index_shift
 
         /// Init elements_tags
-
     }
 
     elem_type_ordinal_type get_elem_type(Ord i)const
@@ -114,9 +128,12 @@ private:
     using elem_type_ord_t = elem_type_ordinal_type;
 
 private:
-    std::shared_ptr<GModel>         g_model_;
-    Ord                             elements_index_shift;
-    std::map<Ord,Ord>               elements_tags;
+    std::string                     fn_;
+    //No objects in new gmsh API
+    //std::shared_ptr<GModel>         g_model_;
+    std::string                     gmsh_model_name_;
+    Ord                             elements_index_shift_;
+    std::map<Ord,Ord>               elements_tags_;
 };
 
 }  /// namespace mesh
