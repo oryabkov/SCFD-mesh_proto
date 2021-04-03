@@ -17,13 +17,14 @@
 #include <memory>
 #include <stdexcept>
 #include <map>
-#include "Gmsh.h"
-#include "GModel.h"
-#include "MElement.h"
-#include "MQuadrangle.h"
-#include "MTriangle.h"
-#include "MPrism.h"
-#include "MTetrahedron.h"
+#include <limits>
+#include <gmsh/GmshGlobal.h>
+#include <gmsh/GModel.h>
+#include <gmsh/MElement.h>
+#include <gmsh/MQuadrangle.h>
+#include <gmsh/MTriangle.h>
+#include <gmsh/MPrism.h>
+#include <gmsh/MTetrahedron.h>
 
 #ifndef __SCFD_MESH_GMSH_MESH_WRAP_H__
 #define __SCFD_MESH_GMSH_MESH_WRAP_H__
@@ -67,22 +68,50 @@ public:
     void read()
     {
         /// Read mesh
-        gmsh::open(fn_);
-        /// Check for errors
-        
+        if (!g_model_->readMSH(fn_)) 
+        {
+            throw file_read_error("gmsh_mesh_wrap::read(): ",fn);
+        }
+
+        std::vector<GEntity*> entities;
+        g_model_->getEntities(entities, dim);
+
+        /// Build elements_index_shift_ and check tags contigiousness
+        Ord elems_n = g_model_->getNumMeshElements(dim),
+            min_elem_tag = std::numeric_limits<int>::max(),
+            max_elem_tag = std::numeric_limits<int>::min();
+        for (auto e : entities)
+        {
+            for (Ord j = 0; j < e->getNumMeshElements(); ++j)
+            {
+                MElement *s = e->getMeshElement(j);
+                min_elem_tag = std::min(min_elem_tag,s->getNum());
+                max_elem_tag = std::max(max_elem_tag,s->getNum());
+            }
+        }
+        if (max_elem_tag+1-min_elem_tag != elems_n)
+            throw 
+                std::logic_error
+                (
+                    "gmsh_mesh_wrap::read(): case of non-contigious tags is not supported yet"
+                );
+        elements_index_shift_ = min_elem_tag;
+
+        /// Build entities tags map and nodes to elements graph
+        for (auto e : entities)
+        {
+            for (Ord j = 0; j < e->getNumMeshElements(); ++j)
+            {
+                MElement *s = e->getMeshElement(j);
+                Ord elem_i = elem_tag_to_elem_i(s->getNum());
+                elements_group_ids_[elem_i] = e->tag();
+            }
+        }
     }
     template<class MapElems>
     void read(const MapElems &map, Ord ghost_level = 1)
     {
         
-        if (!g_model_->readMSH(fn)) 
-        {
-            throw file_read_error("gmsh_mesh_wrap::gmsh_mesh_wrap()",fn);
-        }
-
-        /// Calculate elements_index_shift
-
-        /// Init elements_tags
     }
 
     elem_type_ordinal_type get_elem_type(Ord i)const
@@ -129,11 +158,20 @@ private:
 
 private:
     std::string                     fn_;
-    //No objects in new gmsh API
-    //std::shared_ptr<GModel>         g_model_;
-    std::string                     gmsh_model_name_;
+    /// Stick to old private C++ API
+    std::shared_ptr<GModel>         g_model_;
     Ord                             elements_index_shift_;
-    std::map<Ord,Ord>               elements_tags_;
+    std::map<Ord,Ord>               elements_group_ids_;
+
+    /// Converts internal gmsh tag into 'visible' element index
+    Ord elem_tag_to_elem_i(Ord elem_tag)const
+    {
+        return elem_tag - elements_index_shift_;
+    }
+    Ord elem_i_to_elem_tag(Ord elem_i)const
+    {
+        return elem_i + elements_index_shift_;
+    }
 };
 
 }  /// namespace mesh
