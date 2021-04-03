@@ -61,6 +61,7 @@ public:
         g_model_ = std::make_shared<GModel>();
     }
 
+    /// Following reads are gmsh specific (not part of BasicMesh concept)
     void set_mesh_filename(const std::string &fn)
     {
         fn_ = fn;
@@ -76,10 +77,13 @@ public:
         std::vector<GEntity*> entities;
         g_model_->getEntities(entities, dim);
 
-        /// Build elements_index_shift_ and check tags contigiousness
+        /// Calc elements_index_shift_, elems_max_prim_nodes_num_, elems_max_nodes_num_
+        /// and check for elements tags contigiousness
         Ord elems_n = g_model_->getNumMeshElements(dim),
             min_elem_tag = std::numeric_limits<int>::max(),
             max_elem_tag = std::numeric_limits<int>::min();
+        elems_max_prim_nodes_num_ = 0;
+        elems_max_nodes_num_ = 0;
         for (auto e : entities)
         {
             for (Ord j = 0; j < e->getNumMeshElements(); ++j)
@@ -87,6 +91,8 @@ public:
                 MElement *s = e->getMeshElement(j);
                 min_elem_tag = std::min(min_elem_tag,s->getNum());
                 max_elem_tag = std::max(max_elem_tag,s->getNum());
+                elems_max_prim_nodes_num_ = std::max(elems_max_prim_nodes_num_,s->getNumPrimaryVertices());
+                elems_max_nodes_num_ = std::max(elems_max_nodes_num_,s->getNumVertices());
             }
         }
         if (max_elem_tag+1-min_elem_tag != elems_n)
@@ -108,45 +114,64 @@ public:
             }
         }
     }
-    template<class MapElems>
-    void read(const MapElems &map, Ord ghost_level = 1)
+
+    /// PartElems satisfies Partitioner concept without own_glob_ind_2_ind, so Map can be used here
+    template<class PartElems>
+    void read(const PartElems &part, Ord ghost_level = 1)
     {
         
     }
 
     elem_type_ordinal_type get_elem_type(Ord i)const
     {
-
+        MElement *s = g_model_->getMeshElementByTag(elem_i_to_elem_tag(i));
+        return s->getType();
     }
-    Ord get_elem_tag(Ord i)const
+    Ord get_elem_group_id(Ord i)const
     {
-
+        return elements_group_ids_[i];
     }
     Ord get_elems_max_prim_nodes_num()const
     {
-                
-    }
-    Ord get_elems_max_nodes_num()const
-    {
-
+        return elems_max_prim_nodes_num_;
     }
     Ord get_elem_prim_nodes_num(Ord i)const
     {
-
+        MElement *s = g_model_->getMeshElementByTag(elem_i_to_elem_tag(i));
+        return s->getNumPrimaryVertices();
     }
     /// Here theoretically types convesion could be done, so extrnal space is used
     
-    void get_elem_prim_nodes(Ord i, Ord *nodes)const
+    void get_elem_prim_nodes(Ord i, Ord &prim_nodes_num, Ord *nodes)const
     {
-
+        MElement *s = g_model_->getMeshElementByTag(elem_i_to_elem_tag(i));
+        prim_nodes_num = s->getNumPrimaryVertices();
+        /// TODO we explicitly use here that primary vertices goes 1st (used in mesh_prepare)
+        /// Chrch is this always true.
+        for (Ord j = 0;j < s->getNumPrimaryVertices();++j)
+        {   
+            nodes[j] = s->getVertex(j)->getNum();
+        }
+    }
+    Ord get_elems_max_nodes_num()const
+    {
+        return elems_max_nodes_num_;
     }
     Ord get_elem_nodes_num(Ord i)const
     {
-
+        MElement *s = g_model_->getMeshElementByTag(elem_i_to_elem_tag(i));
+        return s->getNumVertices();
     }
-    void get_elem_nodes(Ord i, Ord *nodes)const
+    void get_elem_nodes(Ord i, Ord &nodes_num, Ord *nodes)const
     {
-
+        MElement *s = g_model_->getMeshElementByTag(elem_i_to_elem_tag(i));
+        nodes_num = s->getNumVertices();
+        /// TODO we explicitly use here that primary vertices goes 1st (used in mesh_prepare)
+        /// Chrch is this always true.
+        for (Ord j = 0;j < s->getNumVertices();++j)
+        {   
+            nodes[j] = s->getVertex(j)->getNum();
+        }
     }
     void get_node_coords(Ord i,T *coords)const
     {
@@ -161,6 +186,8 @@ private:
     /// Stick to old private C++ API
     std::shared_ptr<GModel>         g_model_;
     Ord                             elements_index_shift_;
+    Ord                             elems_max_prim_nodes_num_,
+                                    elems_max_nodes_num_;
     std::map<Ord,Ord>               elements_group_ids_;
 
     /// Converts internal gmsh tag into 'visible' element index
