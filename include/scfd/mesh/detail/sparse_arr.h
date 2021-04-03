@@ -17,6 +17,7 @@
 #ifndef __SCFD_MESH_SPARSE_ARR_H__
 #define __SCFD_MESH_SPARSE_ARR_H__
 
+#include <vector>
 #include <map>
 
 namespace scfd
@@ -31,7 +32,7 @@ struct sparse_arr
 {
     std::vector<T>       objs_;
     //TODO for dense numeration map can be avoided (something like GMSH internal cache)
-    std::map<Ord,Ord>    glob_ind_2_vec_ind;
+    std::map<Ord,Ord>    glob_ind_to_vec_ind;
 
     void preallocate(Ord size)
     {
@@ -40,8 +41,8 @@ struct sparse_arr
 
     Ord             find_elem__(Ord glob_i)const
     {
-        std::map<Ord,Ord>::const_iterator       it = glob_ind_2_vec_ind.find(glob_i);
-        assert(it != glob_ind_2_vec_ind.end());
+        std::map<Ord,Ord>::const_iterator       it = glob_ind_to_vec_ind.find(glob_i);
+        assert(it != glob_ind_to_vec_ind.end());
         return it->second;
     }
     T            &operator[](Ord glob_i)
@@ -57,12 +58,12 @@ struct sparse_arr
     //TODO rename has_elem and add_elem into has and and
     bool            has(Ord glob_i)const
     {
-        return (glob_ind_2_vec_ind.find(glob_i) != glob_ind_2_vec_ind.end());
+        return (glob_ind_to_vec_ind.find(glob_i) != glob_ind_to_vec_ind.end());
     }
     void            add(Ord glob_i, const T &e)
     {
         //ISSUE check if we already have glob_i?? i think do it in DEBUG mode
-        glob_ind_2_vec_ind[glob_i] = objs_.size();
+        glob_ind_to_vec_ind[glob_i] = objs_.size();
         objs_.push_back(e);
     }
 };
