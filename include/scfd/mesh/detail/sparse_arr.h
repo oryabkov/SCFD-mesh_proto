@@ -38,7 +38,7 @@ struct sparse_arr
     { 
         return n; 
     }
-    Ord             __find_elem(Ord glob_i)const
+    Ord             find_elem__(Ord glob_i)const
     {
         std::map<Ord,Ord>::const_iterator       it = glob_ind_2_vec_ind.find(glob_i);
         assert(it != glob_ind_2_vec_ind.end());
@@ -47,23 +47,23 @@ struct sparse_arr
     T            &operator[](Ord glob_i)
     {
         //ISSUE check if we have glob_i?? i think do it in DEBUG mode
-        return objs_[ __find_elem(glob_i) ];
+        return objs_[ find_elem__(glob_i) ];
     }
     const T      &operator[](Ord glob_i)const
     {
         //ISSUE check if we have glob_i?? i think do it in DEBUG mode
-        return objs_[ __find_elem(glob_i) ];
+        return objs_[ find_elem__(glob_i) ];
     }
     //TODO rename has_elem and add_elem into has and and
     bool            has_elem(Ord glob_i)const
     {
         return (glob_ind_2_vec_ind.find(glob_i) != glob_ind_2_vec_ind.end());
     }
-    void            add_elem(Ord glob_i, const T &cv)
+    void            add_elem(Ord glob_i, const T &e)
     {
         //ISSUE check if we already have glob_i?? i think do it in DEBUG mode
         glob_ind_2_vec_ind[glob_i] = objs_.size();
-        objs_.push_back(cv);
+        objs_.push_back(e);
     }
 };
 
