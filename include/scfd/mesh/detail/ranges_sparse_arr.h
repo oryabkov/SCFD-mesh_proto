@@ -73,7 +73,7 @@ struct ranges_sparse_arr
     {
         return sparse_pairs_arr_.has(i);
     }
-    indices_iterators_range_t get_indices(Ord i)const
+    indices_iterators_range_t get_range(Ord i)const
     {
         auto range_pair = sparse_pairs_arr_[i];
         Ord  range_size = range_pair.first,
@@ -84,6 +84,11 @@ struct ranges_sparse_arr
                 objs_.begin() + range_offset,
                 objs_.begin() + range_offset + range_size
             );
+    }
+    Ord get_range_size(Ord i)const
+    {
+        auto range_pair = sparse_pairs_arr_[i];
+        return range_pair.first;
     }
 
     
