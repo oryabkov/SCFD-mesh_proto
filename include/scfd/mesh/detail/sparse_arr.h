@@ -34,7 +34,7 @@ struct sparse_arr
     //TODO for dense numeration map can be avoided (something like GMSH internal cache)
     std::map<Ord,Ord>    glob_ind_to_vec_ind;
 
-    void preallocate(Ord size)
+    void reserve(Ord size)
     {
         objs_.reserve(size);
     }

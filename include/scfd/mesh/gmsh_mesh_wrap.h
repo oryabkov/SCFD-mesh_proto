@@ -105,6 +105,10 @@ public:
         elements_index_shift_ = min_elem_tag;
 
         /// Build entities tags map and nodes to elements graph
+        //TODO would be usefull to call it but don't know how to efficently take nodes number from gmsh
+        //nodes_to_elems_graph_.reserve(nodes_num?)
+
+        /// First build group ids map and estimate nodes to elements graph sizes
         for (auto e : entities)
         {
             for (Ord j = 0; j < e->getNumMeshElements(); ++j)
@@ -112,8 +116,33 @@ public:
                 MElement *s = e->getMeshElement(j);
                 Ord elem_id = elem_tag_to_elem_id(s->getNum());
                 elements_group_ids_[elem_id] = e->tag();
+                for (Ord elem_vert_i = 0; elem_vert_i < s->getNumVertices(); ++elem_vert_i) 
+                {
+                    nodes_to_elems_graph_.inc_max_range_size(s->getVertex(elem_vert_i)->getNum(),1);
+                }
             }
         }
+        /// Complete graph structure
+        nodes_to_elems_graph_.complete_structure();
+        /// Fill actual incidence data
+        for (auto e : entities)
+        {
+            for (Ord j = 0; j < e->getNumMeshElements(); ++j)
+            {
+                MElement *s = e->getMeshElement(j);
+                Ord elem_id = elem_tag_to_elem_id(s->getNum());
+                for (Ord elem_vert_i = 0; elem_vert_i < s->getNumVertices(); ++elem_vert_i)
+                {
+                    //nodes_to_elems_graph_.inc_max_range_size(s->getVertex(elem_vert_i)->getNum(),1);
+                    nodes_to_elems_graph_.add_to_range
+                    (
+                        s->getVertex(elem_vert_i)->getNum(),
+                        std::pair<Ord,Ord>(elem_id,elem_vert_i)
+                    );
+                }
+            }
+        }
+        
     }
 
     /// PartElems satisfies Partitioner concept without own_glob_ind_2_ind, so Map can be used here
@@ -184,6 +213,7 @@ public:
 
 private:
     using elem_type_ord_t = elem_type_ordinal_type;
+    /// Here pair's first is id of incident element, second - local node index inside this element
     using nodes_to_elems_graph_t = detail::ranges_sparse_arr<std::pair<Ord,Ord>,Ord>;
 
 private:

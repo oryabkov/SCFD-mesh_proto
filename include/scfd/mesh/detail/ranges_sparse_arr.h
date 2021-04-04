@@ -37,9 +37,9 @@ struct ranges_sparse_arr
     sparse_pairs_arr_t      sparse_pairs_arr_;
     std::vector<T>          objs_;
 
-    void preallocate(Ord size)
+    void reserve(Ord size)
     {
-        sparse_pairs_arr_.preallocate(size);
+        sparse_pairs_arr_.reserve(size);
     }
     void inc_max_range_size(Ord i, Ord inc = 1)
     {
@@ -62,6 +62,7 @@ struct ranges_sparse_arr
         objs_.resize(curr_offset);
     }
 
+    //TODO no checks for max limits violation
     void add_to_range(Ord i, const T &e)
     {
         auto &range_pair = sparse_pairs_arr_[i];
