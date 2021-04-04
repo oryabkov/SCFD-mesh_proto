@@ -226,7 +226,7 @@ public:
     }
     Ord get_nodes_max_incident_elems_num()const
     {
-
+        return nodes_to_elems_graph_.get_max_ranges_size();
     }
     //TODO here i'm not sure about external storage for result; mb, return internal array point
     void get_node_incident_elems(Ord i,Ord *elems)const

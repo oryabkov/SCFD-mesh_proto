@@ -36,6 +36,7 @@ struct ranges_sparse_arr
 
     sparse_pairs_arr_t      sparse_pairs_arr_;
     std::vector<T>          objs_;
+    Ord                     max_range_size_;
 
     void reserve(Ord size)
     {
@@ -52,11 +53,13 @@ struct ranges_sparse_arr
     {
         //TODO preffy dirty hack to use internals of sparse_arr. Mb, privatly inherit it instead?
         Ord curr_offset = 0;
+        max_range_size_ = 0;
         for (auto p : sparse_pairs_arr_.glob_ind_to_vec_ind)
         {
             auto &range_pair = sparse_pairs_arr_.objs_[p.second];
             range_pair.second = curr_offset;
             curr_offset += range_pair.first;
+            max_range_size_ = std::max(max_range_size_,range_pair.first);
             range_pair.first = 0;
         }
         objs_.resize(curr_offset);
@@ -89,6 +92,11 @@ struct ranges_sparse_arr
     {
         auto range_pair = sparse_pairs_arr_[i];
         return range_pair.first;
+    }
+    /// Returns maximum among ranges sizes
+    Ord get_max_ranges_size()const
+    {
+        return max_range_size_;
     }
 
     
