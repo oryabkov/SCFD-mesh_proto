@@ -27,7 +27,7 @@ struct device_mesh_params
     /// Elements data
 
     bool has_elems_centers_data = true;
-    bool has_elems_centers_neighbour_data = true;
+    bool has_elems_neighbours0_centers_data = true;
     bool has_elems_faces_centers_data = true;
     bool has_elems_vertexes_data = false;
     bool has_elems_neighbours0_data = true;
@@ -37,6 +37,7 @@ struct device_mesh_params
     bool has_elems_faces_norms_data = true;
     bool has_elems_faces_areas_data = true;
     bool has_elems_vols_data = true;
+    bool has_elems_nodes_data = true;
 
     /// Nodes data 
 
