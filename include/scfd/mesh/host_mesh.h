@@ -15,6 +15,7 @@
 // along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <memory>
+#include <algorithm>
 
 #ifndef __SCFD_MESH_HOST_MESH_H__
 #define __SCFD_MESH_HOST_MESH_H__
@@ -48,6 +49,16 @@ public:
         /// Initialization
     }*/
 
+    /// See gmsh_mesh_wrap.h for PartElems description
+    template<class PartElems>
+    void read(const PartElems &part, Ord ghost_level = 1)
+    {
+        parent_type::read(part, ghost_level);
+
+        /// Build faces
+        std::map<face_key_t,Ord>    faces;
+    }
+
     /// Suppose we need to duplicate BasicMesh interface here?
     /// In case of inheritance we get it at once
 
@@ -63,7 +74,62 @@ public:
     ordinal_type get_elem_neighbours0(ordinal_type i, ordinal_type *faces)const;
 
 private:
+    struct face_key_t
+    {
+        //TODO temporal solution (max 4 nodes) but will be enough for most cases
+        Ord     nodes_n_;
+        Ord     sorted_prim_nodes_[4];
+
+        face_key() = default;
+        face_key(Ord nodes_n, Ord prim_nodes[4])
+        {
+            nodes_n_ = nodes_n;
+            for (Ord j = 0;j < nodes_n_;++j)
+                sorted_prim_nodes_[j] = prim_nodes[j];
+            std::sort(sorted_prim_nodes_,sorted_prim_nodes_+nodes_n_);
+        }
+
+        Ord     nodes_n()const
+        {
+            return nodes_n_;
+        }
+        Ord     sorted_prim_node(Ord j)
+        {
+            return sorted_prim_nodes_[j];
+        }
+    };
+    struct face_key_equal_func
+    {
+        bool operator()(const face_key_t &f1, const face_key_t &f2)const
+        {
+            if (f1.nodes_n() != f2.nodes_n()) 
+                return false;
+            for (int i = 0; i < f1.nodes_n(); i++) 
+            {
+                if (f1.sorted_prim_node(i) != f2.sorted_prim_node(i)) 
+                    return false;
+            }
+            return true;
+        }
+    };
+    struct face_key_less_func
+    {
+        bool operator()(const face_key_t &f1, const face_key_t &f2) const
+        {
+            if (f1.nodes_n() < f2.nodes_n()) return true;
+            if (f1.nodes_n() > f2.nodes_n()) return false;
+            for (int i = 0; i < f1.nodes_n(); i++) 
+            {
+                if (f1.sorted_prim_node(i) < f2.sorted_prim_node(i)) return true;
+                if (f1.sorted_prim_node(i) > f2.sorted_prim_node(i)) return false;
+            }
+            return false;
+        }
+    }; 
+
+
     //std::shared_ptr<const BasicMesh>  basic_mesh_;
+
 
 private:
 

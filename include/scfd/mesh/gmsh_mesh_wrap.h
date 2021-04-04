@@ -161,6 +161,8 @@ public:
         //For now do nothing, because we read whole mesh data in read() method
     }
 
+    /// Elements interface
+
     elem_type_ordinal_type get_elem_type(Ord i)const
     {
         MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
@@ -211,6 +213,9 @@ public:
             nodes[j] = s->getVertex(j)->getNum();
         }
     }
+
+    /// Nodes interface
+
     void get_node_coords(Ord i,T *coords)const
     {
         GVertex *v = g_model_->getVertexByTag(node_id_to_node_tag(i));
@@ -218,7 +223,6 @@ public:
         if (dim >= 2) coords[1] = static_cast<T>(v->y());
         if (dim >= 3) coords[2] = static_cast<T>(v->z());
     }
-
     /// Nodes to elements graph access interface
     Ord get_node_incident_elems_num(Ord i)const
     {
