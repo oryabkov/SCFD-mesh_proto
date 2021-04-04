@@ -67,6 +67,7 @@ public:
     {
         fn_ = fn;
     }
+    /// only one call to either read() or read_parted() method is allowed during lifetime
     void read()
     {
         /// Read mesh
@@ -144,12 +145,20 @@ public:
         }
         
     }
+    void read_parted()
+    {
+        //TODO
+    }
 
     /// PartElems satisfies Partitioner concept without own_glob_ind_2_ind, so Map can be used here
+    /// This read method is part of the BasicMesh concept
+    /// This read method can only be used after read() or read_parted() calls, its purpose is
+    /// to ensure that all elements defined by part together with ghost_level number of 2nd (nodal) 
+    /// neighbours are read and accesible through interface calls.
     template<class PartElems>
     void read(const PartElems &part, Ord ghost_level = 1)
     {
-        
+        //For now do nothing, because we read whole mesh data in read() method
     }
 
     elem_type_ordinal_type get_elem_type(Ord i)const
@@ -211,10 +220,24 @@ public:
     }
 
     /// Nodes to elements graph access interface
-    ordinal_type get_node_incident_elems_num(ordinal_type i)const;
-    ordinal_type get_nodes_max_incident_elems_num()const;
+    Ord get_node_incident_elems_num(Ord i)const
+    {
+        return nodes_to_elems_graph_.get_range_size(i);
+    }
+    Ord get_nodes_max_incident_elems_num()const
+    {
+
+    }
     //TODO here i'm not sure about external storage for result; mb, return internal array point
-    void         get_node_incident_elems(ordinal_type i,ordinal_type *elems)const;
+    void get_node_incident_elems(Ord i,Ord *elems)const
+    {
+        auto it_range = get_range(i);
+        Ord j = 0;
+        for (auto it = it_range.first;it != it_range.second;++it,++j)
+        {
+            elems[j] = it->first;
+        }
+    }
 
 private:
     using elem_type_ord_t = elem_type_ordinal_type;
