@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef __SCFD_MESH_GMSH_MESH_WRAP_H__
+#define __SCFD_MESH_GMSH_MESH_WRAP_H__
+
 #include <memory>
 #include <stdexcept>
 #include <map>
@@ -25,9 +28,7 @@
 #include <gmsh/MTriangle.h>
 #include <gmsh/MPrism.h>
 #include <gmsh/MTetrahedron.h>
-
-#ifndef __SCFD_MESH_GMSH_MESH_WRAP_H__
-#define __SCFD_MESH_GMSH_MESH_WRAP_H__
+#include "detail/ranges_sparse_arr.h"
 
 namespace scfd
 {
@@ -109,7 +110,7 @@ public:
             for (Ord j = 0; j < e->getNumMeshElements(); ++j)
             {
                 MElement *s = e->getMeshElement(j);
-                Ord elem_i = elem_tag_to_elem_i(s->getNum());
+                Ord elem_i = elem_tag_to_elem_id(s->getNum());
                 elements_group_ids_[elem_i] = e->tag();
             }
         }
@@ -124,7 +125,7 @@ public:
 
     elem_type_ordinal_type get_elem_type(Ord i)const
     {
-        MElement *s = g_model_->getMeshElementByTag(elem_i_to_elem_tag(i));
+        MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
         return s->getType();
     }
     Ord get_elem_group_id(Ord i)const
@@ -137,14 +138,14 @@ public:
     }
     Ord get_elem_prim_nodes_num(Ord i)const
     {
-        MElement *s = g_model_->getMeshElementByTag(elem_i_to_elem_tag(i));
+        MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
         return s->getNumPrimaryVertices();
     }
     /// Here theoretically types convesion could be done, so extrnal space is used
     
     void get_elem_prim_nodes(Ord i, Ord &prim_nodes_num, Ord *nodes)const
     {
-        MElement *s = g_model_->getMeshElementByTag(elem_i_to_elem_tag(i));
+        MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
         prim_nodes_num = s->getNumPrimaryVertices();
         /// TODO we explicitly use here that primary vertices goes 1st (used in mesh_prepare)
         /// Chrch is this always true.
@@ -159,12 +160,12 @@ public:
     }
     Ord get_elem_nodes_num(Ord i)const
     {
-        MElement *s = g_model_->getMeshElementByTag(elem_i_to_elem_tag(i));
+        MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
         return s->getNumVertices();
     }
     void get_elem_nodes(Ord i, Ord &nodes_num, Ord *nodes)const
     {
-        MElement *s = g_model_->getMeshElementByTag(elem_i_to_elem_tag(i));
+        MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
         nodes_num = s->getNumVertices();
         /// TODO we explicitly use here that primary vertices goes 1st (used in mesh_prepare)
         /// Chrch is this always true.
@@ -175,29 +176,42 @@ public:
     }
     void get_node_coords(Ord i,T *coords)const
     {
-        
+        GVertex *v = g_model_->getVertexByTag(node_id_to_node_tag(i));
+        if (dim >= 1) coords[0] = static_cast<T>(v->x());
+        if (dim >= 2) coords[1] = static_cast<T>(v->y());
+        if (dim >= 3) coords[2] = static_cast<T>(v->z());
     }
 
 private:
     using elem_type_ord_t = elem_type_ordinal_type;
+    using nodes_to_elems_graph_t = detail::ranges_sparse_arr<std::pair<Ord,Ord>,Ord>;
 
 private:
     std::string                     fn_;
     /// Stick to old private C++ API
     std::shared_ptr<GModel>         g_model_;
-    Ord                             elements_index_shift_;
+    Ord                             elements_index_shift_,
+                                    nodes_index_shift_;
     Ord                             elems_max_prim_nodes_num_,
                                     elems_max_nodes_num_;
     std::map<Ord,Ord>               elements_group_ids_;
 
     /// Converts internal gmsh tag into 'visible' element index
-    Ord elem_tag_to_elem_i(Ord elem_tag)const
+    Ord elem_tag_to_elem_id(Ord elem_tag)const
     {
         return elem_tag - elements_index_shift_;
     }
-    Ord elem_i_to_elem_tag(Ord elem_i)const
+    Ord elem_id_to_elem_tag(Ord elem_i)const
     {
         return elem_i + elements_index_shift_;
+    }
+    Ord node_tag_to_node_id(Ord node_tag)const
+    {
+        return node_tag - nodes_index_shift_;
+    }
+    Ord node_id_to_node_tag(Ord node_i)const
+    {
+        return node_i + nodes_index_shift_;
     }
 };
 
