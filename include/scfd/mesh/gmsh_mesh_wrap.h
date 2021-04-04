@@ -110,8 +110,8 @@ public:
             for (Ord j = 0; j < e->getNumMeshElements(); ++j)
             {
                 MElement *s = e->getMeshElement(j);
-                Ord elem_i = elem_tag_to_elem_id(s->getNum());
-                elements_group_ids_[elem_i] = e->tag();
+                Ord elem_id = elem_tag_to_elem_id(s->getNum());
+                elements_group_ids_[elem_id] = e->tag();
             }
         }
     }
@@ -190,10 +190,10 @@ private:
     std::string                     fn_;
     /// Stick to old private C++ API
     std::shared_ptr<GModel>         g_model_;
-    Ord                             elements_index_shift_,
-                                    nodes_index_shift_;
+    Ord                             elements_index_shift_;
     Ord                             elems_max_prim_nodes_num_,
                                     elems_max_nodes_num_;
+    nodes_to_elems_graph_t          nodes_to_elems_graph_;
     std::map<Ord,Ord>               elements_group_ids_;
 
     /// Converts internal gmsh tag into 'visible' element index
@@ -201,17 +201,18 @@ private:
     {
         return elem_tag - elements_index_shift_;
     }
-    Ord elem_id_to_elem_tag(Ord elem_i)const
+    Ord elem_id_to_elem_tag(Ord elem_id)const
     {
-        return elem_i + elements_index_shift_;
+        return elem_id + elements_index_shift_;
     }
+    //For now seems we can use non-contigious node ids
     Ord node_tag_to_node_id(Ord node_tag)const
     {
-        return node_tag - nodes_index_shift_;
+        return node_tag;
     }
-    Ord node_id_to_node_tag(Ord node_i)const
+    Ord node_id_to_node_tag(Ord node_id)const
     {
-        return node_i + nodes_index_shift_;
+        return node_id;
     }
 };
 
