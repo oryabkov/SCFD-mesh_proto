@@ -171,7 +171,6 @@ public:
         return s->getNumPrimaryVertices();
     }
     /// Here theoretically types convesion could be done, so extrnal space is used
-    
     void get_elem_prim_nodes(Ord i, Ord &prim_nodes_num, Ord *nodes)const
     {
         MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
@@ -210,6 +209,12 @@ public:
         if (dim >= 2) coords[1] = static_cast<T>(v->y());
         if (dim >= 3) coords[2] = static_cast<T>(v->z());
     }
+
+    /// Nodes to elements graph access interface
+    ordinal_type get_node_incident_elems_num(ordinal_type i)const;
+    ordinal_type get_nodes_max_incident_elems_num()const;
+    //TODO here i'm not sure about external storage for result; mb, return internal array point
+    void         get_node_incident_elems(ordinal_type i,ordinal_type *elems)const;
 
 private:
     using elem_type_ord_t = elem_type_ordinal_type;

@@ -51,12 +51,6 @@ public:
     /// Suppose we need to duplicate BasicMesh interface here?
     /// In case of inheritance we get it at once
 
-    /// Nodes to elements graph access interface
-    ordinal_type get_node_incident_elems_num(ordinal_type i)const;
-    ordinal_type get_nodes_max_incident_elems_num()const;
-    //TODO here i'm not sure about external storage for result; mb, return internal array point
-    void         get_node_incident_elems(ordinal_type i,ordinal_type *elems)const;
-
     /// Faces interface
     ordinal_type get_elem_faces_num(ordinal_type i)const;
     void         get_elem_faces(ordinal_type i, ordinal_type *faces)const;
