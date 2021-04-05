@@ -49,14 +49,37 @@ public:
         /// Initialization
     }*/
 
+    /// Here we need correct partitioning to build faces. That's strange but I don't know how to avoid it.
+    /// However there is no problem with that we always have one in practice.
+    /// See gmsh_mesh_wrap.h for PartElems description
+    template<class PartElems>
+    void build_faces(const PartElems &part)
+    {
+        parent_type::read(part, 1);
+
+        /// Build faces
+        std::map<face_key_t,Ord>    faces;
+
+        Ord glob_max_faces_num = parent_type::get_elems_glob_max_faces_num();
+
+        for (Ord i = 0;i < part.get_size();++i)
+        {
+            Ord                     elem_id = part.own_glob_ind(i);
+            elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
+            const auto &ref = parent_type::mesh_elem_reference();
+            for (Ord j = 0;j < ref.get_faces_n(elem_type);++j)
+            {
+                
+            }
+        }
+    }
+
     /// See gmsh_mesh_wrap.h for PartElems description
     template<class PartElems>
     void read(const PartElems &part, Ord ghost_level = 1)
     {
         parent_type::read(part, ghost_level);
 
-        /// Build faces
-        std::map<face_key_t,Ord>    faces;
     }
 
     /// Suppose we need to duplicate BasicMesh interface here?
