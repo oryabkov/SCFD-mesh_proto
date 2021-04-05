@@ -117,6 +117,8 @@ public:
         //nodes_to_elems_graph_.reserve(nodes_num?)
 
         /// First build group ids map and estimate nodes to elements graph sizes
+        /// Also calcs elems_max_faces_num_
+        Ord     elems_max_faces_num_ = 0;
         for (auto e : entities)
         {
             for (Ord j = 0; j < e->getNumMeshElements(); ++j)
@@ -128,6 +130,7 @@ public:
                 {
                     nodes_to_elems_graph_.inc_max_range_size(s->getVertex(elem_vert_i)->getNum(),1);
                 }
+                elems_max_faces_num_ = std::max(elems_max_faces_num_,s->getNumFaces());
             }
         }
         /// Complete graph structure
@@ -250,6 +253,17 @@ public:
         }
     }
 
+    /// Maximum faces per element across all mesh (perhaps, only for local part)
+    Ord get_elems_max_faces_num()const
+    {
+        return elems_max_faces_num_;
+    }
+    /// Maximum faces per element across all mesh (not only local part)
+    Ord get_elems_glob_max_faces_num()const
+    {
+        return elems_max_faces_num_;
+    }
+
 private:
     using elem_type_ord_t = elem_type_ordinal_type;
     /// Here pair's first is id of incident element, second - local node index inside this element
@@ -266,6 +280,7 @@ private:
                                     elems_max_nodes_num_;
     nodes_to_elems_graph_t          nodes_to_elems_graph_;
     std::map<Ord,Ord>               elements_group_ids_;
+    Ord                             elems_max_faces_num_;
 
     /// Converts internal gmsh tag into 'visible' element index
     Ord elem_tag_to_elem_id(Ord elem_tag)const
