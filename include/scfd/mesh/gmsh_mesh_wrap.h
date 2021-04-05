@@ -29,6 +29,7 @@
 #include <gmsh/MPrism.h>
 #include <gmsh/MTetrahedron.h>
 #include "detail/ranges_sparse_arr.h"
+#include "gmsh_mesh_elem_reference.h"
 
 namespace scfd
 {
@@ -53,6 +54,7 @@ public:
     using scalar_type = T;
     using ordinal_type = Ord;
     using elem_type_ordinal_type = int;
+    using mesh_elem_reference_type = gmsh_mesh_elem_reference<T>;
 
 public:
     /// No 'empty' state
@@ -60,6 +62,11 @@ public:
     {
         /// Initialization
         g_model_ = std::make_shared<GModel>();
+    }
+
+    const mesh_elem_reference_type &mesh_elem_reference()const
+    {
+        return mesh_elem_reference_;
     }
 
     /// Following reads are gmsh specific (not part of BasicMesh concept)
@@ -249,6 +256,8 @@ private:
     using nodes_to_elems_graph_t = detail::ranges_sparse_arr<std::pair<Ord,Ord>,Ord>;
 
 private:
+    mesh_elem_reference_type        mesh_elem_reference_;
+
     std::string                     fn_;
     /// Stick to old private C++ API
     std::shared_ptr<GModel>         g_model_;
