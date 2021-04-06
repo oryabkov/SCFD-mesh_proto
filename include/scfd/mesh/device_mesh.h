@@ -35,6 +35,12 @@ namespace scfd
 namespace mesh
 {
 
+template<class Ord>
+struct index_range_descr
+{
+    Ord i0, n;
+};
+
 //map_n (nodes map) and map_e (element map) during all calls must be the same 
 //ISSUE perhaps, better to make copy of maps inside (but what to do with gpu in this case?)
 
@@ -51,13 +57,17 @@ struct device_mesh
     using ordinal_type = Ord;
     //using glob_ordinal_type = int;
     using elem_type_ordinal_type = int;
+    using index_range_descr_type = index_range_descr<Ord>;
 
     using namespace arrays;
 
     //ISSUE neither n_cv
     //but i0, n_cv_all somehow does
 
-    //elements data part
+    /// Elements data part
+
+    index_range_descr_type                          elems_range, 
+                                                    own_elems_range;
 
     //vars buffers CONTAINS space for elements in [i0, i0+n_cv_all)
     Ord                                             i0, n_cv_all;
@@ -79,9 +89,12 @@ struct device_mesh
     tensor1_array<T,Memory,max_faces_n>             faces_S;
     tensor1_array<T,Memory,1>                       Vol;
 
-    //nodes data part
-    Ord                                             i0_nodes, n_nodes_all;
-    Ord                                             n_nodes;
+    /// Nodes data part
+
+    index_range_descr_type                          nodes_range, 
+                                                    own_nodes_range;
+    //Ord                                             i0_nodes, n_nodes_all;
+    //Ord                                             n_nodes;
     tensor1_array<T,Memory,Dim>                     node_coords;
     tensor0_array<Ord,Memory>                       node_vol_id;
     tensor0_array<Ord,Memory>                       node_bnd_id;
@@ -94,6 +107,11 @@ struct device_mesh
     tensor1_array<Ord,Memory,2>                     node_2_elem_graph_refs;
     tensor0_array<Ord,Memory>                       node_2_elem_graph_elem_ids;
     tensor0_array<Ord,Memory>                       node_2_elem_graph_node_ids;
+
+    /// Faces data part
+
+    index_range_descr_type                          faces_range, 
+                                                    own_faces_range;
 
     __DEVICE_TAG__ elem_type_ordinal_type  get_elem_type(Ord i)const
     {
