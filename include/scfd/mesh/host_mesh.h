@@ -154,12 +154,15 @@ private:
     using elems_to_faces_graph_t = detail::ranges_sparse_arr<Ord,Ord>;
     /// Here pair's first is id of incident element, second - local face index inside this element
     using faces_to_elems_graph_t = detail::ranges_sparse_arr<std::pair<Ord,Ord>,Ord>;
+    /// Here pair's first is id of incident element, second - local face index inside this element
+    using elems_to_neighbours0_graph_t = detail::ranges_sparse_arr<std::pair<Ord,Ord>,Ord>;
 
     //std::shared_ptr<const BasicMesh>  basic_mesh_;
 
 private:
-    elems_to_faces_graph_t      elems_to_faces_graph_;
-    faces_to_elems_graph_t      faces_to_elems_graph_;
+    elems_to_faces_graph_t          elems_to_faces_graph_;
+    faces_to_elems_graph_t          faces_to_elems_graph_;
+    elems_to_neighbours0_graph_t    elems_to_neighbours0_graph_;
 
 protected:
 
@@ -211,9 +214,10 @@ protected:
             }
         }
     }
-    void calc_elems_stencil(Ord ghost_level)
+    void calc_elems_stencil(Ord ghost_level,std::set<Ord> &stencil_ids)
     {
-
+        stencil_ids.clear();
+        
     }
 
 };
