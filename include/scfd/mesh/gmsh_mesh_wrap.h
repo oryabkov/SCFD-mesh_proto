@@ -45,15 +45,17 @@ public:
     }
 };
 
+/// PartElems satisfies Partitioner concept without own_glob_ind_2_ind, so Map can be used here
 /// Note that gmsh internally supports only doubles, so this interface also performs types conversions.
 /// Besides that elements shift is performed (1st 3d element in gmsh is not likely to have index '0')
-template<class T,int dim = 3,class Ord = int>
+template<class T,class PartElems,int dim = 3,class Ord = int>
 class gmsh_mesh_wrap
 {
 public:
     using scalar_type = T;
     using ordinal_type = Ord;
     using elem_type_ordinal_type = int;
+    using partitioner_type = PartElems;
     using mesh_elem_reference_type = gmsh_mesh_elem_reference<T>;
 
 public:
@@ -155,20 +157,28 @@ public:
         }
         
     }
-    void read_parted()
+    //TODO think read_parted is not suited here; different wrap class is requered for parted gmsh read
+    /*void read_parted()
     {
         //TODO
+    }*/
+    void set_partitioner(const std::shared_ptr<PartElems> &elems_partitioner)
+    {
+        elems_partitioner_ = elems_partitioner;
     }
 
-    /// PartElems satisfies Partitioner concept without own_glob_ind_2_ind, so Map can be used here
+    std::shared_ptr<PartElems> get_partitioner()const
+    {
+        return elems_partitioner_;
+    }
+
     /// This read method is part of the BasicMesh concept
     /// This read method can only be used after read() or read_parted() calls, its purpose is
     /// to ensure that all elements defined by part together with ghost_level number of 2nd (nodal) 
     /// neighbours are read and accesible through interface calls.
-    template<class PartElems>
-    void read(const PartElems &part, Ord ghost_level = 1)
+    void enlarge_stencil(Ord ghost_level)
     {
-        //For now do nothing, because we read whole mesh data in read() method
+        //For this wrap type do nothing, because we read whole mesh data in read() method
     }
 
     /// Elements interface
@@ -192,10 +202,11 @@ public:
         return s->getNumPrimaryVertices();
     }
     /// Here theoretically types convesion could be done, so extrnal space is used
-    void get_elem_prim_nodes(Ord i, Ord &prim_nodes_num, Ord *nodes)const
+    void get_elem_prim_nodes(Ord i, Ord *prim_nodes_num, Ord *nodes)const
     {
         MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
-        prim_nodes_num = s->getNumPrimaryVertices();
+        if (prim_nodes_num)
+            *prim_nodes_num = s->getNumPrimaryVertices();
         /// TODO we explicitly use here that primary vertices goes 1st (used in mesh_prepare)
         /// Chrch is this always true.
         for (Ord j = 0;j < s->getNumPrimaryVertices();++j)
@@ -245,7 +256,7 @@ public:
     //TODO here i'm not sure about external storage for result; mb, return internal array point
     void get_node_incident_elems(Ord i,Ord *elems)const
     {
-        auto it_range = get_range(i);
+        auto it_range = nodes_to_elems_graph_.get_range(i);
         Ord j = 0;
         for (auto it = it_range.first;it != it_range.second;++it,++j)
         {
@@ -275,6 +286,7 @@ private:
     std::string                     fn_;
     /// Stick to old private C++ API
     std::shared_ptr<GModel>         g_model_;
+    std::shared_ptr<PartElems>      elems_partitioner_;
     Ord                             elements_index_shift_;
     Ord                             elems_max_prim_nodes_num_,
                                     elems_max_nodes_num_;
