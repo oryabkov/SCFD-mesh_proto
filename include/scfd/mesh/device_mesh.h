@@ -70,9 +70,9 @@ struct device_mesh
                                                     own_elems_range;
 
     //vars buffers CONTAINS space for elements in [i0, i0+n_cv_all)
-    Ord                                             i0, n_cv_all;
+    //Ord                                             i0, n_cv_all;
     //gpu OWN elements in [0,n_cv)
-    Ord                                             n_cv;
+    //Ord                                             n_cv;
     //if is_homogeneous == true then all elements in mesh have the same elem_type
     bool                                            is_homogeneous;
     elem_type_ordinal_type                          homogeneous_elem_type;  //valid only if is_homogeneous == true
