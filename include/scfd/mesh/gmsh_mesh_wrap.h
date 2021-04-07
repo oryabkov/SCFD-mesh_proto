@@ -254,8 +254,10 @@ public:
         return nodes_to_elems_graph_.get_max_ranges_size();
     }
     //TODO here i'm not sure about external storage for result; mb, return internal array point
-    void get_node_incident_elems(Ord i,Ord *elems)const
+    void get_node_incident_elems(Ord i,Ord *elems, Ord *elems_num = nullptr)const
     {
+        if (elems_num)
+            *elems_num = get_node_incident_elems_num(i);
         auto it_range = nodes_to_elems_graph_.get_range(i);
         Ord j = 0;
         for (auto it = it_range.first;it != it_range.second;++it,++j)
