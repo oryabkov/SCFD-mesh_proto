@@ -169,24 +169,28 @@ protected:
     //TODO virtual?
     void build_faces(Ord ghost_level)
     {
-        parent_type::enlarge_stencil(part, 1);
-
-        /// Build faces
         std::map<face_key_t,Ord>    faces;
-        const auto &ref = parent_type::mesh_elem_reference();
+        /// Process own elements
         const auto &part = *parent_type::get_partitioner();
-        Ord glob_max_faces_num = parent_type::get_elems_glob_max_faces_num();
         for (Ord i = 0;i < part.get_size();++i)
         {
             Ord  elem_id = part.own_glob_ind(i);
             build_faces_for_elem(elem_id,faces);
         }
-        //TODO process stencil elements
-
+        /// Process stencil elements
+        std::set<Ord> stencil_ids;
+        calc_elems_stencil(ghost_level,stencil_ids);
+        for (auto elem_id : stencil_ids)
+        {
+            build_faces_for_elem(elem_id,faces);
+        }
         //TODO fill actual graphs elems_to_faces_graph_ and faces_to_elems_graph_
     }
     void build_faces_for_elem(Ord elem_id, std::map<face_key_t,Ord> &faces)
     {
+        const auto &ref = parent_type::mesh_elem_reference();
+        //TODO in general it is not good idea to take it each time (some cached value?)
+        Ord glob_max_faces_num = parent_type::get_elems_glob_max_faces_num();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
         //ISSUE are there any performance problmes with local allocation here?
         Ord nodes[parent_type::get_elems_max_prim_nodes_num()];
@@ -216,8 +220,51 @@ protected:
     }
     void calc_elems_stencil(Ord ghost_level,std::set<Ord> &stencil_ids)
     {
+        const auto &part = *parent_type::get_partitioner();
         stencil_ids.clear();
-        
+        std::set<Ord> curr_ids,next_ids;
+        for (Ord i = 0;i < part.get_size();++i)
+        {
+            Ord  elem_id = part.own_glob_ind(i);
+            calc_elems_stencil_for_elem(elem_id,stencil_ids,next_ids);
+        }
+        for (Ord level = 1;level < ghost_level;++level)
+        {
+            std::swap(curr_ids,next_ids);
+            next_ids.clear();
+            for (auto elem_id : curr_ids)
+            {
+                calc_elems_stencil_for_elem(elem_id,stencil_ids,next_ids);
+            }
+        }
+    }
+    void calc_elems_stencil_for_elem
+    (
+        Ord elem_id, std::set<Ord> &stencil_ids, std::set<Ord> &next_ids
+    )
+    {
+        const auto &part = *parent_type::get_partitioner();
+        const auto &ref = parent_type::mesh_elem_reference();
+        elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
+        Ord nodes_n;
+        Ord nodes[parent_type::get_elems_max_prim_nodes_num()];
+        parent_type::get_elem_prim_nodes(elem_id, &nodes_n, nodes);
+        for (Ord node_i = 0;node_i < nodes_n;++node_i)
+        {
+            Ord incid_elems_n;
+            Ord incid_elems[parent_type::get_nodes_max_incident_elems_num()];            
+            parent_type::get_node_incident_elems(nodes[node_i],incid_elems,&incid_elems_n);
+            for (Ord incid_elems_i = 0;incid_elems_i < incid_elems_n;++incid_elems_i)
+            {
+                Ord incid_elems_id = incid_elems[incid_elems_i];
+                /// Simple cutoff (also not very effective)
+                if (incid_elems_id == elem_id) continue;
+                if (part.check_glob_owned(incid_elems_id)) continue;
+                if (stencil_ids.find(incid_elems_id) != stencil_ids.end()) continue;
+                stencil_ids.insert(incid_elems_id);
+                next_ids.insert(incid_elems_id);
+            }
+        }
     }
 
 };
