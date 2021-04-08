@@ -169,22 +169,60 @@ protected:
     //TODO virtual?
     void build_faces(Ord ghost_level)
     {
+        std::set<Ord> stencil_ids;
+        calc_elems_stencil(ghost_level,stencil_ids);
+        const auto &part = *parent_type::get_partitioner();
+
+        /// Create faces dict
+
         std::map<face_key_t,Ord>    faces;
         /// Process own elements
-        const auto &part = *parent_type::get_partitioner();
         for (Ord i = 0;i < part.get_size();++i)
         {
             Ord  elem_id = part.own_glob_ind(i);
             build_faces_for_elem(elem_id,faces);
         }
         /// Process stencil elements
-        std::set<Ord> stencil_ids;
-        calc_elems_stencil(ghost_level,stencil_ids);
         for (auto elem_id : stencil_ids)
         {
             build_faces_for_elem(elem_id,faces);
         }
-        //TODO fill actual graphs elems_to_faces_graph_ and faces_to_elems_graph_
+
+        /// Create graphs elems_to_faces_graph_ and faces_to_elems_graph_ based on dict
+    
+        elems_to_faces_graph_.reserve(faces.size());
+        faces_to_elems_graph_.reserve(part.get_size()+stencil_ids.size());
+
+        /// Estmate sizes of graphs elems_to_faces_graph_ and faces_to_elems_graph_
+        /// Process own elements
+        for (Ord i = 0;i < part.get_size();++i)
+        {
+            Ord  elem_id = part.own_glob_ind(i);
+            reserve_graphs_for_elem(elem_id, faces);
+        }
+        /// Process stencil elements
+        for (auto elem_id : stencil_ids)
+        {
+            reserve_graphs_for_elem(elem_id, faces);
+        }
+
+        /// Complete graphs structures
+        elems_to_faces_graph_.complete_structure();
+        faces_to_elems_graph_.complete_structure();
+
+        /// Fill actual graphs elems_to_faces_graph_ and faces_to_elems_graph_
+        /// Process own elements
+        for (Ord i = 0;i < part.get_size();++i)
+        {
+            Ord  elem_id = part.own_glob_ind(i);
+            fill_graphs_for_elem(elem_id, faces);
+        }
+        /// Process stencil elements
+        for (auto elem_id : stencil_ids)
+        {
+            fill_graphs_for_elem(elem_id, faces);
+        }
+
     }
     void build_faces_for_elem(Ord elem_id, std::map<face_key_t,Ord> &faces)
     {
@@ -216,6 +254,50 @@ protected:
                 /// (i.e. one that was taken from element with minimal id)
                 face_it->second = std::min(face_it->second,face_id);
             }
+        }
+    }
+    void reserve_graphs_for_elem(Ord elem_id, const std::map<face_key_t,Ord> &faces)
+    {
+        const auto &ref = parent_type::mesh_elem_reference();
+        elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
+        Ord nodes[parent_type::get_elems_max_prim_nodes_num()];
+        parent_type::get_elem_prim_nodes(elem_id, nullptr, nodes);
+        for (Ord j = 0;j < ref.get_faces_n(elem_type);++j)
+        {
+            Ord face_nodes[4];
+            for (Ord face_vert_i = 0;face_vert_i < ref.get_face_verts_n(elem_type,j);++face_vert_i)
+            {
+                face_nodes[face_vert_i] = nodes[ref.get_face_vert_i(elem_type,j,face_vert_i)];
+            }
+            face_key_t face_key(ref.get_face_verts_n(elem_type,j), face_nodes);
+            auto face_it = faces.find(face_key);
+            if (face_it == faces.end())
+                throw std::logic_error("host_mesh::reserve_graphs_for_elem: no face found!");
+            Ord face_id = face_it->second;
+            elems_to_faces_graph_.inc_max_range_size(elem_id,1);
+            faces_to_elems_graph_.inc_max_range_size(face_id,1);
+        }
+    }
+    void fill_graphs_for_elem(Ord elem_id, const std::map<face_key_t,Ord> &faces)
+    {
+        const auto &ref = parent_type::mesh_elem_reference();
+        elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
+        Ord nodes[parent_type::get_elems_max_prim_nodes_num()];
+        parent_type::get_elem_prim_nodes(elem_id, nullptr, nodes);
+        for (Ord j = 0;j < ref.get_faces_n(elem_type);++j)
+        {
+            Ord face_nodes[4];
+            for (Ord face_vert_i = 0;face_vert_i < ref.get_face_verts_n(elem_type,j);++face_vert_i)
+            {
+                face_nodes[face_vert_i] = nodes[ref.get_face_vert_i(elem_type,j,face_vert_i)];
+            }
+            face_key_t face_key(ref.get_face_verts_n(elem_type,j), face_nodes);
+            auto face_it = faces.find(face_key);
+            if (face_it == faces.end())
+                throw std::logic_error("host_mesh::reserve_graphs_for_elem: no face found!");
+            Ord face_id = face_it->second;
+            elems_to_faces_graph_.add_to_range(elem_id, face_id);            
+            faces_to_elems_graph_.add_to_range(face_id,std::pair<Ord,Ord>(elem_id,j));
         }
     }
     void calc_elems_stencil(Ord ghost_level,std::set<Ord> &stencil_ids)
