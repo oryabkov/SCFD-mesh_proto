@@ -20,6 +20,12 @@
 #ifndef __SCFD_MESH_HOST_MESH_H__
 #define __SCFD_MESH_HOST_MESH_H__
 
+//TODO building face_key for element face fully repeated 3 times - move into separate method
+//TODO walkthrough part + stencil repeats several times - mb, create some method with functor parameter?
+//TODO graphs (elems_to_faces_graph_ and faces_to_elems_graph_) are build for more elements then intended 
+//(last ghost level) including incorrect ones (outer faces). Not a problem if no one will use them but some 
+//inconsistency presents.
+
 namespace scfd
 {
 namespace mesh
