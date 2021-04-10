@@ -17,6 +17,8 @@
 #ifndef __SCFD_MESH_FACE_KEY_H__
 #define __SCFD_MESH_FACE_KEY_H__
 
+#include <algorithm>
+
 namespace scfd
 {
 namespace mesh
@@ -24,7 +26,63 @@ namespace mesh
 namespace detail
 {
 
+template<class Ord>
+struct face_key
+{
+    //TODO temporal solution (max 4 nodes) but will be enough for most cases
+    Ord     nodes_n_;
+    Ord     sorted_prim_nodes_[4];
 
+    face_key() = default;
+    face_key(Ord nodes_n, Ord prim_nodes[4])
+    {
+        nodes_n_ = nodes_n;
+        for (Ord j = 0;j < nodes_n_;++j)
+            sorted_prim_nodes_[j] = prim_nodes[j];
+        std::sort(sorted_prim_nodes_,sorted_prim_nodes_+nodes_n_);
+    }
+
+    Ord     nodes_n()const
+    {
+        return nodes_n_;
+    }
+    Ord     sorted_prim_node(Ord j)
+    {
+        return sorted_prim_nodes_[j];
+    }
+};
+
+template<class Ord>
+struct face_key_equal_func
+{
+    bool operator()(const face_key<Ord> &f1, const face_key<Ord> &f2)const
+    {
+        if (f1.nodes_n() != f2.nodes_n()) 
+            return false;
+        for (int i = 0; i < f1.nodes_n(); i++) 
+        {
+            if (f1.sorted_prim_node(i) != f2.sorted_prim_node(i)) 
+                return false;
+        }
+        return true;
+    }
+};
+
+template<class Ord>
+struct face_key_less_func
+{
+    bool operator()(const face_key<Ord> &f1, const face_key<Ord> &f2) const
+    {
+        if (f1.nodes_n() < f2.nodes_n()) return true;
+        if (f1.nodes_n() > f2.nodes_n()) return false;
+        for (int i = 0; i < f1.nodes_n(); i++) 
+        {
+            if (f1.sorted_prim_node(i) < f2.sorted_prim_node(i)) return true;
+            if (f1.sorted_prim_node(i) > f2.sorted_prim_node(i)) return false;
+        }
+        return false;
+    }
+}; 
 
 }  /// namespace detail
 }  /// namespace mesh
