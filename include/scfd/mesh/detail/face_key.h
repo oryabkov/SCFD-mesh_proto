@@ -41,6 +41,22 @@ struct face_key
             sorted_prim_nodes_[j] = prim_nodes[j];
         std::sort(sorted_prim_nodes_,sorted_prim_nodes_+nodes_n_);
     }
+    template<class BasicMesh>
+    face_key(const BasicMesh &mesh,Ord elem_id,Ord elem_face_i)
+    {
+        const auto &ref = mesh.mesh_elem_reference();
+        auto  elem_type = mesh.get_elem_type(elem_id);
+        Ord nodes[mesh.get_elems_max_prim_nodes_num()];
+        mesh.get_elem_prim_nodes(elem_id, nullptr, nodes);
+        //TODO temporal solution (max 4 nodes) but will be enough for most cases
+        Ord face_nodes[4];
+        for (Ord face_vert_i = 0;face_vert_i < ref.get_face_verts_n(elem_type,elem_face_i);++face_vert_i)
+        {
+            face_nodes[face_vert_i] = nodes[ref.get_face_vert_i(elem_type,elem_face_i,face_vert_i)];
+        }
+        //TODO looks strange
+        *this = face_key(ref.get_face_verts_n(elem_type,elem_face_i), face_nodes);
+    }
 
     Ord     nodes_n()const
     {
