@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <memory>
-#include <algorithm>
-
 #ifndef __SCFD_MESH_HOST_MESH_H__
 #define __SCFD_MESH_HOST_MESH_H__
+
+#include <memory>
+#include <algorithm>
+#include "detail/face_key.h"
 
 //TODO building face_key for element face fully repeated 3 times - move into separate method
 //TODO walkthrough part + stencil repeats several times - mb, create some method with functor parameter?
@@ -104,7 +105,9 @@ public:
     }
 
 private:
-    
+    using face_key_t = detail::face_key<Ord>;
+    using face_key_equal_func = detail::face_key_equal_func<Ord>;
+    using face_key_less_func = detail::face_key_less_func<Ord>;
 
     using elems_to_faces_graph_t = detail::ranges_sparse_arr<Ord,Ord>;
     /// Here pair's first is id of incident element, second - local face index inside this element
