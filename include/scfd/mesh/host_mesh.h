@@ -189,18 +189,10 @@ protected:
         Ord glob_max_faces_num = parent_type::get_elems_glob_max_faces_num();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
         //ISSUE are there any performance problmes with local allocation here?
-        Ord nodes[parent_type::get_elems_max_prim_nodes_num()];
-        parent_type::get_elem_prim_nodes(elem_id, nullptr, nodes);
         for (Ord j = 0;j < ref.get_faces_n(elem_type);++j)
         {
             Ord face_id = elem_id*glob_max_faces_num + j;
-            //TODO temporal solution (max 4 nodes) but will be enough for most cases
-            Ord face_nodes[4];
-            for (Ord face_vert_i = 0;face_vert_i < ref.get_face_verts_n(elem_type,j);++face_vert_i)
-            {
-                face_nodes[face_vert_i] = nodes[ref.get_face_vert_i(elem_type,j,face_vert_i)];
-            }
-            face_key_t face_key(ref.get_face_verts_n(elem_type,j), face_nodes);
+            face_key_t face_key(*this,elem_id,j);
             auto face_it = faces.find(face_key);
             if (face_it == faces.end())
             {
@@ -218,16 +210,9 @@ protected:
     {
         const auto &ref = parent_type::mesh_elem_reference();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
-        Ord nodes[parent_type::get_elems_max_prim_nodes_num()];
-        parent_type::get_elem_prim_nodes(elem_id, nullptr, nodes);
         for (Ord j = 0;j < ref.get_faces_n(elem_type);++j)
         {
-            Ord face_nodes[4];
-            for (Ord face_vert_i = 0;face_vert_i < ref.get_face_verts_n(elem_type,j);++face_vert_i)
-            {
-                face_nodes[face_vert_i] = nodes[ref.get_face_vert_i(elem_type,j,face_vert_i)];
-            }
-            face_key_t face_key(ref.get_face_verts_n(elem_type,j), face_nodes);
+            face_key_t face_key(*this,elem_id,j);
             auto face_it = faces.find(face_key);
             if (face_it == faces.end())
                 throw std::logic_error("host_mesh::reserve_graphs_for_elem: no face found!");
@@ -240,16 +225,9 @@ protected:
     {
         const auto &ref = parent_type::mesh_elem_reference();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
-        Ord nodes[parent_type::get_elems_max_prim_nodes_num()];
-        parent_type::get_elem_prim_nodes(elem_id, nullptr, nodes);
         for (Ord j = 0;j < ref.get_faces_n(elem_type);++j)
         {
-            Ord face_nodes[4];
-            for (Ord face_vert_i = 0;face_vert_i < ref.get_face_verts_n(elem_type,j);++face_vert_i)
-            {
-                face_nodes[face_vert_i] = nodes[ref.get_face_vert_i(elem_type,j,face_vert_i)];
-            }
-            face_key_t face_key(ref.get_face_verts_n(elem_type,j), face_nodes);
+            face_key_t face_key(*this,elem_id,j);
             auto face_it = faces.find(face_key);
             if (face_it == faces.end())
                 throw std::logic_error("host_mesh::reserve_graphs_for_elem: no face found!");
