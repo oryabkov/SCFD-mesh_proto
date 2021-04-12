@@ -82,7 +82,7 @@ public:
         }
     }
     /// Actually it can return either 1 or 2
-    void         get_face_elems_num(ordinal_type i)const
+    ordinal_type get_face_elems_num(ordinal_type i)const
     {
         //TODO some check in debug mode for result (1 or 2)
         return faces_to_elems_graph_.get_range_size(i);

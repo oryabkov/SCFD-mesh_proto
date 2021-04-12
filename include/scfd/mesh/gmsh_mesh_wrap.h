@@ -319,6 +319,19 @@ public:
             throw std::logic_error("gmsh_mesh_wrap::get_face_group_id: no face exists");
         return it->second;
     }
+    bool check_elem_face_has_group_id(Ord elem_id, Ord face_i)const
+    {
+        face_key_t face_key(*this,elem_id,face_i);
+        return bnd_faces_group_ids_.find(face_key) != bnd_faces_group_ids_.end();
+    }
+    Ord get_elem_face_group_id(Ord elem_id, Ord face_i)const
+    {
+        face_key_t face_key(*this,elem_id,face_i);
+        auto it = bnd_faces_group_ids_.find(face_key);
+        if (it == bnd_faces_group_ids_.end())
+            throw std::logic_error("gmsh_mesh_wrap::get_elem_face_group_id: no face exists");
+        return it->second;
+    }
 
 private:
     using elem_type_ord_t = elem_type_ordinal_type;
