@@ -101,10 +101,10 @@ public:
             for (Ord j = 0; j < e->getNumMeshElements(); ++j)
             {
                 MElement *s = e->getMeshElement(j);
-                min_elem_tag = std::min(min_elem_tag,s->getNum());
-                max_elem_tag = std::max(max_elem_tag,s->getNum());
-                elems_max_prim_nodes_num_ = std::max(elems_max_prim_nodes_num_,s->getNumPrimaryVertices());
-                elems_max_nodes_num_ = std::max(elems_max_nodes_num_,s->getNumVertices());
+                min_elem_tag = std::min(min_elem_tag,Ord(s->getNum()));
+                max_elem_tag = std::max(max_elem_tag,Ord(s->getNum()));
+                elems_max_prim_nodes_num_ = std::max(elems_max_prim_nodes_num_,Ord(s->getNumPrimaryVertices()));
+                elems_max_nodes_num_ = std::max(elems_max_nodes_num_,Ord(s->getNumVertices()));
             }
         }
         if (max_elem_tag+1-min_elem_tag != elems_n)
@@ -182,6 +182,10 @@ public:
         }
 
         
+    }
+    Ord get_total_elems_num()const
+    {
+        return g_model_->getNumMeshElements(dim);
     }
     //TODO think read_parted is not suited here; different wrap class is requered for parted gmsh read
     /*void read_parted()
