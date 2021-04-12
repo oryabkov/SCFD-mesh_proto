@@ -12,7 +12,8 @@ set(GMSH_LIB_DIR "${GMSH_INSTALL_ROOT_DIR}/lib")
 set(GMSH_INCLUDE_DIR "${GMSH_INSTALL_ROOT_DIR}/include")
 
 include_directories(${GMSH_INCLUDE_DIR})
+#message(${GMSH_LIB_DIR})
 link_directories(${GMSH_LIB_DIR})
 
 add_executable(test_gmsh_mesh_wrap.bin test_gmsh_mesh_wrap.cpp)
-target_link_libraries(test_gmsh_mesh_wrap.bin Gmsh)
+target_link_libraries(test_gmsh_mesh_wrap.bin gmsh)
