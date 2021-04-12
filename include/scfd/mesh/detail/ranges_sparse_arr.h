@@ -31,7 +31,7 @@ template<class T,class Ord = int>
 struct ranges_sparse_arr
 {
     using sparse_pairs_arr_t = sparse_arr<std::pair<Ord,Ord>,Ord>;
-    using indices_iterator_t = std::vector<Ord>::const_iterator;
+    using indices_iterator_t = typename std::vector<Ord>::const_iterator;
     using indices_iterators_range_t = std::pair<indices_iterator_t,indices_iterator_t>;
 
     sparse_pairs_arr_t      sparse_pairs_arr_;

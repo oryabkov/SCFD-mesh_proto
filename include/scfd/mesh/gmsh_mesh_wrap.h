@@ -29,6 +29,7 @@
 #include <gmsh/MPrism.h>
 #include <gmsh/MTetrahedron.h>
 #include "detail/ranges_sparse_arr.h"
+#include "detail/face_key.h"
 #include "gmsh_mesh_elem_reference.h"
 
 namespace scfd
@@ -82,7 +83,7 @@ public:
         /// Read mesh
         if (!g_model_->readMSH(fn_)) 
         {
-            throw file_read_error("gmsh_mesh_wrap::read(): ",fn);
+            throw file_read_error("gmsh_mesh_wrap::read(): ",fn_);
         }
 
         std::vector<GEntity*> entities;
@@ -307,13 +308,13 @@ public:
     //TODO temporal solution (max 4 nodes) but will be enough for most cases
     bool check_face_has_group_id(Ord nodes_n, Ord prim_nodes[4])const
     {
-        face_key_t  face_key(nodes_n, Ord prim_nodes);
+        face_key_t  face_key(nodes_n, prim_nodes);
         return bnd_faces_group_ids_.find(face_key) != bnd_faces_group_ids_.end();
     }
     //TODO temporal solution (max 4 nodes) but will be enough for most cases
     Ord get_face_group_id(Ord nodes_n, Ord prim_nodes[4])const
     {
-        face_key_t  face_key(nodes_n, Ord prim_nodes);
+        face_key_t  face_key(nodes_n, prim_nodes);
         auto it = bnd_faces_group_ids_.find(face_key);
         if (it == bnd_faces_group_ids_.end())
             throw std::logic_error("gmsh_mesh_wrap::get_face_group_id: no face exists");

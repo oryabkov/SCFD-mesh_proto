@@ -41,7 +41,7 @@ struct sparse_arr
 
     Ord             find_elem__(Ord glob_i)const
     {
-        std::map<Ord,Ord>::const_iterator       it = glob_ind_to_vec_ind.find(glob_i);
+        auto       it = glob_ind_to_vec_ind.find(glob_i);
         assert(it != glob_ind_to_vec_ind.end());
         return it->second;
     }
