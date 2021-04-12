@@ -155,6 +155,31 @@ public:
                 }
             }
         }
+
+        std::vector<GEntity*> bnd_entities;
+        g_model_->getEntities(bnd_entities, dim-1);
+        for (auto e : bnd_entities)
+        {
+            for (Ord j = 0; j < e->getNumMeshElements(); ++j)
+            {
+                MElement *s = e->getMeshElement(j);
+                //TODO temporal solution (max 4 nodes) but will be enough for most cases
+                Ord nodes[4];
+                if (s->getNumPrimaryVertices() > 4)
+                    throw 
+                        std::logic_error
+                        (
+                            "gmsh_mesh_wrap::read(): s->getNumPrimaryVertices() > 4 for bnd elements is not supported"
+                        );
+                for (Ord vert_i = 0;vert_i < s->getNumPrimaryVertices();++vert_i)
+                {   
+                    nodes[vert_i] = node_tag_to_node_id(s->getVertex(vert_i)->getNum());
+                }
+                face_key_t face_key(s->getNumPrimaryVertices(), nodes);
+                bnd_faces_group_ids_[face_key] = e->tag();
+            }
+        }
+
         
     }
     //TODO think read_parted is not suited here; different wrap class is requered for parted gmsh read
@@ -211,7 +236,7 @@ public:
         /// Chrch is this always true.
         for (Ord j = 0;j < s->getNumPrimaryVertices();++j)
         {   
-            nodes[j] = s->getVertex(j)->getNum();
+            nodes[j] = node_tag_to_node_id(s->getVertex(j)->getNum());
         }
     }
     Ord get_elems_max_nodes_num()const
@@ -231,7 +256,7 @@ public:
         /// Chrch is this always true.
         for (Ord j = 0;j < s->getNumVertices();++j)
         {   
-            nodes[j] = s->getVertex(j)->getNum();
+            nodes[j] = node_tag_to_node_id(s->getVertex(j)->getNum());
         }
     }
 
@@ -266,6 +291,8 @@ public:
         }
     }
 
+    /// Parts of face interface on this level
+
     /// Maximum faces per element across all mesh (perhaps, only for local part)
     Ord get_elems_max_faces_num()const
     {
@@ -276,9 +303,26 @@ public:
     {
         return elems_max_faces_num_;
     }
+    //ISSUE not sure about this type of interface for boundary groups; mb move it on lever of host_mesh?
+    //TODO temporal solution (max 4 nodes) but will be enough for most cases
+    bool check_face_has_group_id(Ord nodes_n, Ord prim_nodes[4])const
+    {
+        face_key_t  face_key(nodes_n, Ord prim_nodes);
+        return bnd_faces_group_ids_.find(face_key) != bnd_faces_group_ids_.end();
+    }
+    //TODO temporal solution (max 4 nodes) but will be enough for most cases
+    Ord get_face_group_id(Ord nodes_n, Ord prim_nodes[4])const
+    {
+        face_key_t  face_key(nodes_n, Ord prim_nodes);
+        auto it = bnd_faces_group_ids_.find(face_key);
+        if (it == bnd_faces_group_ids_.end())
+            throw std::logic_error("gmsh_mesh_wrap::get_face_group_id: no face exists");
+        return it->second;
+    }
 
 private:
     using elem_type_ord_t = elem_type_ordinal_type;
+    using face_key_t = detail::face_key<Ord>;
     /// Here pair's first is id of incident element, second - local node index inside this element
     using nodes_to_elems_graph_t = detail::ranges_sparse_arr<std::pair<Ord,Ord>,Ord>;
 
@@ -296,7 +340,7 @@ private:
     //TODO turn into sparse_arr?
     std::map<Ord,Ord>               elements_group_ids_;
     Ord                             elems_max_faces_num_;
-    
+    std::map<face_key_t,Ord>        bnd_faces_group_ids_;
 
     /// Converts internal gmsh tag into 'visible' element index
     Ord elem_tag_to_elem_id(Ord elem_tag)const

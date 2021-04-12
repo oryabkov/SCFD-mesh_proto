@@ -57,6 +57,17 @@ struct face_key
         //TODO looks strange
         *this = face_key(ref.get_face_verts_n(elem_type,elem_face_i), face_nodes);
     }
+    //Not supported because lower dimension elements are not exposed now
+    /*template<class BasicMesh>
+    face_key(const BasicMesh &mesh,Ord elem_id)
+    {
+        const auto &ref = mesh.mesh_elem_reference();
+        auto  elem_type = mesh.get_elem_type(elem_id);
+        Ord nodes[mesh.get_elems_max_prim_nodes_num()];
+        mesh.get_elem_prim_nodes(elem_id, nullptr, nodes);
+        //TODO looks strange
+        *this = face_key(ref.get_verts_n(elem_type), nodes);
+    }*/
 
     Ord     nodes_n()const
     {
