@@ -216,7 +216,7 @@ public:
     elem_type_ordinal_type get_elem_type(Ord i)const
     {
         MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
-        return s->getType();
+        return s->getTypeForMSH();
     }
     Ord get_elem_group_id(Ord i)const
     {

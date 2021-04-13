@@ -62,9 +62,9 @@ TEST(GMSHMeshWrapTest, BasicRead)
         ASSERT_EQ(nodes[2], 172);
         ASSERT_EQ(nodes[3], 61);
         
-        ASSERT_EQ(gmsh_wrap->get_elem_type(0),TYPE_TET);
-        ASSERT_EQ(gmsh_wrap->get_elem_type(500),TYPE_TET);
-        ASSERT_EQ(gmsh_wrap->get_elem_type(1137),TYPE_TET);
+        ASSERT_EQ(gmsh_wrap->get_elem_type(0),MSH_TET_4);
+        ASSERT_EQ(gmsh_wrap->get_elem_type(500),MSH_TET_4);
+        ASSERT_EQ(gmsh_wrap->get_elem_type(1137),MSH_TET_4);
         ASSERT_EQ(gmsh_wrap->get_elem_group_id(0),1);
         ASSERT_EQ(gmsh_wrap->get_elem_group_id(500),1);
         ASSERT_EQ(gmsh_wrap->get_elem_group_id(1137),1);
