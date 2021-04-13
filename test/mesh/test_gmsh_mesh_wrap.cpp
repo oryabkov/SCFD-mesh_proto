@@ -47,7 +47,14 @@ TEST(GMSHMeshWrapTest, BasicRead)
         ASSERT_EQ(nodes[0], 160);
         ASSERT_EQ(nodes[1], 293);
         ASSERT_EQ(nodes[2], 189);
-        ASSERT_EQ(nodes[3], 298);        
+        ASSERT_EQ(nodes[3], 298);
+        //ASSERT_EQ(nodes[3], 299);
+        gmsh_wrap->get_elem_prim_nodes(1137, &prim_nodes_num, nodes);
+        ASSERT_EQ(prim_nodes_num, 4);
+        ASSERT_EQ(nodes[0], 165);
+        ASSERT_EQ(nodes[1], 307);
+        ASSERT_EQ(nodes[2], 72);
+        ASSERT_EQ(nodes[3], 92);
     } 
     catch(const std::exception &e)
     {
