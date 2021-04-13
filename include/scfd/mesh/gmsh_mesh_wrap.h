@@ -121,7 +121,7 @@ public:
 
         /// First build group ids map and estimate nodes to elements graph sizes
         /// Also calcs elems_max_faces_num_
-        Ord     elems_max_faces_num_ = 0;
+        elems_max_faces_num_ = 0;
         for (auto e : entities)
         {
             for (Ord j = 0; j < e->getNumMeshElements(); ++j)
