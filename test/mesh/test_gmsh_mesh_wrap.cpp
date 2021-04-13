@@ -55,12 +55,34 @@ TEST(GMSHMeshWrapTest, BasicRead)
         ASSERT_EQ(nodes[1], 307);
         ASSERT_EQ(nodes[2], 72);
         ASSERT_EQ(nodes[3], 92);
+        gmsh_wrap->get_elem_prim_nodes(1704-621, &prim_nodes_num, nodes);
+        ASSERT_EQ(prim_nodes_num, 4);
+        ASSERT_EQ(nodes[0], 62);
+        ASSERT_EQ(nodes[1], 140);
+        ASSERT_EQ(nodes[2], 172);
+        ASSERT_EQ(nodes[3], 61);
+        
         ASSERT_EQ(gmsh_wrap->get_elem_type(0),TYPE_TET);
         ASSERT_EQ(gmsh_wrap->get_elem_type(500),TYPE_TET);
         ASSERT_EQ(gmsh_wrap->get_elem_type(1137),TYPE_TET);
         ASSERT_EQ(gmsh_wrap->get_elem_group_id(0),1);
         ASSERT_EQ(gmsh_wrap->get_elem_group_id(500),1);
         ASSERT_EQ(gmsh_wrap->get_elem_group_id(1137),1);
+        //test neigbours0 1704-621 1340-621
+        //boundary triangles of element 1704-621
+        //triangle 220 -> surface 18
+        //triangle 301 -> surface 22
+        //We know that this is tetrahedron
+        std::set<ordinal>   elem_1704_face_groups,
+                            elem_1704_face_groups_ref = {18,22};
+        for (ordinal j = 0;j < 4;++j)
+        {
+            if (gmsh_wrap->check_elem_face_has_group_id(1704-621,j))
+                elem_1704_face_groups.insert(gmsh_wrap->get_elem_face_group_id(1704-621,j));
+        }
+        ASSERT_EQ(elem_1704_face_groups.size(),2);
+        ASSERT_EQ(elem_1704_face_groups,elem_1704_face_groups_ref);
+
     } 
     catch(const std::exception &e)
     {
