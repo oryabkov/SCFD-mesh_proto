@@ -220,7 +220,7 @@ public:
     }
     Ord get_elem_group_id(Ord i)const
     {
-        return elements_group_ids_[i];
+        return elements_group_ids_.at(i);
     }
     Ord get_elems_max_prim_nodes_num()const
     {
