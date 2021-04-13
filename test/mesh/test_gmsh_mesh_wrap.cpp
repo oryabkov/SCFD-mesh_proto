@@ -1,12 +1,30 @@
+// Copyright © 2016-2021 Ryabkov Oleg Igorevich, Evstigneev Nikolay Mikhaylovitch
+
+// This file is part of SCFD.
+
+// SCFD is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2 only of the License.
+
+// SCFD is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with SCFD.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
+#include "gtest/gtest.h"
 #include <scfd/communication/linear_partitioner.h>
 #include <scfd/mesh/gmsh_mesh_wrap.h>
 
+using real = double;
+using ordinal = int;
 using partitioner_t = scfd::communication::linear_partitioner;
-using gmsh_wrap_t = scfd::mesh::gmsh_mesh_wrap<double,partitioner_t,3>;
+using gmsh_wrap_t = scfd::mesh::gmsh_mesh_wrap<real,partitioner_t,3,ordinal>;
 
-int main(int argc, char const *args[])
+TEST(GMSHMeshWrapTest, BasicRead) 
 {
     try 
     {
@@ -17,14 +35,24 @@ int main(int argc, char const *args[])
         *part = partitioner_t(gmsh_wrap->get_total_elems_num(), 1, 0);
         gmsh_wrap->set_partitioner(part);
 
-        std::cout << "gmsh_wrap->get_total_elems_num() = " << gmsh_wrap->get_total_elems_num() << std::endl;
-        std::cout << "expected number " << 1138 << std::endl;
+        ASSERT_EQ(gmsh_wrap->get_total_elems_num(), 1138);
+        ASSERT_EQ(gmsh_wrap->get_elems_max_faces_num(), 4);
+        ASSERT_EQ(gmsh_wrap->get_elems_glob_max_faces_num(), 4);
+        ASSERT_EQ(gmsh_wrap->get_elems_max_nodes_num(), 4);
+        ASSERT_EQ(gmsh_wrap->get_elem_prim_nodes_num(0), 4);
+        ordinal prim_nodes_num; 
+        ordinal nodes[4];
+        gmsh_wrap->get_elem_prim_nodes(0, &prim_nodes_num, nodes);
+        ASSERT_EQ(prim_nodes_num, 4);
+        ASSERT_EQ(nodes[0], 160);
+        ASSERT_EQ(nodes[1], 293);
+        ASSERT_EQ(nodes[2], 189);
+        ASSERT_EQ(nodes[3], 298);        
     } 
     catch(const std::exception &e)
     {
         std::cerr << "ERROR: " << e.what() << std::endl;
         std::cerr << "exit" << std::endl;
-    }
-
-    return 0;
+        FAIL();
+    }    
 }
