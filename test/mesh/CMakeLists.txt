@@ -1,4 +1,6 @@
 
+file(COPY test.msh DESTINATION .)
+
 #find_library(GMSH_LIB_DIR Gmsh PATH_SUFFIXES lib DOC "directory where gmsh lib files are located")
 #find_path(GMSH_INCLUDE_DIR "Gmsh.h" PATH_SUFFIXES include gmsh include/gmsh DOC "directory where gmsh header files are located")
 #if(NOT GMSH_LIB_DIR)
@@ -17,3 +19,6 @@ link_directories(${GMSH_LIB_DIR})
 
 add_executable(test_gmsh_mesh_wrap.bin test_gmsh_mesh_wrap.cpp)
 target_link_libraries(test_gmsh_mesh_wrap.bin gmsh)
+target_link_libraries(test_gmsh_mesh_wrap.bin gtest_main)
+
+add_test(NAME test_gmsh_mesh_wrap COMMAND test_gmsh_mesh_wrap.bin)
