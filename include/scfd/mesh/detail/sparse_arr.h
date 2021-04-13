@@ -17,6 +17,7 @@
 #ifndef __SCFD_MESH_SPARSE_ARR_H__
 #define __SCFD_MESH_SPARSE_ARR_H__
 
+#include <cassert>
 #include <vector>
 #include <map>
 

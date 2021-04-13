@@ -73,7 +73,7 @@ struct face_key
     {
         return nodes_n_;
     }
-    Ord     sorted_prim_node(Ord j)
+    Ord     sorted_prim_node(Ord j)const
     {
         return sorted_prim_nodes_[j];
     }

@@ -341,6 +341,7 @@ public:
 private:
     using elem_type_ord_t = elem_type_ordinal_type;
     using face_key_t = detail::face_key<Ord>;
+    using face_key_less_func = detail::face_key_less_func<Ord>;
     /// Here pair's first is id of incident element, second - local node index inside this element
     using nodes_to_elems_graph_t = detail::ranges_sparse_arr<std::pair<Ord,Ord>,Ord>;
 
@@ -358,7 +359,8 @@ private:
     //TODO turn into sparse_arr?
     std::map<Ord,Ord>               elements_group_ids_;
     Ord                             elems_max_faces_num_;
-    std::map<face_key_t,Ord>        bnd_faces_group_ids_;
+
+    std::map<face_key_t,Ord,face_key_less_func>        bnd_faces_group_ids_;
 
     /// Converts internal gmsh tag into 'visible' element index
     Ord elem_tag_to_elem_id(Ord elem_tag)const

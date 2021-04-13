@@ -45,7 +45,7 @@ struct ranges_sparse_arr
     void inc_max_range_size(Ord i, Ord inc = 1)
     {
         if (!sparse_pairs_arr_.has(i))
-            add(i, std::pair<Ord,Ord>(0,0));
+            sparse_pairs_arr_.add(i, std::pair<Ord,Ord>(0,0));
         sparse_pairs_arr_[i].first += inc;
     }
 

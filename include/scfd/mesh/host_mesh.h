@@ -133,7 +133,7 @@ protected:
 
         /// Create faces dict
 
-        std::map<face_key_t,Ord>    faces;
+        std::map<face_key_t,Ord,face_key_less_func>    faces;
         /// Process own elements
         for (Ord i = 0;i < part.get_size();++i)
         {
