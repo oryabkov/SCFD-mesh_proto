@@ -1,4 +1,4 @@
-// Copyright © 2016,2017 Ryabkov Oleg Igorevich, Evstigneev Nikolay Mikhaylovitch
+// Copyright © 2016-2021 Ryabkov Oleg Igorevich, Evstigneev Nikolay Mikhaylovitch
 
 // This file is part of SimpleCFD.
 
@@ -18,7 +18,7 @@
 #define __GMSH_POS_OUTPUT__
 
 #include <cstdio>
-#include <mesh/t_cpu_mesh_tml.h>
+#include <scfd/mesh/host_mesh.h>
 
 template<class T>
 void write_out_pos_scalar_file( const char f_name[], const char v_name[], const t_cpu_mesh_tml<T> &mesh, T *data)

@@ -1,4 +1,4 @@
-// Copyright © 2016,2017 Ryabkov Oleg Igorevich, Evstigneev Nikolay Mikhaylovitch
+// Copyright © 2016-2021 Ryabkov Oleg Igorevich, Evstigneev Nikolay Mikhaylovitch
 
 // This file is part of SimpleCFD.
 
@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "cpu_poisson_solver_config.h"
+#include "host_poisson_solver_config.h"
 #include <string>
 #include <cmath>
 #include <utils/Log.h>
 #include <utils/main_try_catch_macro.h>
-#include <mesh/t_cpu_mesh_tml.h>
+#include <scfd/mesh/gmsh_mesh_wrap.h>
+#include <scfd/mesh/host_mesh.h>
 #include "gmsh_pos_output.h"
 
-typedef CPU_POISSON_SOLVER_SCALAR_TYPE  real;
-typedef t_cpu_mesh_tml<real>            t_cpu_mesh;
-typedef t_vec_tml<real,3>               t_vec;
+typedef HOST_POISSON_SOLVER_SCALAR_TYPE  real;
+typedef t_cpu_mesh_tml<real>             t_cpu_mesh;
+typedef t_vec_tml<real,3>                t_vec;
 
 int bnd1, bnd2, iters_num;
 
