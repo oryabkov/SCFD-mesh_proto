@@ -20,8 +20,8 @@
 #include <cstdio>
 #include <scfd/mesh/host_mesh.h>
 
-template<class T>
-void write_out_pos_scalar_file( const char f_name[], const char v_name[], const t_cpu_mesh_tml<T> &mesh, T *data)
+template<class BasicMesh,class T>
+void write_out_pos_scalar_file( const char f_name[], const char v_name[], const scfd::mesh::host_mesh<BasicMesh> &mesh, T *data)
 {
     FILE *stream;
     //stream = fopen( f_name, "a" );
