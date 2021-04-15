@@ -58,7 +58,7 @@ public:
     }*/
 
     /// See gmsh_mesh_wrap.h for PartElems description
-    void enlarge_stencil(Ord ghost_level)
+    void enlarge_stencil(ordinal_type ghost_level)
     {
         parent_type::enlarge_stencil(part, ghost_level);
 
@@ -75,7 +75,7 @@ public:
     void         get_elem_faces(ordinal_type i, ordinal_type *faces)const
     {
         auto it_range = elems_to_faces_graph_.get_range(i);
-        Ord j = 0;
+        ordinal_type j = 0;
         for (auto it = it_range.first;it != it_range.second;++it,++j)
         {
             faces[j] = *it;
@@ -90,7 +90,7 @@ public:
     void         get_face_elems(ordinal_type i,ordinal_type elems[2])const
     {
         auto it_range = faces_to_elems_graph_.get_range(i);
-        Ord j = 0;
+        ordinal_type j = 0;
         for (auto it = it_range.first;it != it_range.second;++it,++j)
         {
             faces[j] = *it;
@@ -105,15 +105,15 @@ public:
     }
 
 private:
-    using face_key_t = detail::face_key<Ord>;
-    using face_key_equal_func = detail::face_key_equal_func<Ord>;
-    using face_key_less_func = detail::face_key_less_func<Ord>;
+    using face_key_t = detail::face_key<ordinal_type>;
+    using face_key_equal_func = detail::face_key_equal_func<ordinal_type>;
+    using face_key_less_func = detail::face_key_less_func<ordinal_type>;
 
-    using elems_to_faces_graph_t = detail::ranges_sparse_arr<Ord,Ord>;
+    using elems_to_faces_graph_t = detail::ranges_sparse_arr<ordinal_type,ordinal_type>;
     /// Here pair's first is id of incident element, second - local face index inside this element
-    using faces_to_elems_graph_t = detail::ranges_sparse_arr<std::pair<Ord,Ord>,Ord>;
+    using faces_to_elems_graph_t = detail::ranges_sparse_arr<std::pair<ordinal_type,ordinal_type>,ordinal_type>;
     /// Here pair's first is id of incident element, second - local face index inside this element
-    using elems_to_neighbours0_graph_t = detail::ranges_sparse_arr<std::pair<Ord,Ord>,Ord>;
+    using elems_to_neighbours0_graph_t = detail::ranges_sparse_arr<std::pair<ordinal_type,ordinal_type>,ordinal_type>;
 
     //std::shared_ptr<const BasicMesh>  basic_mesh_;
 
@@ -125,19 +125,19 @@ private:
 protected:
 
     //TODO virtual?
-    void build_faces(Ord ghost_level)
+    void build_faces(ordinal_type ghost_level)
     {
-        std::set<Ord> stencil_ids;
+        std::set<ordinal_type> stencil_ids;
         calc_elems_stencil(ghost_level,stencil_ids);
         const auto &part = *parent_type::get_partitioner();
 
         /// Create faces dict
 
-        std::map<face_key_t,Ord,face_key_less_func>    faces;
+        std::map<face_key_t,ordinal_type,face_key_less_func>    faces;
         /// Process own elements
-        for (Ord i = 0;i < part.get_size();++i)
+        for (ordinal_type i = 0;i < part.get_size();++i)
         {
-            Ord  elem_id = part.own_glob_ind(i);
+            ordinal_type  elem_id = part.own_glob_ind(i);
             build_faces_for_elem(elem_id,faces);
         }
         /// Process stencil elements
@@ -153,9 +153,9 @@ protected:
 
         /// Estmate sizes of graphs elems_to_faces_graph_ and faces_to_elems_graph_
         /// Process own elements
-        for (Ord i = 0;i < part.get_size();++i)
+        for (ordinal_type i = 0;i < part.get_size();++i)
         {
-            Ord  elem_id = part.own_glob_ind(i);
+            ordinal_type  elem_id = part.own_glob_ind(i);
             reserve_graphs_for_elem(elem_id, faces);
         }
         /// Process stencil elements
@@ -170,9 +170,9 @@ protected:
 
         /// Fill actual graphs elems_to_faces_graph_ and faces_to_elems_graph_
         /// Process own elements
-        for (Ord i = 0;i < part.get_size();++i)
+        for (ordinal_type i = 0;i < part.get_size();++i)
         {
-            Ord  elem_id = part.own_glob_ind(i);
+            ordinal_type  elem_id = part.own_glob_ind(i);
             fill_graphs_for_elem(elem_id, faces);
         }
         /// Process stencil elements
@@ -182,16 +182,16 @@ protected:
         }
 
     }
-    void build_faces_for_elem(Ord elem_id, std::map<face_key_t,Ord> &faces)
+    void build_faces_for_elem(ordinal_type elem_id, std::map<face_key_t,ordinal_type> &faces)
     {
         const auto &ref = parent_type::mesh_elem_reference();
         //TODO in general it is not good idea to take it each time (some cached value?)
-        Ord glob_max_faces_num = parent_type::get_elems_glob_max_faces_num();
+        ordinal_type glob_max_faces_num = parent_type::get_elems_glob_max_faces_num();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
         //ISSUE are there any performance problmes with local allocation here?
-        for (Ord j = 0;j < ref.get_faces_n(elem_type);++j)
+        for (ordinal_type j = 0;j < ref.get_faces_n(elem_type);++j)
         {
-            Ord face_id = elem_id*glob_max_faces_num + j;
+            ordinal_type face_id = elem_id*glob_max_faces_num + j;
             face_key_t face_key(*this,elem_id,j);
             auto face_it = faces.find(face_key);
             if (face_it == faces.end())
@@ -206,47 +206,47 @@ protected:
             }
         }
     }
-    void reserve_graphs_for_elem(Ord elem_id, const std::map<face_key_t,Ord> &faces)
+    void reserve_graphs_for_elem(ordinal_type elem_id, const std::map<face_key_t,ordinal_type> &faces)
     {
         const auto &ref = parent_type::mesh_elem_reference();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
-        for (Ord j = 0;j < ref.get_faces_n(elem_type);++j)
+        for (ordinal_type j = 0;j < ref.get_faces_n(elem_type);++j)
         {
             face_key_t face_key(*this,elem_id,j);
             auto face_it = faces.find(face_key);
             if (face_it == faces.end())
                 throw std::logic_error("host_mesh::reserve_graphs_for_elem: no face found!");
-            Ord face_id = face_it->second;
+            ordinal_type face_id = face_it->second;
             elems_to_faces_graph_.inc_max_range_size(elem_id,1);
             faces_to_elems_graph_.inc_max_range_size(face_id,1);
         }
     }
-    void fill_graphs_for_elem(Ord elem_id, const std::map<face_key_t,Ord> &faces)
+    void fill_graphs_for_elem(ordinal_type elem_id, const std::map<face_key_t,ordinal_type> &faces)
     {
         const auto &ref = parent_type::mesh_elem_reference();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
-        for (Ord j = 0;j < ref.get_faces_n(elem_type);++j)
+        for (ordinal_type j = 0;j < ref.get_faces_n(elem_type);++j)
         {
             face_key_t face_key(*this,elem_id,j);
             auto face_it = faces.find(face_key);
             if (face_it == faces.end())
                 throw std::logic_error("host_mesh::reserve_graphs_for_elem: no face found!");
-            Ord face_id = face_it->second;
+            ordinal_type face_id = face_it->second;
             elems_to_faces_graph_.add_to_range(elem_id, face_id);            
-            faces_to_elems_graph_.add_to_range(face_id,std::pair<Ord,Ord>(elem_id,j));
+            faces_to_elems_graph_.add_to_range(face_id,std::pair<ordinal_type,ordinal_type>(elem_id,j));
         }
     }
-    void calc_elems_stencil(Ord ghost_level,std::set<Ord> &stencil_ids)
+    void calc_elems_stencil(ordinal_type ghost_level,std::set<ordinal_type> &stencil_ids)
     {
         const auto &part = *parent_type::get_partitioner();
         stencil_ids.clear();
-        std::set<Ord> curr_ids,next_ids;
-        for (Ord i = 0;i < part.get_size();++i)
+        std::set<ordinal_type> curr_ids,next_ids;
+        for (ordinal_type i = 0;i < part.get_size();++i)
         {
-            Ord  elem_id = part.own_glob_ind(i);
+            ordinal_type  elem_id = part.own_glob_ind(i);
             calc_elems_stencil_for_elem(elem_id,stencil_ids,next_ids);
         }
-        for (Ord level = 1;level < ghost_level;++level)
+        for (ordinal_type level = 1;level < ghost_level;++level)
         {
             std::swap(curr_ids,next_ids);
             next_ids.clear();
@@ -258,23 +258,23 @@ protected:
     }
     void calc_elems_stencil_for_elem
     (
-        Ord elem_id, std::set<Ord> &stencil_ids, std::set<Ord> &next_ids
+        ordinal_type elem_id, std::set<ordinal_type> &stencil_ids, std::set<ordinal_type> &next_ids
     )
     {
         const auto &part = *parent_type::get_partitioner();
         const auto &ref = parent_type::mesh_elem_reference();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
-        Ord nodes_n;
-        Ord nodes[parent_type::get_elems_max_prim_nodes_num()];
+        ordinal_type nodes_n;
+        ordinal_type nodes[parent_type::get_elems_max_prim_nodes_num()];
         parent_type::get_elem_prim_nodes(elem_id, &nodes_n, nodes);
-        for (Ord node_i = 0;node_i < nodes_n;++node_i)
+        for (ordinal_type node_i = 0;node_i < nodes_n;++node_i)
         {
-            Ord incid_elems_n;
-            Ord incid_elems[parent_type::get_nodes_max_incident_elems_num()];            
+            ordinal_type incid_elems_n;
+            ordinal_type incid_elems[parent_type::get_nodes_max_incident_elems_num()];            
             parent_type::get_node_incident_elems(nodes[node_i],incid_elems,&incid_elems_n);
-            for (Ord incid_elems_i = 0;incid_elems_i < incid_elems_n;++incid_elems_i)
+            for (ordinal_type incid_elems_i = 0;incid_elems_i < incid_elems_n;++incid_elems_i)
             {
-                Ord incid_elems_id = incid_elems[incid_elems_i];
+                ordinal_type incid_elems_id = incid_elems[incid_elems_i];
                 /// Simple cutoff (also not very effective)
                 if (incid_elems_id == elem_id) continue;
                 if (part.check_glob_owned(incid_elems_id)) continue;
