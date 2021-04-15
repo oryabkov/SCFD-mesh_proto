@@ -61,7 +61,7 @@ public:
     void enlarge_stencil(ordinal_type ghost_level)
     {
         parent_type::enlarge_stencil(ghost_level);
-
+        build_faces(ghost_level);
     }
 
     /// Suppose we need to duplicate BasicMesh interface here?
@@ -182,7 +182,7 @@ protected:
         }
 
     }
-    void build_faces_for_elem(ordinal_type elem_id, std::map<face_key_t,ordinal_type> &faces)
+    void build_faces_for_elem(ordinal_type elem_id, std::map<face_key_t,ordinal_type,face_key_less_func> &faces)
     {
         const auto &ref = parent_type::mesh_elem_reference();
         //TODO in general it is not good idea to take it each time (some cached value?)
@@ -206,7 +206,7 @@ protected:
             }
         }
     }
-    void reserve_graphs_for_elem(ordinal_type elem_id, const std::map<face_key_t,ordinal_type> &faces)
+    void reserve_graphs_for_elem(ordinal_type elem_id, const std::map<face_key_t,ordinal_type,face_key_less_func> &faces)
     {
         const auto &ref = parent_type::mesh_elem_reference();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
@@ -221,7 +221,7 @@ protected:
             faces_to_elems_graph_.inc_max_range_size(face_id,1);
         }
     }
-    void fill_graphs_for_elem(ordinal_type elem_id, const std::map<face_key_t,ordinal_type> &faces)
+    void fill_graphs_for_elem(ordinal_type elem_id, const std::map<face_key_t,ordinal_type,face_key_less_func> &faces)
     {
         const auto &ref = parent_type::mesh_elem_reference();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
