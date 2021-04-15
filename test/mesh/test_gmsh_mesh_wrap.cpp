@@ -73,15 +73,14 @@ TEST(GMSHMeshWrapTest, BasicRead)
         //triangle 220 -> surface 18
         //triangle 301 -> surface 22
         //We know that this is tetrahedron
-        std::set<ordinal>   elem_1704_face_groups,
-                            elem_1704_face_groups_ref = {18,22};
+        std::set<ordinal>   elem_1704_face_groups;
         for (ordinal j = 0;j < 4;++j)
         {
             if (gmsh_wrap->check_elem_face_has_group_id(1704-621,j))
                 elem_1704_face_groups.insert(gmsh_wrap->get_elem_face_group_id(1704-621,j));
         }
         ASSERT_EQ(elem_1704_face_groups.size(),2);
-        ASSERT_EQ(elem_1704_face_groups,elem_1704_face_groups_ref);
+        ASSERT_EQ(elem_1704_face_groups,std::set<ordinal>({18,22}));
 
     } 
     catch(const std::exception &e)
