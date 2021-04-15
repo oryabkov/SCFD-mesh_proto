@@ -265,7 +265,15 @@ protected:
         for (auto it = it_range.first;it != it_range.second;++it,++loc_face_i)
         {
             ordinal_type face_id = *it;
-            if (get_face_elems_num(face_id) != 2) continue;
+            if (get_face_elems_num(face_id) != 2) 
+            {
+                //TODO -1 -> to some special value
+                elems_to_neighbours0_graph_.add_to_range
+                (
+                    elem_id, std::pair<ordinal_type,ordinal_type>(-1,-1)
+                );
+                continue;
+            }
             ordinal_type elems[2];
             ordinal_type neib0_id;
             get_face_elems(face_id,elems);
