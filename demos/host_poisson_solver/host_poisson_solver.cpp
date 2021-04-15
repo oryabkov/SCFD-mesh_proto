@@ -46,7 +46,7 @@ vec_t reflect_point(const vec_t &norm, const vec_t &p1, const vec_t &p0)
 
 void    poisson_iteration(const host_mesh_t &host_mesh, const real *vars_old, real *vars_new)
 {
-    for (int i = 0;i < host_mesh.cv.size();++i) 
+    for (int i = 0;i < host_mesh.get_total_elems_num();++i) 
     {
         real    numerator(0.f), denominator(0.f);
         for (int j = 0;j < host_mesh.cv[i].faces_n;++j) 
@@ -88,7 +88,7 @@ void    poisson_iteration(const host_mesh_t &host_mesh, const real *vars_old, re
 
 void    fill_zero(const host_mesh_t &host_mesh, real *A)
 {
-    for (int i = 0;i < host_mesh.cv.size();++i) 
+    for (int i = 0;i < host_mesh.get_total_elems_num();++i) 
     {
         A[i] = 0.f;
     }
@@ -97,7 +97,7 @@ void    fill_zero(const host_mesh_t &host_mesh, real *A)
 //B := A
 void    assign(const host_mesh_t &host_mesh, real *B, const real *A)
 {
-    for (int i = 0;i < host_mesh.cv.size();++i) 
+    for (int i = 0;i < host_mesh.get_total_elems_num();++i) 
     {
         B[i] = A[i];
     }
@@ -129,8 +129,8 @@ int main(int argc, char **args)
     MAIN_CATCH(2)
 
     MAIN_TRY("allocating variables array")
-    vars0 = new real[host_mesh.cv.size()];
-    vars1 = new real[host_mesh.cv.size()];
+    vars0 = new real[host_mesh.get_total_elems_num()];
+    vars1 = new real[host_mesh.get_total_elems_num()];
     MAIN_CATCH(3)
 
     MAIN_TRY("iterate poisson equation")
