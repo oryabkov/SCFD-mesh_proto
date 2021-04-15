@@ -99,7 +99,7 @@ public:
 
     /// Neighbours0 interface
     /// No need to return number of neighbours0 - use get_elem_faces_num
-    ordinal_type get_elem_neighbours0(ordinal_type i, ordinal_type *elems)const
+    void get_elem_neighbours0(ordinal_type i, ordinal_type *elems)const
     {
         auto it_range = elems_to_neighbours0_graph_.get_range(i);
         ordinal_type j = 0;
