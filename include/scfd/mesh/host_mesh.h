@@ -60,7 +60,7 @@ public:
     /// See gmsh_mesh_wrap.h for PartElems description
     void enlarge_stencil(ordinal_type ghost_level)
     {
-        parent_type::enlarge_stencil(part, ghost_level);
+        parent_type::enlarge_stencil(ghost_level);
 
     }
 
@@ -93,7 +93,7 @@ public:
         ordinal_type j = 0;
         for (auto it = it_range.first;it != it_range.second;++it,++j)
         {
-            faces[j] = *it;
+            elems[j] = *it;
         }
     }
 
