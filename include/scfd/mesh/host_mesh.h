@@ -93,7 +93,7 @@ public:
         ordinal_type j = 0;
         for (auto it = it_range.first;it != it_range.second;++it,++j)
         {
-            elems[j] = *it;
+            elems[j] = it->first;
         }
     }
 
@@ -148,8 +148,9 @@ protected:
 
         /// Create graphs elems_to_faces_graph_ and faces_to_elems_graph_ based on dict
     
-        elems_to_faces_graph_.reserve(faces.size());
-        faces_to_elems_graph_.reserve(part.get_size()+stencil_ids.size());
+        elems_to_faces_graph_.reserve(part.get_size()+stencil_ids.size());
+        elems_to_neighbours0_graph_.reserve(part.get_size()+stencil_ids.size());
+        faces_to_elems_graph_.reserve(faces.size());
 
         /// Estmate sizes of graphs elems_to_faces_graph_ and faces_to_elems_graph_
         /// Process own elements
@@ -166,6 +167,7 @@ protected:
 
         /// Complete graphs structures
         elems_to_faces_graph_.complete_structure();
+        elems_to_neighbours0_graph_.complete_structure();
         faces_to_elems_graph_.complete_structure();
 
         /// Fill actual graphs elems_to_faces_graph_ and faces_to_elems_graph_
@@ -181,6 +183,18 @@ protected:
             fill_graphs_for_elem(elem_id, faces);
         }
 
+        /// Fill actual graph elems_to_neighbours0_graph_
+        /// Process own elements
+        for (ordinal_type i = 0;i < part.get_size();++i)
+        {
+            ordinal_type  elem_id = part.own_glob_ind(i);
+            fill_neib_graph_for_elem(elem_id);
+        }
+        /// Process stencil elements
+        for (auto elem_id : stencil_ids)
+        {
+            fill_neib_graph_for_elem(elem_id);
+        }
     }
     void build_faces_for_elem(ordinal_type elem_id, std::map<face_key_t,ordinal_type,face_key_less_func> &faces)
     {
@@ -218,6 +232,7 @@ protected:
                 throw std::logic_error("host_mesh::reserve_graphs_for_elem: no face found!");
             ordinal_type face_id = face_it->second;
             elems_to_faces_graph_.inc_max_range_size(elem_id,1);
+            elems_to_neighbours0_graph_.inc_max_range_size(elem_id,1);
             faces_to_elems_graph_.inc_max_range_size(face_id,1);
         }
     }
@@ -234,6 +249,31 @@ protected:
             ordinal_type face_id = face_it->second;
             elems_to_faces_graph_.add_to_range(elem_id, face_id);            
             faces_to_elems_graph_.add_to_range(face_id,std::pair<ordinal_type,ordinal_type>(elem_id,j));
+        }
+    }
+    void fill_neib_graph_for_elem(ordinal_type elem_id)
+    {
+        const auto &ref = parent_type::mesh_elem_reference();
+        elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
+        auto it_range = elems_to_faces_graph_.get_range(elem_id);
+        ordinal_type loc_face_i = 0;
+        for (auto it = it_range.first;it != it_range.second;++it,++loc_face_i)
+        {
+            ordinal_type face_id = *it;
+            if (get_face_elems_num(face_id) != 2) continue;
+            ordinal_type elems[2];
+            ordinal_type neib0_id;
+            get_face_elems(face_id,elems);
+            /// We now know there are two elements for this face
+            for (ordinal_type j = 0;j < 2;++j)
+            {
+                if (elems[j] == elem_id) continue;
+                neib0_id = elems[j];
+            }
+            elems_to_neighbours0_graph_.add_to_range
+            (
+                elem_id, std::pair<ordinal_type,ordinal_type>(neib0_id,loc_face_i)
+            );
         }
     }
     void calc_elems_stencil(ordinal_type ghost_level,std::set<ordinal_type> &stencil_ids)
