@@ -72,6 +72,14 @@ TEST(HostMeshGMSHWrapTest, BasicRead)
         ASSERT_EQ(host_mesh->get_elem_group_id(500),1);
         ASSERT_EQ(host_mesh->get_elem_group_id(1137),1);
         //test neigbours0 1704-621 1340-621
+        std::set<ordinal>   elem_1704_neibs0_set;
+        ordinal             elem_1704_neibs0[host_mesh->get_elem_faces_num(1704-621)];
+        host_mesh->get_elem_neighbours0(1704-621, elem_1704_neibs0);
+        for (ordinal j = 0;j < host_mesh->get_elem_faces_num(1704-621);++j)
+        {
+            elem_1704_neibs0_set.insert(elem_1704_neibs0[j]);
+        }
+        ASSERT_TRUE(elem_1704_neibs0_set.find(1340-621) != elem_1704_neibs0_set.end());
         //boundary triangles of element 1704-621
         //triangle 220 -> surface 18
         //triangle 301 -> surface 22
