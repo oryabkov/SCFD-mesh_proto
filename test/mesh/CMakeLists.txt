@@ -21,4 +21,9 @@ add_executable(test_gmsh_mesh_wrap.bin test_gmsh_mesh_wrap.cpp)
 target_link_libraries(test_gmsh_mesh_wrap.bin gmsh)
 target_link_libraries(test_gmsh_mesh_wrap.bin gtest_main)
 
+add_executable(test_host_mesh_gmsh_wrap.bin test_host_mesh_gmsh_wrap.cpp)
+target_link_libraries(test_host_mesh_gmsh_wrap.bin gmsh)
+target_link_libraries(test_host_mesh_gmsh_wrap.bin gtest_main)
+
 add_test(NAME test_gmsh_mesh_wrap COMMAND test_gmsh_mesh_wrap.bin)
+add_test(NAME test_host_mesh_gmsh_wrap COMMAND test_host_mesh_gmsh_wrap.bin)
