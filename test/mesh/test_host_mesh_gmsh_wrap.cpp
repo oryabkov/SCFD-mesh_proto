@@ -31,45 +31,46 @@ TEST(HostMeshGMSHWrapTest, BasicRead)
     try 
     {
         auto        part = std::make_shared<partitioner_t>();
-        auto        gmsh_wrap = std::make_shared<gmsh_wrap_t>();
-        gmsh_wrap->set_mesh_filename("test.msh");
-        gmsh_wrap->read();
-        *part = partitioner_t(gmsh_wrap->get_total_elems_num(), 1, 0);
-        gmsh_wrap->set_partitioner(part);
+        auto        host_mesh = std::make_shared<host_mesh_t>();
+        host_mesh->set_mesh_filename("test.msh");
+        host_mesh->read();
+        *part = partitioner_t(host_mesh->get_total_elems_num(), 1, 0);
+        host_mesh->set_partitioner(part);
+        host_mesh->enlarge_stencil(1);
 
-        ASSERT_EQ(gmsh_wrap->get_total_elems_num(), 1138);
-        ASSERT_EQ(gmsh_wrap->get_elems_max_faces_num(), 4);
-        ASSERT_EQ(gmsh_wrap->get_elems_glob_max_faces_num(), 4);
-        ASSERT_EQ(gmsh_wrap->get_elems_max_nodes_num(), 4);
-        ASSERT_EQ(gmsh_wrap->get_elem_prim_nodes_num(0), 4);
+        ASSERT_EQ(host_mesh->get_total_elems_num(), 1138);
+        ASSERT_EQ(host_mesh->get_elems_max_faces_num(), 4);
+        ASSERT_EQ(host_mesh->get_elems_glob_max_faces_num(), 4);
+        ASSERT_EQ(host_mesh->get_elems_max_nodes_num(), 4);
+        ASSERT_EQ(host_mesh->get_elem_prim_nodes_num(0), 4);
         ordinal prim_nodes_num; 
         ordinal nodes[4];
-        gmsh_wrap->get_elem_prim_nodes(0, &prim_nodes_num, nodes);
+        host_mesh->get_elem_prim_nodes(0, &prim_nodes_num, nodes);
         ASSERT_EQ(prim_nodes_num, 4);
         ASSERT_EQ(nodes[0], 160);
         ASSERT_EQ(nodes[1], 293);
         ASSERT_EQ(nodes[2], 189);
         ASSERT_EQ(nodes[3], 298);
         //ASSERT_EQ(nodes[3], 299);
-        gmsh_wrap->get_elem_prim_nodes(1137, &prim_nodes_num, nodes);
+        host_mesh->get_elem_prim_nodes(1137, &prim_nodes_num, nodes);
         ASSERT_EQ(prim_nodes_num, 4);
         ASSERT_EQ(nodes[0], 165);
         ASSERT_EQ(nodes[1], 307);
         ASSERT_EQ(nodes[2], 72);
         ASSERT_EQ(nodes[3], 92);
-        gmsh_wrap->get_elem_prim_nodes(1704-621, &prim_nodes_num, nodes);
+        host_mesh->get_elem_prim_nodes(1704-621, &prim_nodes_num, nodes);
         ASSERT_EQ(prim_nodes_num, 4);
         ASSERT_EQ(nodes[0], 62);
         ASSERT_EQ(nodes[1], 140);
         ASSERT_EQ(nodes[2], 172);
         ASSERT_EQ(nodes[3], 61);
         
-        ASSERT_EQ(gmsh_wrap->get_elem_type(0),MSH_TET_4);
-        ASSERT_EQ(gmsh_wrap->get_elem_type(500),MSH_TET_4);
-        ASSERT_EQ(gmsh_wrap->get_elem_type(1137),MSH_TET_4);
-        ASSERT_EQ(gmsh_wrap->get_elem_group_id(0),1);
-        ASSERT_EQ(gmsh_wrap->get_elem_group_id(500),1);
-        ASSERT_EQ(gmsh_wrap->get_elem_group_id(1137),1);
+        ASSERT_EQ(host_mesh->get_elem_type(0),MSH_TET_4);
+        ASSERT_EQ(host_mesh->get_elem_type(500),MSH_TET_4);
+        ASSERT_EQ(host_mesh->get_elem_type(1137),MSH_TET_4);
+        ASSERT_EQ(host_mesh->get_elem_group_id(0),1);
+        ASSERT_EQ(host_mesh->get_elem_group_id(500),1);
+        ASSERT_EQ(host_mesh->get_elem_group_id(1137),1);
         //test neigbours0 1704-621 1340-621
         //boundary triangles of element 1704-621
         //triangle 220 -> surface 18
@@ -78,8 +79,8 @@ TEST(HostMeshGMSHWrapTest, BasicRead)
         std::set<ordinal>   elem_1704_face_groups;
         for (ordinal j = 0;j < 4;++j)
         {
-            if (gmsh_wrap->check_elem_face_has_group_id(1704-621,j))
-                elem_1704_face_groups.insert(gmsh_wrap->get_elem_face_group_id(1704-621,j));
+            if (host_mesh->check_elem_face_has_group_id(1704-621,j))
+                elem_1704_face_groups.insert(host_mesh->get_elem_face_group_id(1704-621,j));
         }
         ASSERT_EQ(elem_1704_face_groups.size(),2);
         ASSERT_EQ(elem_1704_face_groups,std::set<ordinal>({18,22}));
