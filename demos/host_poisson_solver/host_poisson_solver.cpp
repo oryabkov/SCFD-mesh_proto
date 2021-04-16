@@ -46,12 +46,14 @@ vec_t reflect_point(const vec_t &norm, const vec_t &p1, const vec_t &p0)
 
 void    poisson_iteration(const host_mesh_t &host_mesh, const real *vars_old, real *vars_new)
 {
+    ordinal neibs[host_mesh.get_elems_max_faces_num()];
     for (int i = 0;i < host_mesh.get_total_elems_num();++i) 
     {
         real    numerator(0.f), denominator(0.f);
-        for (int j = 0;j < host_mesh.cv[i].faces_n;++j) 
+        host_mesh.get_elem_neighbours0(i, neibs);
+        for (int j = 0;j < host_mesh.get_elem_faces_num(i);++j) 
         {
-            int nb = host_mesh.cv[i].neighbours[j];
+            int nb = neibs[j];
             vec_t   nb_center;
             real    dist, var_nb;
             if (nb != -1) 
