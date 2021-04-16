@@ -31,6 +31,8 @@ using gmsh_wrap_t = scfd::mesh::gmsh_mesh_wrap<real,partitioner_t,3,ordinal>;
 using host_mesh_t = scfd::mesh::host_mesh<gmsh_wrap_t>;
 using vec_t = scfd::static_vec::vec<real,3>;
 using log_t = scfd::utils::log_std;
+using real_vector_t = std::std::vector<real>;
+using vec_faces_vector_t = std::std::vector<vec_t>;
 
 int bnd1, bnd2, iters_num;
 
@@ -44,7 +46,7 @@ vec_t reflect_point(const vec_t &norm, const vec_t &p1, const vec_t &p0)
 }
 
 
-void    poisson_iteration(const host_mesh_t &host_mesh, const real *vars_old, real *vars_new)
+void    poisson_iteration(const host_mesh_t &host_mesh, const real_vector_t &vars_old, real_vector_t &vars_new)
 {
     ordinal neibs[host_mesh.get_elems_max_faces_num()];
     for (int i = 0;i < host_mesh.get_total_elems_num();++i) 
@@ -84,8 +86,13 @@ void    poisson_iteration(const host_mesh_t &host_mesh, const real *vars_old, re
             numerator += host_mesh.cv[i].S[j]*var_nb/dist;
             denominator += host_mesh.cv[i].S[j]/dist;
         }
-                vars_new[i] = numerator/denominator;
+        vars_new[i] = numerator/denominator;
     }
+}
+
+real_vector_t   allocate_scalar_array(const host_mesh_t &host_mesh)
+{
+    return real_vector_t(host_mesh.get_total_elems_num());
 }
 
 void    fill_zero(const host_mesh_t &host_mesh, real *A)
@@ -109,7 +116,7 @@ int main(int argc, char **args)
 {
     log_t           log;
     host_mesh_t     host_mesh;
-    real            *vars0, *vars1;
+    real_vector_t   vars0, vars1;
 
     USE_MAIN_TRY_CATCH(log)
     
@@ -131,8 +138,8 @@ int main(int argc, char **args)
     MAIN_CATCH(2)
 
     MAIN_TRY("allocating variables array")
-    vars0 = new real[host_mesh.get_total_elems_num()];
-    vars1 = new real[host_mesh.get_total_elems_num()];
+    vars0 = allocate_scalar_array(host_mesh);
+    vars1 = allocate_scalar_array(host_mesh);
     MAIN_CATCH(3)
 
     MAIN_TRY("iterate poisson equation")
@@ -153,8 +160,6 @@ int main(int argc, char **args)
     MAIN_CATCH(5)
 
     MAIN_TRY("deallocating variables array")
-    delete []vars0;
-    delete []vars1;
     MAIN_CATCH(6)
 
     return 0;
