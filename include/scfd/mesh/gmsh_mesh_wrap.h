@@ -256,10 +256,10 @@ public:
         MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
         return s->getNumVertices();
     }
-    void get_elem_nodes(Ord i, Ord &nodes_num, Ord *nodes)const
+    void get_elem_nodes(Ord i, Ord *nodes, Ord *nodes_num = nullptr)const
     {
         MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
-        nodes_num = s->getNumVertices();
+        if (nodes_num) *nodes_num = s->getNumVertices();
         /// TODO we explicitly use here that primary vertices goes 1st (used in mesh_prepare)
         /// Chrch is this always true.
         for (Ord j = 0;j < s->getNumVertices();++j)

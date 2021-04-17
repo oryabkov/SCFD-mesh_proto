@@ -70,6 +70,14 @@ public:
     /// Suppose we need to duplicate BasicMesh interface here?
     /// In case of inheritance we get it at once
 
+    /// Part of nodes interface on this level (just get coords with static_vec result)
+    static_vec::vec<scalar_type,dim> get_node_coords(ordinal_type i)const
+    {
+        static_vec::vec<scalar_type,dim>  res;
+        parent_type::get_node_coords(i,res.d);
+        return res;
+    }
+
     /// Faces interface
     ordinal_type get_elem_faces_num(ordinal_type i)const
     {
