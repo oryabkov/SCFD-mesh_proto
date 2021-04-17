@@ -28,6 +28,8 @@ void write_out_pos_scalar_file
     const std::vector<T> &data
 )
 {
+    using vec_t = scfd::static_vec::vec<T,3>;
+
     FILE *stream;
     //stream = fopen( f_name, "a" );
     stream = fopen( f_name, "w" );
@@ -48,17 +50,24 @@ void write_out_pos_scalar_file
         if (mesh.get_elem_type(i) == 6) fprintf( stream, "SI(");
         if (mesh.get_elem_type(i) == 7) fprintf( stream, "SY(");
 
-        for (int j = 0;j < mesh.cv[i].vert_n;++j) {
-            fprintf( stream, "%f,   %f, %f",
-                mesh.cv[i].vertexes[j][0],mesh.cv[i].vertexes[j][1],mesh.cv[i].vertexes[j][2] );
-                    if (j != mesh.cv[i].vert_n-1) fprintf( stream, ",   " );
+        Ord     elem_nodes[mesh.get_elems_max_nodes_num()];
+        Ord     nodes_n;
+        mesh.get_elem_nodes(i, elem_nodes, &nodes_n);
+
+        for (int j = 0;j < nodes_n;++j) 
+        {
+            vec_t   vertex = mesh.get_node_coords(elem_nodes[j]);
+
+            fprintf( stream, "%f,%f,%f", vertex[0],vertex[1],vertex[2] );
+            if (j != nodes_n-1) fprintf( stream, "," );
         }
 
         fprintf( stream, "){" );
 
-                for (int j = 0;j < mesh.cv[i].vert_n;++j) {
+        for (int j = 0;j < nodes_n;++j) 
+        {
             fprintf( stream,"%e", par );
-                        if (j != mesh.cv[i].vert_n-1) fprintf( stream, ",   " );
+            if (j != nodes_n-1) fprintf( stream, "," );
         }
         fprintf( stream, "};\n");
     }

@@ -19,6 +19,7 @@
 #include <cmath>
 #include <scfd/utils/log_std.h>
 #include <scfd/utils/main_try_catch_macro.h>
+#include <scfd/static_vec/vec.h>
 #include <scfd/communication/linear_partitioner.h>
 #include <scfd/mesh/gmsh_mesh_wrap.h>
 #include <scfd/mesh/host_mesh.h>
