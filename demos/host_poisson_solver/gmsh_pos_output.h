@@ -20,8 +20,13 @@
 #include <cstdio>
 #include <scfd/mesh/host_mesh.h>
 
-template<class BasicMesh,class T>
-void write_out_pos_scalar_file( const char f_name[], const char v_name[], const scfd::mesh::host_mesh<BasicMesh> &mesh, const std::vector<T> &data)
+template<class T,class Part,class Ord>
+void write_out_pos_scalar_file
+( 
+    const char f_name[], const char v_name[], 
+    const scfd::mesh::host_mesh<scfd::mesh::gmsh_mesh_wrap<T,Part,3,Ord>> &mesh, 
+    const std::vector<T> &data
+)
 {
     FILE *stream;
     //stream = fopen( f_name, "a" );
@@ -34,13 +39,14 @@ void write_out_pos_scalar_file( const char f_name[], const char v_name[], const 
     fprintf( stream, "TIME{0};\n");
     fflush(stream);
 
-    /*for(int i = 0;i < mesh.cv.size();i++) {
+    for(int i = 0;i < mesh.get_total_elems_num();i++) 
+    {
         T   par = data[i];
 
-        if (mesh.cv[i].elem_type == 4) fprintf( stream, "SS(");
-        if (mesh.cv[i].elem_type == 5) fprintf( stream, "SH(");
-        if (mesh.cv[i].elem_type == 6) fprintf( stream, "SI(");
-        if (mesh.cv[i].elem_type == 7) fprintf( stream, "SY(");
+        if (mesh.get_elem_type(i) == 4) fprintf( stream, "SS(");
+        if (mesh.get_elem_type(i) == 5) fprintf( stream, "SH(");
+        if (mesh.get_elem_type(i) == 6) fprintf( stream, "SI(");
+        if (mesh.get_elem_type(i) == 7) fprintf( stream, "SY(");
 
         for (int j = 0;j < mesh.cv[i].vert_n;++j) {
             fprintf( stream, "%f,   %f, %f",
@@ -55,7 +61,7 @@ void write_out_pos_scalar_file( const char f_name[], const char v_name[], const 
                         if (j != mesh.cv[i].vert_n-1) fprintf( stream, ",   " );
         }
         fprintf( stream, "};\n");
-    }*/
+    }
     fflush(stream);
 
     fprintf( stream, "};\n");
