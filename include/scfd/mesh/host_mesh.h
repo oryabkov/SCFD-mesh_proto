@@ -44,6 +44,8 @@ public:
     using elem_type_ordinal_type = typename basic_mesh_type::elem_type_ordinal_type;
     using partitioner_type = typename basic_mesh_type::partitioner_type;
 
+    static const ordinal_type special_id = basic_mesh_type::special_id;
+
 public:
     /// Need default contructable BasicMesh
     host_mesh()
@@ -267,10 +269,9 @@ protected:
             ordinal_type face_id = *it;
             if (get_face_elems_num(face_id) != 2) 
             {
-                //TODO -1 -> to some special value
                 elems_to_neighbours0_graph_.add_to_range
                 (
-                    elem_id, std::pair<ordinal_type,ordinal_type>(-1,-1)
+                    elem_id, std::pair<ordinal_type,ordinal_type>(special_id,special_id)
                 );
                 continue;
             }

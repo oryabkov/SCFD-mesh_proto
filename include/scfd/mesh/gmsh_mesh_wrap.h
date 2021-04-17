@@ -58,6 +58,8 @@ public:
     using elem_type_ordinal_type = int;
     using partitioner_type = PartElems;
     using mesh_elem_reference_type = gmsh_mesh_elem_reference<T>;
+    
+    static const ordinal_type special_id = std::numeric_limits<ordinal_type>::max();
 
 public:
     /// No 'empty' state
@@ -333,8 +335,7 @@ public:
     {
         face_key_t face_key(*this,elem_id,face_i);
         auto it = bnd_faces_group_ids_.find(face_key);
-        if (it == bnd_faces_group_ids_.end())
-            throw std::logic_error("gmsh_mesh_wrap::get_elem_face_group_id: no face exists");
+        if (it == bnd_faces_group_ids_.end()) return special_id;
         return it->second;
     }
 
