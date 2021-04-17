@@ -234,7 +234,7 @@ public:
         return s->getNumPrimaryVertices();
     }
     /// Here theoretically types convesion could be done, so extrnal space is used
-    void get_elem_prim_nodes(Ord i, Ord *prim_nodes_num, Ord *nodes)const
+    void get_elem_prim_nodes(Ord i, Ord *nodes, Ord *prim_nodes_num = nullptr)const
     {
         MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
         if (prim_nodes_num)

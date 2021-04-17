@@ -320,7 +320,7 @@ protected:
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
         ordinal_type nodes_n;
         ordinal_type nodes[parent_type::get_elems_max_prim_nodes_num()];
-        parent_type::get_elem_prim_nodes(elem_id, &nodes_n, nodes);
+        parent_type::get_elem_prim_nodes(elem_id, nodes, &nodes_n);
         for (ordinal_type node_i = 0;node_i < nodes_n;++node_i)
         {
             ordinal_type incid_elems_n;
