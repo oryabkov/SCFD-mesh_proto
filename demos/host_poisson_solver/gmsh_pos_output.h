@@ -21,7 +21,7 @@
 #include <scfd/mesh/host_mesh.h>
 
 template<class BasicMesh,class T>
-void write_out_pos_scalar_file( const char f_name[], const char v_name[], const scfd::mesh::host_mesh<BasicMesh> &mesh, T *data)
+void write_out_pos_scalar_file( const char f_name[], const char v_name[], const scfd::mesh::host_mesh<BasicMesh> &mesh, const std::vector<T> &data)
 {
     FILE *stream;
     //stream = fopen( f_name, "a" );
@@ -34,7 +34,7 @@ void write_out_pos_scalar_file( const char f_name[], const char v_name[], const 
     fprintf( stream, "TIME{0};\n");
     fflush(stream);
 
-    for(int i = 0;i < mesh.cv.size();i++) {
+    /*for(int i = 0;i < mesh.cv.size();i++) {
         T   par = data[i];
 
         if (mesh.cv[i].elem_type == 4) fprintf( stream, "SS(");
@@ -55,7 +55,7 @@ void write_out_pos_scalar_file( const char f_name[], const char v_name[], const 
                         if (j != mesh.cv[i].vert_n-1) fprintf( stream, ",   " );
         }
         fprintf( stream, "};\n");
-    }
+    }*/
     fflush(stream);
 
     fprintf( stream, "};\n");
