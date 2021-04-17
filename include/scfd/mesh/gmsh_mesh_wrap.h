@@ -49,7 +49,7 @@ public:
 /// PartElems satisfies Partitioner concept without own_glob_ind_2_ind, so Map can be used here
 /// Note that gmsh internally supports only doubles, so this interface also performs types conversions.
 /// Besides that elements shift is performed (1st 3d element in gmsh is not likely to have index '0')
-template<class T,class PartElems,int dim = 3,class Ord = int>
+template<class T,class PartElems,int Dim = 3,class Ord = int>
 class gmsh_mesh_wrap
 {
 public:
@@ -59,6 +59,7 @@ public:
     using partitioner_type = PartElems;
     using mesh_elem_reference_type = gmsh_mesh_elem_reference<T>;
     
+    static const int          dim = Dim;
     static const ordinal_type special_id = std::numeric_limits<ordinal_type>::max();
 
 public:
