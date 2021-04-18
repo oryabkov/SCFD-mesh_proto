@@ -354,7 +354,7 @@ int main(int argc, char **args)
     if (argc < 5) 
     {
         printf("Usage: host_poisson_solver MESH_FN BND1_ID BND2_ID ITERS_NUM\n");
-        printf("Example: ./host_poisson_solver mesh.msh 6 166 1000\n");
+        printf("Example: ./host_poisson_solver mesh.msh 5 27 1000\n");
         return 1;
     }
 
