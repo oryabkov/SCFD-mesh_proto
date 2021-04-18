@@ -27,10 +27,11 @@
 
 using real = HOST_POISSON_SOLVER_SCALAR_TYPE;
 using ordinal = int;
+static const ordinal dim = 3;
 using partitioner_t = scfd::communication::linear_partitioner;
-using gmsh_wrap_t = scfd::mesh::gmsh_mesh_wrap<real,partitioner_t,3,ordinal>;
+using gmsh_wrap_t = scfd::mesh::gmsh_mesh_wrap<real,partitioner_t,dim,ordinal>;
 using host_mesh_t = scfd::mesh::host_mesh<gmsh_wrap_t>;
-using vec_t = scfd::static_vec::vec<real,3>;
+using vec_t = scfd::static_vec::vec<real,dim>;
 using log_t = scfd::utils::log_std;
 using real_vector_t = std::vector<real>;
 using vec_vector_t = std::vector<vec_t>;
@@ -193,6 +194,51 @@ void    calc_centers(const host_mesh_t &host_mesh, vec_vector_t &centers)
     }
 }
 
+real get_tetrahedron_volume(real tet_verteces[4][dim])
+{
+    for (int vertex_j = 0;vertex_j < 3;vertex_j++)
+    {
+        for (int k = 0;k < dim;k++)
+        {
+              tet_verteces[vertex_j][k] -= tet_verteces[3][k];  
+        }
+    }
+    //we now take tet_verteces[3][*] equals (0,0,0)
+    real tet_volume;
+    tet_volume = std::abs(+tet_verteces[0][0]*(tet_verteces[1][1]*tet_verteces[2][2]-tet_verteces[2][1]*tet_verteces[1][2])
+                          -tet_verteces[0][1]*(tet_verteces[1][0]*tet_verteces[2][2]-tet_verteces[2][0]*tet_verteces[1][2])
+                          +tet_verteces[0][2]*(tet_verteces[1][0]*tet_verteces[2][1]-tet_verteces[2][0]*tet_verteces[1][1]))/real(6.f);
+
+    return tet_volume;
+}
+
+void    calc_vols(const host_mesh_t &host_mesh, real_vector_t &vols)
+{
+    for (ordinal i = 0;i < host_mesh.get_total_elems_num();++i) 
+    {
+        ordinal     elem_nodes[host_mesh.get_elems_max_nodes_num()];
+        ordinal     nodes_n;
+        host_mesh.get_elem_nodes(i, elem_nodes, &nodes_n);
+        
+        auto elem_type = host_mesh.get_elem_type(i);
+        if (elem_type == 4) 
+        {
+            real m[4][dim];
+            for (ordinal i1 = 0;i1 < 4;i1++)
+            {
+                vec_t   vertex = host_mesh.get_node_coords(elem_nodes[i1]);
+                for (ordinal i2 = 0;i2 < dim;i2++)
+                {
+                    m[i1][i2] =  vertex[i2];
+                }
+            }              
+            vols[i] = get_tetrahedron_volume(m);
+        }
+        else 
+            throw std::logic_error("calc_vols::not supported element type");
+    }
+}
+
 //check orientation of normals
 vec_t check_orientation_of_a_normal_vector(const vec_t &normal_vector, const vec_t &vertex_center_vector)
 {
@@ -236,10 +282,10 @@ void    calc_face_areas_and_norms
 
         for (ordinal face_i = 0;face_i < ref.get_faces_n(elem_type);++face_i)
         {
-            if (ref.get_face_verts_n(elem_type,face_j)==3)
+            if (ref.get_face_verts_n(elem_type,face_i)==3)
             {
                 // This is shit, i must find a way to return mesh().vertexes(i,vert_j) as vec_t!
-                vec_t  verteces[ref.get_face_verts_n(elem_type,face_j)];
+                vec_t  verteces[ref.get_face_verts_n(elem_type,face_i)];
                 
                 for (ordinal j = 0;j < ref.get_face_verts_n(elem_type,face_i);++j) 
                 {
@@ -330,10 +376,17 @@ int main(int argc, char **args)
     face_centers = allocate_vec_elems_faces_vector(*host_mesh);
     MAIN_CATCH(3)
 
+    MAIN_TRY("calculating supplementary value")
+    calc_centers(*host_mesh, centers);
+    calc_vols(*host_mesh, vols);
+    calc_face_areas_and_norms(*host_mesh, centers, face_areas, norms);
+    calc_face_centers(*host_mesh, face_centers);
+    MAIN_CATCH(4)
+
     MAIN_TRY("allocating variables array")
     vars0 = allocate_real_vector(*host_mesh);
     vars1 = allocate_real_vector(*host_mesh);
-    MAIN_CATCH(3)
+    MAIN_CATCH(5)
 
     MAIN_TRY("iterate poisson equation")
     fill_zero(*host_mesh, vars0);
@@ -349,14 +402,14 @@ int main(int argc, char **args)
         //vars0 := vars1
         assign(*host_mesh, vars0, vars1);
     }
-    MAIN_CATCH(4)
+    MAIN_CATCH(6)
 
     MAIN_TRY("writing pos output to result.pos")
     write_out_pos_scalar_file("result.pos", "poisson_phi", *host_mesh, vars0);
-    MAIN_CATCH(5)
+    MAIN_CATCH(7)
 
     MAIN_TRY("deallocating variables array")
-    MAIN_CATCH(6)
+    MAIN_CATCH(8)
 
     return 0;
 }
