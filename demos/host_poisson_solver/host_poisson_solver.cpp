@@ -167,9 +167,121 @@ void    fill_zero(const host_mesh_t &host_mesh, real_vector_t &A)
 //B := A
 void    assign(const host_mesh_t &host_mesh, real_vector_t &B, const real_vector_t &A)
 {
-    for (int i = 0;i < host_mesh.get_total_elems_num();++i) 
+    for (ordinal i = 0;i < host_mesh.get_total_elems_num();++i) 
     {
         B[i] = A[i];
+    }
+}
+
+void    calc_centers(const host_mesh_t &host_mesh, vec_vector_t &centers)
+{
+    for (ordinal i = 0;i < host_mesh.get_total_elems_num();++i) 
+    {
+        vec_t       center = vec_t::make_zero();
+
+        ordinal     elem_nodes[host_mesh.get_elems_max_nodes_num()];
+        ordinal     nodes_n;
+        host_mesh.get_elem_nodes(i, elem_nodes, &nodes_n);
+        for (ordinal j = 0;j < nodes_n;++j) 
+        {
+            vec_t   vertex = host_mesh.get_node_coords(elem_nodes[j]);
+            center += vertex;
+        }
+        center /= nodes_n;
+
+        centers[i] = center;
+    }
+}
+
+//check orientation of normals
+vec_t check_orientation_of_a_normal_vector(const vec_t &normal_vector, const vec_t &vertex_center_vector)
+{
+    if (scalar_prod(normal_vector, vertex_center_vector) > real(0))
+    {
+        return normal_vector.inverted();
+    }      
+    else
+    {
+        return normal_vector;
+    }
+}
+
+//gets normal vector to the face defined by three verteces and uses center point to find outer orientation.
+vec_t construct_normal_vector_for_triangle_face(const vec_t &vertex_1, const vec_t &vertex_2, const vec_t &vertex_3, const vec_t &center)
+{
+    vec_t vector_2_1 = vertex_2-vertex_1;
+    vec_t vector_3_1 = vertex_3-vertex_1;
+    vec_t normal_vector = vector_prod(vector_2_1, vector_3_1);
+    vec_t vector_1_center = center-vertex_1;
+    normal_vector = check_orientation_of_a_normal_vector(normal_vector, vector_1_center);
+    return normal_vector;
+}     
+
+void    calc_face_areas_and_norms
+(
+    const host_mesh_t &host_mesh, const vec_vector_t &centers,
+    real_elems_faces_vector_t &face_areas, vec_elems_faces_vector_t &norms
+)
+{
+    const auto &ref = host_mesh.mesh_elem_reference();
+
+    for (ordinal i = 0;i < host_mesh.get_total_elems_num();++i) 
+    {
+        vec_t  center = centers[i];
+
+        ordinal     elem_nodes[host_mesh.get_elems_max_nodes_num()];
+        host_mesh.get_elem_nodes(i, elem_nodes);
+
+        auto elem_type = host_mesh.get_elem_type(i);
+
+        for (ordinal face_i = 0;face_i < ref.get_faces_n(elem_type);++face_i)
+        {
+            if (ref.get_face_verts_n(elem_type,face_j)==3)
+            {
+                // This is shit, i must find a way to return mesh().vertexes(i,vert_j) as vec_t!
+                vec_t  verteces[ref.get_face_verts_n(elem_type,face_j)];
+                
+                for (ordinal j = 0;j < ref.get_face_verts_n(elem_type,face_i);++j) 
+                {
+                    verteces[j] = host_mesh.get_node_coords(elem_nodes[ref.get_face_vert_i(elem_type,face_i,j)]);
+                }
+
+                vec_t normal_vector = construct_normal_vector_for_triangle_face(verteces[0], verteces[1], verteces[2], center);
+                real face_area = normal_vector.norm2();
+                
+                face_areas(i,face_i) = face_area*real(0.5);
+                norms(i,face_i) = normal_vector/face_area;
+            }
+            else
+                throw std::runtime_error("calc_face_areas_and_norms::not supported face type");
+        }
+    }
+}
+
+void    calc_face_centers(const host_mesh_t &host_mesh, vec_elems_faces_vector_t &face_centers)
+{
+    const auto &ref = host_mesh.mesh_elem_reference();
+
+    for (ordinal i = 0;i < host_mesh.get_total_elems_num();++i) 
+    {
+        ordinal     elem_nodes[host_mesh.get_elems_max_nodes_num()];
+        host_mesh.get_elem_nodes(i, elem_nodes);
+
+        auto elem_type = host_mesh.get_elem_type(i);
+
+        for (ordinal face_i = 0;face_i < ref.get_faces_n(elem_type);++face_i)
+        {
+            vec_t       center = vec_t::make_zero();
+
+            for (ordinal j = 0;j < ref.get_face_verts_n(elem_type,face_i);++j) 
+            {
+                vec_t   vertex = host_mesh.get_node_coords(elem_nodes[ref.get_face_vert_i(elem_type,face_i,j)]);
+                center += vertex;
+            }
+            center /= ref.get_face_verts_n(elem_type,face_i);
+
+            face_centers(i,face_i) = center;
+        }
     }
 }
 
