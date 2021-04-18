@@ -75,7 +75,8 @@ private:
 using real_elems_faces_vector_t = elems_faces_vector_t<real>;
 using vec_elems_faces_vector_t = elems_faces_vector_t<vec_t>;
 
-int bnd1, bnd2, iters_num;
+std::string mesh_fn;
+ordinal     bnd1, bnd2, iters_num;
 
 //returns p0 reflected with respect to plane with normal norm and point p1 on it
 vec_t reflect_point(const vec_t &norm, const vec_t &p1, const vec_t &p0)
@@ -350,18 +351,20 @@ int main(int argc, char **args)
     log.set_verbosity(1);
     
     //process args
-    if (argc < 4) 
+    if (argc < 5) 
     {
-        printf("usage: host_poisson_solver bnd1_id bnd2_id iters_num\n");
-        printf("example: ./cpu_poisson_solver 6 166 1000\n");
+        printf("Usage: host_poisson_solver MESH_FN BND1_ID BND2_ID ITERS_NUM\n");
+        printf("Example: ./host_poisson_solver mesh.msh 6 166 1000\n");
         return 1;
     }
-    bnd1 = atoi(args[1]);
-    bnd2 = atoi(args[2]);
-    iters_num = atoi(args[3]);
 
-    MAIN_TRY("reading mesh from mesh.dat")
-    host_mesh->set_mesh_filename("mesh.msh");
+    mesh_fn = args[1];
+    bnd1 = atoi(args[2]);
+    bnd2 = atoi(args[3]);
+    iters_num = atoi(args[4]);
+
+    MAIN_TRY("reading mesh from " + mesh_fn)
+    host_mesh->set_mesh_filename(mesh_fn);
     host_mesh->read();
     *part = partitioner_t(host_mesh->get_total_elems_num(), 1, 0);
     host_mesh->set_partitioner(part);
