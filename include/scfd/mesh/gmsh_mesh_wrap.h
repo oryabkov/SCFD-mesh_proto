@@ -272,7 +272,7 @@ public:
 
     void get_node_coords(Ord i,T *coords)const
     {
-        GVertex *v = g_model_->getVertexByTag(node_id_to_node_tag(i));
+        MVertex *v = g_model_->getMeshVertexByTag(node_id_to_node_tag(i));
         if (dim >= 1) coords[0] = static_cast<T>(v->x());
         if (dim >= 2) coords[1] = static_cast<T>(v->y());
         if (dim >= 3) coords[2] = static_cast<T>(v->z());

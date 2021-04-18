@@ -82,6 +82,11 @@ TEST(GMSHMeshWrapTest, BasicRead)
         ASSERT_EQ(elem_1704_face_groups.size(),2);
         ASSERT_EQ(elem_1704_face_groups,std::set<ordinal>({18,22}));
 
+        real coords[3];
+        gmsh_wrap->get_node_coords(160,coords);
+        std::cout << coords[0] << " " << coords[1] << " " << coords[2] << std::endl;
+        //1 0.8852084354774035 0.4191415113762025
+
     } 
     catch(const std::exception &e)
     {
