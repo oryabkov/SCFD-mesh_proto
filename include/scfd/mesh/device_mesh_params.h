@@ -32,12 +32,13 @@ struct device_mesh_params
     bool has_elems_vertexes_data = false;
     bool has_elems_neighbours0_data = true;
     bool has_elems_neighbours0_loc_face_i_data = true;
-    bool has_elems_faces_boundaries_tags_data = true;
-    bool has_elems_volumes_tags_data = true;
+    bool has_elems_faces_group_ids_data = true;
+    bool has_elems_group_ids_data = true;
     bool has_elems_faces_norms_data = true;
     bool has_elems_faces_areas_data = true;
     bool has_elems_vols_data = true;
     bool has_elems_nodes_data = true;
+    bool has_elems_prim_nodes_data = true;
 
     /// Nodes data 
 
