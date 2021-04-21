@@ -60,6 +60,10 @@ protected:
     {
         dyn_dims_ = vec<Ord,dynamic_dims_num>(dyn_dims);
     }
+    void set_zero_dyn_dims()
+    {
+        for (Ord j = 0;j < dynamic_dims_num;++j) dyn_dims_[j] = 0;
+    }
 #ifdef SCFD_ARRAYS_ENABLE_INDEX_SHIFT
     template<class... Args,
              class = typename std::enable_if<sizeof...(Args)==dynamic_dims_num>::type, 
