@@ -17,6 +17,7 @@
 #ifndef __SCFD_ARRAYS_VAR_TENSOR1_ARRAY_H__
 #define __SCFD_ARRAYS_VAR_TENSOR1_ARRAY_H__
 
+#include <scfd/utils/device_tag.h>
 #include "array.h"
 
 namespace scfd
@@ -34,6 +35,48 @@ public:
     using memory_type = Memory;
 
 public:
+    void pre_init(ordinal_type size0)
+    {
+        try 
+        {
+            offsets_.init(size0);
+            lens_.init(size0);
+        }
+        catch (...)
+        {
+            offsets_.free();
+            lens_.free();
+            std::throw_with_nested( std::runtime_error("var_tensor1_array::pre_init: failed memory allocation") );
+        }
+    }
+    __DEVICE_TAG__ void set_var_tensor_dim(ordinal_type i0,ordinal_type tensor_dim)
+    {
+        lens_(i0) = tensor_dim;
+    }
+    void init()
+    {
+        if (lens_.size() == 0) return;
+        /// Calc offsets_ using prefix sum
+        /// TODO general (GPU/CPU) implementation
+        ordinal_type curr_offset = 0;
+        for (ordinal_type i = 0;i < lens_.size();curr_offset += lens_(i++))
+        {
+            offsets_(i) = curr_offset;
+        }
+        /// allocate array for values
+        values_.init(curr_offset);
+    }
+    void free()
+    {
+        offsets_.free();
+        lens_.free();
+        values_.free();
+    }
+    __DEVICE_TAG__ T &operator()(ordinal_type i0,ordinal_type i1)const
+    {
+        ordinal_type    offset = offsets_(i0);
+        return values_(offset);
+    }  
     
 private:
     array<ordinal_type,Memory>  offsets_, lens_;
