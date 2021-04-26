@@ -269,7 +269,9 @@ public:
     __DEVICE_TAG__                  tensor_base() : d_(NULL) 
     { 
         arranger_type::set_zero_dyn_dims();
+#ifdef SCFD_ARRAYS_ENABLE_INDEX_SHIFT
         arranger_type::set_zero_dyn_indexes0();
+#endif
     }
     __DEVICE_TAG__                  tensor_base(const tensor_base &t) { assign(t); }
     __DEVICE_TAG__                  tensor_base(tensor_base &&t) { move(std::move(t)); }
