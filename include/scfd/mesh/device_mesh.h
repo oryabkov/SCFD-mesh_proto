@@ -157,8 +157,8 @@ struct device_mesh
         node_vol_id.init(own_nodes_range.n,own_nodes_range.i0);
         //node_bnd_id.init(n_nodes);
     }
-    template<class MapElems,class MapNodes,class CPU_MESH>
-    void    init_node_2_elem_graph(const MapElems &map_e, const MapNodes &map_n, CPU_MESH &cpu_mesh)
+    template<class MapElems,class MapNodes,class BasicMesh>
+    void    init_node_2_elem_graph(const MapElems &map_e, const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)
     {
         node_2_elem_graph_refs.init(own_nodes_range.n);
         node_2_elem_graph_sz = 0;
@@ -171,8 +171,8 @@ struct device_mesh
     }
 
     //TODO fix index calculation type (enumerate through map, not through view range)
-    template<class MapElems,class CPU_MESH>
-    void    init_elems_data(const MapElems &map_e, CPU_MESH &cpu_mesh)
+    template<class MapElems,class BasicMesh>
+    void    init_elems_data(const MapElems &map_e, host_mesh<BasicMesh> &cpu_mesh)
     {
         auto                    center_view = elems_centers.create_view(false);
         for (Ord i = center_view.begin();i < center_view.end();i++) {
@@ -272,8 +272,8 @@ struct device_mesh
         is_homogeneous = cpu_mesh.is_homogeneous;
         homogeneous_elem_type = cpu_mesh.homogeneous_elem_type;
     }
-    template<class MapNodes,class CPU_MESH>
-    void    init_nodes_data(const MapNodes &map_n, CPU_MESH &cpu_mesh)
+    template<class MapNodes,class BasicMesh>
+    void    init_nodes_data(const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)
     {
         auto                 node_coords_view = nodes_coords.create_view(false);
         for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
@@ -299,8 +299,8 @@ struct device_mesh
         }
         node_bnd_id_view.release();*/
     }
-    template<class MapElems,class MapNodes,class CPU_MESH>
-    void    init_elem_node_ids_data(const MapElems &map_e, const MapNodes &map_n, CPU_MESH &cpu_mesh)
+    template<class MapElems,class MapNodes,class BasicMesh>
+    void    init_elem_node_ids_data(const MapElems &map_e, const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)
     {
         auto   elem_node_ids_view = elems_prim_nodes_ids.create_view(false);
         for(Ord i_ = 0;i_ < map_e.get_size();i_++) {
@@ -312,8 +312,8 @@ struct device_mesh
         }
         elem_node_ids_view.release();
     }
-    template<class MapElems,class MapNodes,class CPU_MESH>
-    void    init_node_2_elem_graph_data(const MapElems &map_e, const MapNodes &map_n, CPU_MESH &cpu_mesh)
+    template<class MapElems,class MapNodes,class BasicMesh>
+    void    init_node_2_elem_graph_data(const MapElems &map_e, const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)
     {
         auto            node_2_elem_graph_refs_view = node_2_elem_graph_refs.create_view(false);
         auto              node_2_elem_graph_elem_ids_view = node_2_elem_graph_elem_ids.create_view(false);
@@ -336,8 +336,8 @@ struct device_mesh
     }
 
     //TODO change bane
-    template<class MapElems,class CPU_MESH>
-    void    dump_elems_geom_data(const MapElems &map_e, CPU_MESH &cpu_mesh)const
+    template<class MapElems,class BasicMesh>
+    void    dump_elems_geom_data(const MapElems &map_e, host_mesh<BasicMesh> &cpu_mesh)const
     {
         auto                    center_view = elems_centers.create_view(true);
         for (Ord i = center_view.begin();i < center_view.end();i++) {
@@ -396,8 +396,8 @@ struct device_mesh
         }
         norm_view.release(false);
     }
-    template<class MapNodes,class CPU_MESH>
-    void    dump_nodes_geom_data(const MapNodes &map_n, CPU_MESH &cpu_mesh)const
+    template<class MapNodes,class BasicMesh>
+    void    dump_nodes_geom_data(const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)const
     {
         auto                    node_coords_view = nodes_coords.create_view(true);
         for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
