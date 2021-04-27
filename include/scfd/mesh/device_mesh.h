@@ -134,7 +134,7 @@ struct device_mesh
         elems_centers.init(elems_range.n, elems_range.i0);  //ISSUE
         elems_neighbours0_centers.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
         elems_faces_centers.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
-        elems_vertexes.init(own_elems_range.n,max_vert_n,own_elems_range.i0,0);
+        elems_vertexes.init(own_elems_range.n,max_nodes_n,own_elems_range.i0,0);
         elems_neighbours0.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
         elems_neighbours0_loc_face_i.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
         elems_faces_group_ids.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
