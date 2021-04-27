@@ -78,7 +78,7 @@ struct device_mesh
     //if is_homogeneous == true then all elements in mesh have the same elem_type
     bool                                            is_homogeneous;
     elem_type_ordinal_type                          homogeneous_elem_type;  //valid only if is_homogeneous == true
-    tensor1_array<elem_type_ordinal_type,Memory,1>  elems_types;              //valid only if is_homogeneous == false
+    array<elem_type_ordinal_type,Memory>            elems_types;              //valid only if is_homogeneous == false
     tensor1_array<T,Memory,Dim>                     elems_centers;
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_neighbours0_centers;
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_faces_centers;
@@ -157,6 +157,10 @@ struct device_mesh
     template<class MapElems,class BasicMesh>
     void    init_elems_data(const MapElems &map_e, host_mesh<BasicMesh> &cpu_mesh)
     {
+        using vec_t = static_vec::vec<T,dim>;
+        using host_mesh_t = host_mesh<BasicMesh>;
+        using host_ordinal = host_mesh_t::ordinal_type;
+
         //n_cv = _n_cv; n_cv_all = _n_cv_all; i0 = _i0;
         own_elems_range.n = map_e.get_size();
         own_elems_range.i0 = 0;
@@ -171,7 +175,7 @@ struct device_mesh
         elems_centers.init(elems_range.n, elems_range.i0);  //ISSUE
         elems_neighbours0_centers.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
         elems_faces_centers.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
-        elems_vertexes.init(own_elems_range.n,max_nodes_n,own_elems_range.i0,0);
+        elems_vertexes.init(elems_range.n,max_nodes_n,elems_range.i0,0);
         elems_neighbours0.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
         elems_neighbours0_loc_face_i.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
         elems_faces_group_ids.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
@@ -182,13 +186,17 @@ struct device_mesh
         elems_prim_nodes_ids.init(own_elems_range.n,max_prim_nodes_n);
         elems_nodes_ids.init(own_elems_range.n,max_nodes_n);
 
+        //TODO why only local?
         auto                    elem_type_view = elems_types.create_view(false);
-        for(Ord i = elem_type_view.begin();i < elem_type_view.end();i++) {
-            int i_glob = map_e.loc2glob(i);
-            elem_type_view(i,0) = cpu_mesh.cv[i_glob].elems_types;
+        for(Ord i_ = 0;i_ < map_e.get_size();++i_) 
+        {
+            int     i_glob = map_e.own_glob_ind(i_),
+                    i = map_e.own_loc_ind(i_);
+            elem_type_view(i) = cpu_mesh.get_elem_type(i_glob);
         }
         elem_type_view.release();
 
+        //TODO 
         is_homogeneous = cpu_mesh.is_homogeneous;
         homogeneous_elem_type = cpu_mesh.homogeneous_elem_type;
 
@@ -217,10 +225,20 @@ struct device_mesh
         center_faces_view.release();*/
 
         auto         vertexes_view = elems_vertexes.create_view(false);
-        for (Ord i = vertexes_view.begin();i < vertexes_view.end();i++) {
+        for (Ord i = map_e.min_loc_ind();i <= map_e.max_loc_ind();++i) 
+        {
+            if (!map_e.check_loc_has_loc_ind(i)) continue;
             int i_glob = map_e.loc2glob(i);
-            for (Ord j = 0;j < cpu_mesh.cv[i_glob].vert_n;++j)
-                vertexes_view.setv(i,j,cpu_mesh.cv[i_glob].elems_vertexes[j]);
+
+            host_ordinal     elem_nodes[cpu_mesh.get_elems_max_nodes_num()];
+            host_ordinal     nodes_n;
+            cpu_mesh.get_elem_nodes(i, elem_nodes, &nodes_n);
+
+            for (Ord j = 0;j < nodes_n;++j)
+            {
+                vec_t   vertex = cpu_mesh.get_node_coords(elem_nodes[j]);
+                vertexes_view.setv(i,j,vertex);
+            }
         }
         vertexes_view.release();
 
