@@ -82,6 +82,7 @@ struct device_mesh
     tensor1_array<T,Memory,Dim>                     elems_centers;
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_neighbours0_centers;
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_faces_centers;
+    //TODO replace with var array
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_vertexes;
     tensor1_array<Ord,Memory,dyn_dim>               elems_neighbours0;
     tensor1_array<Ord,Memory,dyn_dim>               elems_neighbours0_loc_face_i;
@@ -92,7 +93,8 @@ struct device_mesh
     tensor1_array<T,Memory,1>                       elems_vols;
     //elements to nodes graphs
     tensor1_array<Ord,Memory,dyn_dim>               elems_prim_nodes_ids;
-    //tensor1_array<Ord,Memory,max_vert_n>            elems_nodes_ids;
+    //TODO replace with var array
+    tensor1_array<Ord,Memory,dyn_dim>               elems_nodes_ids;
 
     /// Nodes data part
 
@@ -124,26 +126,7 @@ struct device_mesh
     template<class MapElems>
     void    init_elems(const MapElems &map_e)
     {
-        //n_cv = _n_cv; n_cv_all = _n_cv_all; i0 = _i0;
-        own_elems_range.n = map_e.get_size();
-        own_elems_range.i0 = 0;
-        elems_range.n = map_e.max_loc_ind() - map_e.min_loc_ind() + 1;
-        elems_range.i0 = map_e.min_loc_ind();
-
-        elems_types.init(own_elems_range.n, own_elems_range.i0);
-        elems_centers.init(elems_range.n, elems_range.i0);  //ISSUE
-        elems_neighbours0_centers.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
-        elems_faces_centers.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
-        elems_vertexes.init(own_elems_range.n,max_nodes_n,own_elems_range.i0,0);
-        elems_neighbours0.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
-        elems_neighbours0_loc_face_i.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
-        elems_faces_group_ids.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
-        elems_group_ids.init(own_elems_range.n,own_elems_range.i0);
-        elems_faces_norms.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
-        elems_faces_areas.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
-        elems_vols.init(elems_range.n, elems_range.i0);
-
-        elems_prim_nodes_ids.init(own_elems_range.n,max_prim_nodes_n);
+        
     }
     template<class MapNodes>
     void    init_nodes(const MapNodes &map_n)
@@ -174,6 +157,31 @@ struct device_mesh
     template<class MapElems,class BasicMesh>
     void    init_elems_data(const MapElems &map_e, host_mesh<BasicMesh> &cpu_mesh)
     {
+        //n_cv = _n_cv; n_cv_all = _n_cv_all; i0 = _i0;
+        own_elems_range.n = map_e.get_size();
+        own_elems_range.i0 = 0;
+        elems_range.n = map_e.max_loc_ind() - map_e.min_loc_ind() + 1;
+        elems_range.i0 = map_e.min_loc_ind();
+
+        ordinal_type    max_faces_n = cpu_mesh.get_elems_max_faces_num(),
+                        max_nodes_n = cpu_mesh.get_elems_max_nodes_num(),
+                        max_prim_nodes_n = cpu_mesh.get_elems_max_prim_nodes_num();
+
+        elems_types.init(own_elems_range.n, own_elems_range.i0);
+        elems_centers.init(elems_range.n, elems_range.i0);  //ISSUE
+        elems_neighbours0_centers.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+        elems_faces_centers.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+        elems_vertexes.init(own_elems_range.n,max_nodes_n,own_elems_range.i0,0);
+        elems_neighbours0.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+        elems_neighbours0_loc_face_i.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+        elems_faces_group_ids.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+        elems_group_ids.init(own_elems_range.n,own_elems_range.i0);
+        elems_faces_norms.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+        elems_faces_areas.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+        elems_vols.init(elems_range.n, elems_range.i0);
+        elems_prim_nodes_ids.init(own_elems_range.n,max_prim_nodes_n);
+        elems_nodes_ids.init(own_elems_range.n,max_nodes_n);
+
         auto                    center_view = elems_centers.create_view(false);
         for (Ord i = center_view.begin();i < center_view.end();i++) {
             int i_glob = map_e.loc2glob(i);
