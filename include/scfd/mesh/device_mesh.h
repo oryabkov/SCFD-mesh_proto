@@ -196,9 +196,8 @@ struct device_mesh
         }
         elem_type_view.release();
 
-        //TODO 
-        is_homogeneous = cpu_mesh.is_homogeneous;
-        homogeneous_elem_type = cpu_mesh.homogeneous_elem_type;
+        is_homogeneous = cpu_mesh.is_homogeneous();
+        homogeneous_elem_type = cpu_mesh.homogeneous_elem_type();
 
         /*auto                    center_view = elems_centers.create_view(false);
         for (Ord i = center_view.begin();i < center_view.end();i++) {
