@@ -19,17 +19,6 @@
 
 #include <scfd/arrays/tensorN_array.h>
 
-//TODO rename these macroses somehow
-#ifndef  GPU_MESH_DEFAULT_MAX_FACES_N
-#define  GPU_MESH_DEFAULT_MAX_FACES_N 4
-#endif
-#ifndef  GPU_MESH_DEFAULT_MAX_VERT_N
-#define  GPU_MESH_DEFAULT_MAX_VERT_N  4
-#endif
-
-//TODO
-#define CUDA_EMPTY_IDX  -1000000000
-
 namespace scfd
 {
 namespace mesh
@@ -123,24 +112,6 @@ struct device_mesh
         if (is_homogeneous) return homogeneous_elem_type; else return elems_types(i,0);
     }
 
-    //void  init(int _n_cv, int _n_cv_all, int _i0, int _maxQ_real)
-    template<class MapElems>
-    void    init_elems(const MapElems &map_e)
-    {
-        
-    }
-    template<class MapNodes>
-    void    init_nodes(const MapNodes &map_n)
-    {
-        own_nodes_range.n = map_n.get_size();
-        own_nodes_range.i0 = 0;
-        nodes_range.n = map_n.max_loc_ind() - map_n.min_loc_ind() + 1;
-        nodes_range.i0 = map_n.min_loc_ind();
-
-        nodes_coords.init(own_nodes_range.n,own_nodes_range.i0);
-        node_vol_id.init(own_nodes_range.n,own_nodes_range.i0);
-        //node_bnd_id.init(n_nodes);
-    }
     template<class MapElems,class MapNodes,class BasicMesh>
     void    init_node_2_elem_graph(const MapElems &map_e, const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)
     {
@@ -155,8 +126,12 @@ struct device_mesh
     }
 
     //TODO fix index calculation type (enumerate through map, not through view range)
-    template<class MapElems,class BasicMesh>
-    void    init_elems_data(const MapElems &map_e, host_mesh<BasicMesh> &cpu_mesh)
+    template<class BasicMesh,class MapElems,class MapFaces,class MapNodes>
+    void    init_elems_data
+    (
+        const host_mesh<BasicMesh> &cpu_mesh,
+        const MapElems &map_e, const MapFaces &map_f, const MapNodes &map_n
+    )
     {
         using vec_t = static_vec::vec<T,dim>;
         using host_mesh_t = host_mesh<BasicMesh>;
@@ -318,10 +293,35 @@ struct device_mesh
             vol_id_view(i) = cpu_mesh.get_elem_group_id(i_glob);
         }
         vol_id_view.release();
+
+        auto   elem_node_ids_view = elems_prim_nodes_ids.create_view(false);
+        for(Ord i_ = 0;i_ < map_e.get_size();i_++) 
+        {
+            int     i_glob = map_e.own_glob_ind(i_),
+                i_loc = map_e.own_loc_ind(i_);
+            for (Ord vert_i = 0;vert_i < cpu_mesh.cv[i_glob].vert_n;++vert_i) 
+            {
+                elem_node_ids_view(i_loc,vert_i) = map_n.glob2loc( cpu_mesh.cv_2_node_ids[i_glob].ids[vert_i] );
+            }
+        }
+        elem_node_ids_view.release();
     }
-    template<class MapNodes,class BasicMesh>
-    void    init_nodes_data(const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)
+    template<class BasicMesh,class MapElems,class MapFaces,class MapNodes>
+    void    init_nodes_data
+    (
+        const host_mesh<BasicMesh> &cpu_mesh,
+        const MapElems &map_e, const MapFaces &map_f, const MapNodes &map_n
+    )
     {
+        own_nodes_range.n = map_n.get_size();
+        own_nodes_range.i0 = 0;
+        nodes_range.n = map_n.max_loc_ind() - map_n.min_loc_ind() + 1;
+        nodes_range.i0 = map_n.min_loc_ind();
+
+        nodes_coords.init(own_nodes_range.n,own_nodes_range.i0);
+        node_vol_id.init(own_nodes_range.n,own_nodes_range.i0);
+        //node_bnd_id.init(n_nodes);
+
         auto                 node_coords_view = nodes_coords.create_view(false);
         for(Ord i_ = 0;i_ < map_n.get_size();++i_) 
         {
@@ -347,29 +347,11 @@ struct device_mesh
             node_bnd_id_view(i_loc) = cpu_mesh.nodes[i_glob].bnd_id;
         }
         node_bnd_id_view.release();*/
-    }
-    template<class MapElems,class MapNodes,class BasicMesh>
-    void    init_elem_node_ids_data(const MapElems &map_e, const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)
-    {
-        auto   elem_node_ids_view = elems_prim_nodes_ids.create_view(false);
-        for(Ord i_ = 0;i_ < map_e.get_size();i_++) 
-        {
-            int     i_glob = map_e.own_glob_ind(i_),
-                i_loc = map_e.own_loc_ind(i_);
-            for (Ord vert_i = 0;vert_i < cpu_mesh.cv[i_glob].vert_n;++vert_i) 
-            {
-                elem_node_ids_view(i_loc,vert_i) = map_n.glob2loc( cpu_mesh.cv_2_node_ids[i_glob].ids[vert_i] );
-            }
-        }
-        elem_node_ids_view.release();
-    }
-    template<class MapElems,class MapNodes,class BasicMesh>
-    void    init_node_2_elem_graph_data(const MapElems &map_e, const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)
-    {
+
         auto            node_2_elem_graph_refs_view = node_2_elem_graph_refs.create_view(false);
-        auto              node_2_elem_graph_elem_ids_view = node_2_elem_graph_elem_ids.create_view(false);
-        auto              node_2_elem_graph_node_ids_view = node_2_elem_graph_node_ids.create_view(false);
-        Ord                                             curr_graph_loc_idx = 0;
+        auto            node_2_elem_graph_elem_ids_view = node_2_elem_graph_elem_ids.create_view(false);
+        auto            node_2_elem_graph_node_ids_view = node_2_elem_graph_node_ids.create_view(false);
+        Ord             curr_graph_loc_idx = 0;
         for(Ord i_ = 0;i_ < map_n.get_size();++i_) 
         {
             int     i_node_glob = map_n.own_glob_ind(i_),
