@@ -53,11 +53,12 @@ struct device_mesh
 {
     using scalar_type = T;
     using memory_type = Memory;
-    static const int dim = Dim;
     using ordinal_type = Ord;
-    //using glob_ordinal_type = int;
     using elem_type_ordinal_type = int;
     using index_range_descr_type = index_range_descr<Ord>;
+
+    static const int          dim = Dim;
+    static const ordinal_type special_id = std::numeric_limits<ordinal_type>::max();
 
     using namespace arrays;
 
@@ -267,37 +268,54 @@ struct device_mesh
         norm_view.release();*/
 
         auto          neighbours_view = elems_neighbours0.create_view(false);
-        for(Ord i = neighbours_view.begin();i < neighbours_view.end();i++) 
+        for (Ord i_ = 0;i_ < map_e.get_size();++i_) 
         {
-            int i_glob = map_e.loc2glob(i);
-            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
-                if (cpu_mesh.cv[i_glob].neighbours[j] != -1) neighbours_view(i,j) = map_e.glob2loc(cpu_mesh.cv[i_glob].neighbours[j]); else neighbours_view(i,j) = CUDA_EMPTY_IDX;
+            host_ordinal    i_glob = map_e.own_glob_ind(i_);
+            Ord             i = map_e.own_loc_ind(i_);
+            host_ordinal    neibs[cpu_mesh.get_elems_max_faces_num()];
+            cpu_mesh.get_elem_neighbours0(i_glob, neibs);
+            for (Ord j = 0;j < cpu_mesh.get_elem_faces_num(i_glob);++j) 
+            {
+                if (neibs[j] != host_mesh_t::special_id) 
+                    neighbours_view(i,j) = map_e.glob2loc(neibs[j]); 
+                else 
+                    neighbours_view(i,j) = special_id;
+            }
         }
         neighbours_view.release();
 
         auto          neighbours_loc_iface_view = elems_neighbours0_loc_face_i.create_view(false);
-        for(Ord i = neighbours_loc_iface_view.begin();i < neighbours_loc_iface_view.end();i++) 
+        for (Ord i_ = 0;i_ < map_e.get_size();++i_) 
         {
-            int i_glob = map_e.loc2glob(i);
-            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
-                neighbours_loc_iface_view(i,j) = cpu_mesh.cv[i_glob].neighbours_loc_iface[j];
+            host_ordinal    i_glob = map_e.own_glob_ind(i_);
+            Ord             i = map_e.own_loc_ind(i_);
+            Ord             loc_face_i[cpu_mesh.get_elems_max_faces_num()];
+            cpu_mesh.get_elem_neighbours0_loc_face_i(i_glob, loc_face_i);
+            for (Ord j = 0;j < cpu_mesh.get_elem_faces_num(i_glob);++j) 
+            {
+                neighbours_loc_iface_view(i,j) = loc_face_i[j];
+            }
         }
         neighbours_loc_iface_view.release();
 
         auto          boundaries_view = elems_faces_group_ids.create_view(false);
-        for(Ord i = boundaries_view.begin();i < boundaries_view.end();i++) 
+        for (Ord i_ = 0;i_ < map_e.get_size();++i_) 
         {
-            int i_glob = map_e.loc2glob(i);
-            for (Ord j = 0;j < cpu_mesh.cv[i_glob].faces_n;++j)
-                boundaries_view(i,j) = cpu_mesh.cv[i_glob].boundaries[j];
+            host_ordinal    i_glob = map_e.own_glob_ind(i_);
+            Ord             i = map_e.own_loc_ind(i_);
+            for (Ord j = 0;j < cpu_mesh.get_elem_faces_num(i_glob);++j)
+            { 
+                boundaries_view(i,j) = cpu_mesh.get_elem_face_group_id(i_glob,j);
+            }
         }
         boundaries_view.release();
 
         auto                    vol_id_view = elems_group_ids.create_view(false);
-        for(Ord i = vol_id_view.begin();i < vol_id_view.end();i++) 
+        for (Ord i_ = 0;i_ < map_e.get_size();++i_) 
         {
-            int i_glob = map_e.loc2glob(i);
-            vol_id_view(i,0) = cpu_mesh.cv[i_glob].vol_id;
+            host_ordinal    i_glob = map_e.own_glob_ind(i_);
+            Ord             i = map_e.own_loc_ind(i_);
+            vol_id_view(i) = cpu_mesh.get_elem_group_id(i_glob);
         }
         vol_id_view.release();
     }

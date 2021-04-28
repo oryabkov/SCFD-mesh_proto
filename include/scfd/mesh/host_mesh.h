@@ -119,6 +119,15 @@ public:
             elems[j] = it->first;
         }
     }
+    void get_elem_neighbours0_loc_face_i(ordinal_type i, ordinal_type *loc_face_i)const
+    {
+        auto it_range = elems_to_neighbours0_graph_.get_range(i);
+        ordinal_type j = 0;
+        for (auto it = it_range.first;it != it_range.second;++it,++j)
+        {
+            loc_face_i[j] = it->second;
+        }
+    }
 
 private:
     using face_key_t = detail::face_key<ordinal_type>;
