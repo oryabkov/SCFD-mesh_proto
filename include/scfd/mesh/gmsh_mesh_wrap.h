@@ -99,15 +99,27 @@ public:
             max_elem_tag = std::numeric_limits<int>::min();
         elems_max_prim_nodes_num_ = 0;
         elems_max_nodes_num_ = 0;
+        bool is_first = true;
+        is_homogeneous_ = true;
         for (auto e : entities)
         {
             for (Ord j = 0; j < e->getNumMeshElements(); ++j)
             {
                 MElement *s = e->getMeshElement(j);
+                if (is_first)
+                {
+                    homogeneous_elem_type_ = s->getTypeForMSH();
+                }
+                else
+                {
+                    if (homogeneous_elem_type_ != s->getTypeForMSH()) is_homogeneous_ = false;
+                } 
+
                 min_elem_tag = std::min(min_elem_tag,Ord(s->getNum()));
                 max_elem_tag = std::max(max_elem_tag,Ord(s->getNum()));
                 elems_max_prim_nodes_num_ = std::max(elems_max_prim_nodes_num_,Ord(s->getNumPrimaryVertices()));
                 elems_max_nodes_num_ = std::max(elems_max_nodes_num_,Ord(s->getNumVertices()));
+                is_first = false;
             }
         }
         if (max_elem_tag+1-min_elem_tag != elems_n)
@@ -221,9 +233,13 @@ public:
         MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
         return s->getTypeForMSH();
     }
-    elem_type_ordinal_type is_homogeneous()const
+    bool                   is_homogeneous()const
     {
-        
+        return is_homogeneous_;
+    }
+    elem_type_ordinal_type homogeneous_elem_type()const
+    {
+        return homogeneous_elem_type_;
     }
     Ord get_elem_group_id(Ord i)const
     {
@@ -358,6 +374,8 @@ private:
     /// Stick to old private C++ API
     std::shared_ptr<GModel>         g_model_;
     std::shared_ptr<PartElems>      elems_partitioner_;
+    bool                            is_homogeneous_;
+    elem_type_ordinal_type          homogeneous_elem_type_;
     Ord                             elements_index_shift_;
     Ord                             elems_max_prim_nodes_num_,
                                     elems_max_nodes_num_;
