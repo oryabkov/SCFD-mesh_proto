@@ -221,6 +221,10 @@ public:
         MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
         return s->getTypeForMSH();
     }
+    elem_type_ordinal_type is_homogeneous()const
+    {
+        
+    }
     Ord get_elem_group_id(Ord i)const
     {
         return elements_group_ids_.at(i);
