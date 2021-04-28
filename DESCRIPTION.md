@@ -27,6 +27,6 @@ After that we have:
  *For all faces incident to ELEMENTS_LEVEL(n-1) we face their faces to elements connectivity data. 
  *For all elements ELEMENTS_LEVEL(n-1) we have elements to faces connectivity data. 
 
- Any other request have undefined behaviour. They can cause error, return correct result, 
+ Any other request will have undefined behaviour. They can cause error, return correct result, 
  return incorrect result, etc.
 
