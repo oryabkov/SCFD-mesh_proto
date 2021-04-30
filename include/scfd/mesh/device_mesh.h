@@ -112,19 +112,6 @@ struct device_mesh
         if (is_homogeneous) return homogeneous_elem_type; else return elems_types(i,0);
     }
 
-    template<class MapElems,class MapNodes,class BasicMesh>
-    void    init_node_2_elem_graph(const MapElems &map_e, const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)
-    {
-        node_2_elem_graph_refs.init(own_nodes_range.n);
-        node_2_elem_graph_sz = 0;
-        for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
-            int     i_node_glob = map_n.own_glob_ind(i_);
-            node_2_elem_graph_sz += cpu_mesh.node_2_cv_ids_ref[i_node_glob].second - cpu_mesh.node_2_cv_ids_ref[i_node_glob].first;
-        }
-        node_2_elem_graph_elem_ids.init(node_2_elem_graph_sz);
-        node_2_elem_graph_node_ids.init(node_2_elem_graph_sz);
-    }
-
     //TODO fix index calculation type (enumerate through map, not through view range)
     template<class BasicMesh,class MapElems,class MapFaces,class MapNodes>
     void    init_elems_data
@@ -347,6 +334,15 @@ struct device_mesh
             node_bnd_id_view(i_loc) = cpu_mesh.nodes[i_glob].bnd_id;
         }
         node_bnd_id_view.release();*/
+
+        node_2_elem_graph_refs.init(own_nodes_range.n);
+        node_2_elem_graph_sz = 0;
+        for(Ord i_ = 0;i_ < map_n.get_size();++i_) {
+            int     i_node_glob = map_n.own_glob_ind(i_);
+            node_2_elem_graph_sz += cpu_mesh.node_2_cv_ids_ref[i_node_glob].second - cpu_mesh.node_2_cv_ids_ref[i_node_glob].first;
+        }
+        node_2_elem_graph_elem_ids.init(node_2_elem_graph_sz);
+        node_2_elem_graph_node_ids.init(node_2_elem_graph_sz);
 
         auto            node_2_elem_graph_refs_view = node_2_elem_graph_refs.create_view(false);
         auto            node_2_elem_graph_elem_ids_view = node_2_elem_graph_elem_ids.create_view(false);
