@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef __MESH_DEFORM_SHEPARD_IMPL_H__
-#define __MESH_DEFORM_SHEPARD_IMPL_H__
+#ifndef __SCFD_MESH_DEVICE_MESH_CALC_PROPS_H__
+#define __SCFD_MESH_DEVICE_MESH_CALC_PROPS_H__
 
 #include "mesh_deform_shepard_config.h"
 #include <set>
