@@ -240,8 +240,8 @@ struct t_calc_center_faces_func
 
 
 //check orientation of normals
-__DEVICE_TAG__ t_vec check_orientation_of_a_normal_vector(const t_vec &normal_vector, const t_vec &vertex_center_vector){
-
+__DEVICE_TAG__ t_vec check_orientation_of_a_normal_vector(const t_vec &normal_vector, const t_vec &vertex_center_vector)
+{
     if(scalar_prod(normal_vector, vertex_center_vector)>0.0)
     {
         return(vector_invert(normal_vector));
@@ -254,16 +254,14 @@ __DEVICE_TAG__ t_vec check_orientation_of_a_normal_vector(const t_vec &normal_ve
 }
 
 //return vector as vertex_1-vertex_2
-__DEVICE_TAG__ t_vec bulid_vector_from_two_verteces(const t_vec &vertex_1, const t_vec &vertex_2){
-
+__DEVICE_TAG__ t_vec bulid_vector_from_two_verteces(const t_vec &vertex_1, const t_vec &vertex_2)
+{
     return(vertex_1-vertex_2);
-
 }
 
 //gets normal vector to the face defined by three verteces and uses center point to find outer orientation.
-__DEVICE_TAG__ t_vec construct_normal_vector_for_triangle_face(const t_vec &vertex_1, const t_vec &vertex_2, const t_vec &vertex_3, const t_vec &center){
-
-
+__DEVICE_TAG__ t_vec construct_normal_vector_for_triangle_face(const t_vec &vertex_1, const t_vec &vertex_2, const t_vec &vertex_3, const t_vec &center)
+{
     t_vec vector_2_1 = bulid_vector_from_two_verteces(vertex_2,vertex_1);
     t_vec vector_3_1 = bulid_vector_from_two_verteces(vertex_3,vertex_1);
     t_vec normal_vector = vector_prod(vector_2_1, vector_3_1);
