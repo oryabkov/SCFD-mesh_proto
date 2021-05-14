@@ -19,6 +19,11 @@
 
 #include "device_mesh.h"
 
+namespace scfd
+{
+namespace mesh
+{
+
 template<class T,class Memory,int Dim,class Ord>
 template<class BasicMesh,class MapElems,class MapFaces,class MapNodes>
 void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
@@ -274,5 +279,8 @@ void    device_mesh<T,Memory,Dim,Ord>::init_nodes_data
     node_2_elem_graph_elem_ids_view.release();
     node_2_elem_graph_node_ids_view.release();
 }
+
+}  /// namespace mesh
+}  /// namespace scfd
 
 #endif
