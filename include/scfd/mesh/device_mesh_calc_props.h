@@ -622,8 +622,6 @@ void mesh_deform_shepard
 
     //copy boundary deformations to separate buffer
     //put new coords to vertex array
-    //TODO here we need to sync new coords between processors
-    for_each_1d( t_update_vertexes(), 0, gpu_mesh.n_cv );
     //update geometry features
     for_each_1d( calc_center_func(), 0, gpu_mesh.n_cv );
     for_each_1d( calc_center_faces_func(), 0, gpu_mesh.n_cv );
