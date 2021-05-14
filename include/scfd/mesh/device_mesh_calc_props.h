@@ -78,7 +78,7 @@ template<class T,class Memory,int Dim,class Ord>
 struct device_mesh_funcs
 {
 
-    struct calc_center_func
+    struct calc_center
     {
         __DEVICE_TAG__ void operator()(const int &i)const
         {
@@ -105,7 +105,7 @@ struct device_mesh_funcs
         }
     };
 
-    struct calc_center_faces_func
+    struct calc_center_faces
     {
         __DEVICE_TAG__ void operator()(const int &i)const
         {
@@ -161,7 +161,7 @@ struct device_mesh_funcs
     }       
 
     //calculates normals to faces and araes of faces
-    struct calc_norm_func
+    struct calc_norm
     {
         __DEVICE_TAG__ void operator()(const int &i)const
         {
@@ -273,7 +273,7 @@ struct device_mesh_funcs
         }
     };
 
-    struct calc_faces_S_func
+    struct calc_faces_S
     {
         __DEVICE_TAG__ void operator()(const int &i)const
         {
@@ -334,7 +334,7 @@ struct device_mesh_funcs
     }
 
 
-    struct calc_vol_func
+    struct calc_vol
     {
         __DEVICE_TAG__ void operator()(const int &i)const
         {
@@ -544,7 +544,7 @@ struct device_mesh_funcs
         }
     };
 
-    struct update_center_neighbour_func
+    struct update_center_neighbour
     {
         __DEVICE_TAG__ void operator()(const int &i)const
         {
@@ -634,14 +634,14 @@ void mesh_deform_shepard
     //copy boundary deformations to separate buffer
     //put new coords to vertex array
     //update geometry features
-    for_each_1d( calc_center_func(), 0, gpu_mesh.n_cv );
-    for_each_1d( calc_center_faces_func(), 0, gpu_mesh.n_cv );
-    for_each_1d( calc_norm_func(), 0, gpu_mesh.n_cv );
-    //for_each_1d( calc_faces_S_func(), 0, gpu_mesh.n_cv );
-    for_each_1d( calc_vol_func(), 0, gpu_mesh.n_cv );
+    for_each_1d( calc_center(), 0, gpu_mesh.n_cv );
+    for_each_1d( calc_center_faces(), 0, gpu_mesh.n_cv );
+    for_each_1d( calc_norm(), 0, gpu_mesh.n_cv );
+    //for_each_1d( calc_faces_S(), 0, gpu_mesh.n_cv );
+    for_each_1d( calc_vol(), 0, gpu_mesh.n_cv );
     //TODO we need to sync all updated geometry features between processors 
     //(for those one which are stored not only for own elements, like element centers)
-    for_each_1d( update_center_neighbour_func(), 0, gpu_mesh.n_cv );
+    for_each_1d( update_center_neighbour(), 0, gpu_mesh.n_cv );
 }
 
 void copy_deform_2_cpu_mesh
