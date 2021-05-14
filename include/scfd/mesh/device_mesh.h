@@ -30,6 +30,10 @@ struct index_range_descr
     Ord i0, n;
 };
 
+/// Forward declaration; it is needed only for type specialization inside device_mesh class scope
+template<class T,class Memory,int Dim,class Ord>
+struct device_mesh_funcs;
+
 //map_n (nodes map) and map_e (element map) during all calls must be the same 
 //ISSUE perhaps, better to make copy of maps inside (but what to do with gpu in this case?)
 
@@ -48,6 +52,8 @@ struct device_mesh
 
     static const int          dim = Dim;
     static const ordinal_type special_id = std::numeric_limits<ordinal_type>::max();
+
+    using device_mesh_funcs_t = device_mesh_funcs<T,Memory,Dim,Ord>;
 
     using namespace arrays;
 

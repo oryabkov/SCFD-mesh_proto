@@ -645,7 +645,7 @@ void mesh_deform_shepard
     for_each_1d( update_center_neighbour(), 0, gpu_mesh.n_cv );
 }
 
-void copy_deform_2_cpu_mesh
+/*void copy_deform_2_cpu_mesh
 (
     const t_gpu_mesh    &gpu_mesh,
     const t_map_elems   &map_elems,
@@ -713,7 +713,7 @@ void copy_deform_2_cpu_mesh
     vol_view.release(false);
 
     //TODO nodes data
-}
+}*/
 
 }  /// namespace detail
 }  /// namespace mesh
