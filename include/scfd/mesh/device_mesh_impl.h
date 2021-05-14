@@ -18,6 +18,7 @@
 #define __SCFD_MESH_DEVICE_MESH_IMPL_H__
 
 #include "device_mesh.h"
+#include "device_mesh_funcs.h"
 
 namespace scfd
 {

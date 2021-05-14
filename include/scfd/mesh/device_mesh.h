@@ -53,7 +53,7 @@ struct device_mesh
     static const int          dim = Dim;
     static const ordinal_type special_id = std::numeric_limits<ordinal_type>::max();
 
-    using device_mesh_funcs_t = device_mesh_funcs<T,Memory,Dim,Ord>;
+    using device_mesh_funcs_t = detail::device_mesh_funcs<T,Memory,Dim,Ord>;
 
     using namespace arrays;
 

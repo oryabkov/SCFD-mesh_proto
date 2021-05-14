@@ -43,6 +43,7 @@ namespace mesh
 namespace detail
 {
 
+//TODO move.. where??
 DEFINE_CONSTANT_BUFFER(t_gpu_mesh, mesh)
 DEFINE_CONSTANT_BUFFER(t_elem_reference, elem_ref)
 
