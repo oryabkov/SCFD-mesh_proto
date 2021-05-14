@@ -69,125 +69,6 @@ __DEVICE_TAG__ int      get_elem_vert_n(int elem_type)
     return 0;       //just to remove warning
 }
 
-struct t_copy_deform_2_buf_func
-{
-    FOR_EACH_FUNC_PARAMS_HELP
-    (
-        t_copy_deform_2_buf_func,
-        t_vec_field,  deform_vec,
-        t_idx_field,  buffer_idx,
-        t_vec_field,  deform_vec_buffer
-    )
-
-    __DEVICE_TAG__ void operator()(const int &i)const
-    {
-        int buf_idx = buffer_idx(i);
-        if (buf_idx < 0) return;
-        t_vec   v;
-        deform_vec.getv(i, v);
-        deform_vec_buffer.setv(buf_idx, v);
-    }
-};
-
-struct t_shepard_deform
-{
-    FOR_EACH_FUNC_PARAMS_HELP
-    (
-        t_shepard_deform,
-        t_idx_field,  buffer_idx,
-        t_vec_field,  deform_vec_buffer,
-        t_idx_field,  deform_idx_buffer,
-        t_vec_field,  deform_vec
-    )
-
-    //static const real eps = 1e-5f;
-
-    __DEVICE_TAG__ void operator()(const int &i)const
-    {
-        real    sumw(0.f);
-
-        int buf_idx = buffer_idx(i);
-        if (buf_idx >= 0) 
-        {
-            deform_vec.setv(i, deform_vec_buffer.getv(buf_idx));
-            return;
-        }
-
-        if (deform_vec_buffer.size() == 0) 
-        {
-            deform_vec.setv(i, t_vec(real(0.f),real(0.f),real(0.f)));
-            return;
-        }
-
-        t_vec   sumw_delta = t_vec(real(0.f),real(0.f),real(0.f));
-        for (int k = 0;k < deform_vec_buffer.size();++k) 
-        {
-            int     k_node_i = deform_idx_buffer(k);
-            t_vec   diff = mesh().node_coords.getv(k_node_i) - mesh().node_coords.getv(i);
-            real    w = diff.norm2_sq();
-
-            /*if (w < eps*eps) {
-                sumw_delta = deform_vec_buffer.getv(k);
-                sumw = real(1.f);
-                break;
-            }*/
-
-            w = real(1.f)/w;
-            sumw += w;
-
-            //TEST
-            //sumw += real(1.f);
-            //sumw_delta = sumw_delta + deform_vec_buffer.getv(k);
-            //TEST END
-
-            sumw_delta = sumw_delta + deform_vec_buffer.getv(k)*w;
-        }
-
-        t_vec delta = sumw_delta/sumw;
-
-        //TEST
-        //delta[0] = real(0.f);
-        //delta[1] = real(0.f);
-        //delta[2] = real(-0.1f);
-        //TEST END
-
-        deform_vec.setv(i, delta);
-    }
-};
-
-struct t_move_nodes
-{
-    FOR_EACH_FUNC_PARAMS_HELP
-    (
-        t_move_nodes,
-        t_vec_field,  deform_vec
-    )
-
-    __DEVICE_TAG__ void operator()(const int &i)const
-    {
-        t_vec   delta, c;
-        deform_vec.getv(i, delta);
-        mesh().node_coords.getv(i, c);
-        for (int j = 0;j < dim;++j) c[j] += delta[j];
-        mesh().node_coords.setv(i, c);
-    }
-};
-
-struct t_update_vertexes
-{
-    __DEVICE_TAG__ void operator()(const int &i)const
-    {
-        int             elem_type = mesh().get_elem_type(i);
-        t_vec           c;
-        for (int j = 0;j < get_elem_vert_n(elem_type);++j) 
-        {
-            int node_id = mesh().elem_node_ids(i, j);
-            mesh().node_coords.getv(node_id, c);
-            mesh().vertexes.setv(i, j, c);
-        }
-    }
-};
-
 struct t_calc_center_func
 {
     __DEVICE_TAG__ void operator()(const int &i)const
@@ -740,12 +621,6 @@ void mesh_deform_shepard
 #endif
 
     //copy boundary deformations to separate buffer
-    //TODO here we need to sync boundary deformations between processors
-    for_each_1d( t_copy_deform_2_buf_func(deform_vec, buffer_idx, deform_vec_buffer), gpu_mesh.i0_nodes, gpu_mesh.i0_nodes+gpu_mesh.n_nodes_all );
-    //perform Shepard deformation
-    for_each_1d( t_shepard_deform(buffer_idx, deform_vec_buffer, deform_idx_buffer, deform_vec), 0, gpu_mesh.n_nodes );
-    //move nodes according to deformations
-    for_each_1d( t_move_nodes(deform_vec), 0, gpu_mesh.n_nodes );
     //put new coords to vertex array
     //TODO here we need to sync new coords between processors
     for_each_1d( t_update_vertexes(), 0, gpu_mesh.n_cv );
