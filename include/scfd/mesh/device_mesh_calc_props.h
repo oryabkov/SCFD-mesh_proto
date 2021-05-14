@@ -73,9 +73,9 @@ template<class T,class Memory,int Dim,class Ord>
 struct device_mesh_funcs
 {
     using scalar = T;
-    using sc_tr = scalar_traits<real>;
-    using t_vec = t_vec_tml<real,dim>;
-    using t_elem_reference = t_mesh_elem_reference_tml<real>;
+    using sc_tr = scalar_traits<scalar>;
+    using t_vec = t_vec_tml<scalar,dim>;
+    using t_elem_reference = t_mesh_elem_reference_tml<scalar>;
     using t_for_each_1d = for_each_1d<for_each_type>;
 
 
@@ -85,7 +85,7 @@ struct device_mesh_funcs
         {
             int elem_type = mesh().get_elem_type(i);
             int max_vertex_in_the_element=elem_ref().get_verts_n(elem_type);
-            t_vec  sum_of_verteces_coords(real(0.f), real(0.f), real(0.f));
+            t_vec  sum_of_verteces_coords(scalar(0.f), scalar(0.f), scalar(0.f));
             for(int vert_j=0;vert_j<max_vertex_in_the_element;vert_j++)
             {
                 for (int k_spacial_dimension = 0;k_spacial_dimension < dim;k_spacial_dimension++)
@@ -99,7 +99,7 @@ struct device_mesh_funcs
             }
             for (int k_spacial_dimension = 0;k_spacial_dimension < dim;k_spacial_dimension++)
             {
-                   mesh().center(i,k_spacial_dimension)=sum_of_verteces_coords[k_spacial_dimension]/((real) max_vertex_in_the_element);
+                   mesh().center(i,k_spacial_dimension)=sum_of_verteces_coords[k_spacial_dimension]/((scalar) max_vertex_in_the_element);
             }
 
 
@@ -114,7 +114,7 @@ struct device_mesh_funcs
             for (int face_i = 0;face_i < elem_ref().get_faces_n(elem_type);++face_i)
             {
                 int     face_verts_n = elem_ref().get_face_verts_n(elem_type,face_i);
-                t_vec  c(real(0.f), real(0.f), real(0.f));
+                t_vec  c(scalar(0.f), scalar(0.f), scalar(0.f));
                 for (int face_vert_i = 0;face_vert_i < face_verts_n;++face_vert_i) 
                 {
                     int vert_i = elem_ref().get_face_vert_i(elem_type,face_i,face_vert_i);
@@ -122,7 +122,7 @@ struct device_mesh_funcs
                         c[k] += mesh().vertexes(i, vert_i, k);
                 }
                 for (int k = 0;k < dim;++k) 
-                    c[k] /= real(face_verts_n);
+                    c[k] /= scalar(face_verts_n);
                 for (int k = 0;k < dim;++k) 
                     mesh().center_faces(i,face_i,k) = c[k];
             }
@@ -173,11 +173,11 @@ struct device_mesh_funcs
                 if(face_verteces_number==3)
                 {
                     // This is shit, i must find a way to return mesh().vertexes(i,vert_j) as t_vec!
-                    t_vec  verteces[3]={(real(0.f), real(0.f), real(0.f)),
-                            (real(0.f), real(0.f), real(0.f)),
-                            (real(0.f), real(0.f), real(0.f))};
+                    t_vec  verteces[3]={(scalar(0.f), scalar(0.f), scalar(0.f)),
+                            (scalar(0.f), scalar(0.f), scalar(0.f)),
+                            (scalar(0.f), scalar(0.f), scalar(0.f))};
                     
-                    t_vec  center = (real(0.f), real(0.f), real(0.f));
+                    t_vec  center = (scalar(0.f), scalar(0.f), scalar(0.f));
                     
                     for (int face_vert_j = 0;face_vert_j < face_verteces_number;face_vert_j++) { 
                         int vert_j = elem_ref().get_face_vert_i(elem_type,face_j,face_vert_j);
@@ -191,18 +191,18 @@ struct device_mesh_funcs
                     }
 
                     t_vec normal_vector = construct_normal_vector_for_triangle_face(verteces[0], verteces[1], verteces[2], center);
-                    real face_area = normal_vector.norm2();
+                    scalar face_area = normal_vector.norm2();
                     
 
                     for (int k = 0;k < dim;++k){ 
                         mesh().Norm(i,face_j,k)=normal_vector[k]/face_area;
                     }
-                    mesh().faces_S(i,face_j)=face_area*real(0.5);
+                    mesh().faces_S(i,face_j)=face_area*scalar(0.5);
 
                 }
                 else if(face_verteces_number==4)
                 {
-                    t_vec face_center(real(0.f), real(0.f), real(0.f));
+                    t_vec face_center(scalar(0.f), scalar(0.f), scalar(0.f));
 
                     for (int k = 0;k < dim;++k)
                     { 
@@ -211,13 +211,13 @@ struct device_mesh_funcs
 
                     t_vec  verteces[4] =
                         {
-                            (real(0.f), real(0.f), real(0.f)),
-                            (real(0.f), real(0.f), real(0.f)),
-                            (real(0.f), real(0.f), real(0.f)),
-                            (real(0.f), real(0.f), real(0.f))
+                            (scalar(0.f), scalar(0.f), scalar(0.f)),
+                            (scalar(0.f), scalar(0.f), scalar(0.f)),
+                            (scalar(0.f), scalar(0.f), scalar(0.f)),
+                            (scalar(0.f), scalar(0.f), scalar(0.f))
                         };
                     
-                    t_vec  center = (real(0.f), real(0.f), real(0.f)); 
+                    t_vec  center = (scalar(0.f), scalar(0.f), scalar(0.f)); 
 
                     for (int face_vert_j = 0;face_vert_j < face_verteces_number;face_vert_j++) 
                     { 
@@ -232,12 +232,12 @@ struct device_mesh_funcs
                         center[k] = mesh().center(i,k);
                     }
 
-                    t_vec normal_vector(real(0.f), real(0.f), real(0.f));
-                    real face_area = real(0.0);
+                    t_vec normal_vector(scalar(0.f), scalar(0.f), scalar(0.f));
+                    scalar face_area = scalar(0.0);
                     //loop over triangles
                     for (int k = 0;k < dim;++k)
                     { 
-                        mesh().Norm(i,face_j,k)=real(0.0);
+                        mesh().Norm(i,face_j,k)=scalar(0.0);
                     }
 
                     for(int triangle_number=0;triangle_number<face_verteces_number;triangle_number++)
@@ -247,14 +247,14 @@ struct device_mesh_funcs
                         vertex_index_2=(vertex_index_2)%(face_verteces_number);
 
                         normal_vector = construct_normal_vector_for_triangle_face(verteces[vertex_index_1], verteces[vertex_index_2], face_center, center);
-                        real normal_vector_norm=normal_vector.norm2();
+                        scalar normal_vector_norm=normal_vector.norm2();
                         //for (int k = 0;k < dim;++k){ 
                         //        normal_vector[k]=normal_vector[k]/normal_vector_norm; //using equal wight for normals
                         //}
                         face_area+=normal_vector_norm;
                         for (int k = 0;k < dim;++k)
                         { 
-                               // mesh().Norm(i,face_j,k)+=real(0.25)*normal_vector[k]; // using equal wight for normals. 1/face_verteces_number wight
+                               // mesh().Norm(i,face_j,k)+=scalar(0.25)*normal_vector[k]; // using equal wight for normals. 1/face_verteces_number wight
                             mesh().Norm(i,face_j,k)+=normal_vector[k]; // wight 0.5 is relative to triangle area
                         }
                     
@@ -263,7 +263,7 @@ struct device_mesh_funcs
                     { 
                         mesh().Norm(i,face_j,k)/=face_area; // used for triangle area wighted
                     } 
-                    mesh().faces_S(i,face_j)=face_area*real(0.5);        
+                    mesh().faces_S(i,face_j)=face_area*scalar(0.5);        
                 }
                 else
                 {
@@ -284,7 +284,7 @@ struct device_mesh_funcs
     };
 
 
-    __DEVICE_TAG__ real get_tetrahedron_volume(real tet_verteces[4][dim])
+    __DEVICE_TAG__ scalar get_tetrahedron_volume(scalar tet_verteces[4][dim])
     {
         for (int vertex_j = 0;vertex_j < 3;vertex_j++)
         {
@@ -294,26 +294,26 @@ struct device_mesh_funcs
             }
         }
         //we now take tet_verteces[3][*] equals (0,0,0)
-        real tet_volume;
+        scalar tet_volume;
         tet_volume = 
             sc_tr::abs
             (
                 +tet_verteces[0][0]*(tet_verteces[1][1]*tet_verteces[2][2]-tet_verteces[2][1]*tet_verteces[1][2])
                 -tet_verteces[0][1]*(tet_verteces[1][0]*tet_verteces[2][2]-tet_verteces[2][0]*tet_verteces[1][2])
                 +tet_verteces[0][2]*(tet_verteces[1][0]*tet_verteces[2][1]-tet_verteces[2][0]*tet_verteces[1][1])
-            )/real(6.f);
+            )/scalar(6.f);
 
         return tet_volume;
     }
 
 
-    __DEVICE_TAG__ real volume_of_4_tetraheda_from_4_verteces_and_center
+    __DEVICE_TAG__ scalar volume_of_4_tetraheda_from_4_verteces_and_center
     (
         t_vec face_verteces[4], const t_vec &face_center, const t_vec &element_center
     )
     {
-        real tet_volumes=0.0;
-        real m[4][dim];
+        scalar tet_volumes=0.0;
+        scalar m[4][dim];
 
         for(int tet_number=0;tet_number<4;tet_number++)
         {
@@ -343,7 +343,7 @@ struct device_mesh_funcs
             if (elem_type == 4) 
             {
                 /*
-                real m[dim][dim]; //[number of verteces-1][dimension]
+                scalar m[dim][dim]; //[number of verteces-1][dimension]
                 for (int i1 = 0;i1 < dim;i1++)
                 for (int i2 = 0;i2 < dim;i2++)
                     m[i1][i2] =  mesh().vertexes(i,i1+1,i2);
@@ -355,9 +355,9 @@ struct device_mesh_funcs
                     m[i1][i2] -= v0[i2];
                 mesh().Vol(i,0) = sc_tr::abs(  +m[0][0]*(m[1][1]*m[2][2]-m[2][1]*m[1][2])
                                 -m[0][1]*(m[1][0]*m[2][2]-m[2][0]*m[1][2])
-                                +m[0][2]*(m[1][0]*m[2][1]-m[2][0]*m[1][1]))/real(6.f);
+                                +m[0][2]*(m[1][0]*m[2][1]-m[2][0]*m[1][1]))/scalar(6.f);
                 */
-                real m[4][dim];
+                scalar m[4][dim];
                 for (int i1 = 0;i1 < 4;i1++)
                 {
                     for (int i2 = 0;i2 < dim;i2++)
@@ -371,8 +371,8 @@ struct device_mesh_funcs
             if (elem_type == 5) 
             {
                 //hexahedron
-                real hexahedron_volume = real(0.f);
-                t_vec element_center(real(0.f), real(0.f), real(0.f));
+                scalar hexahedron_volume = scalar(0.f);
+                t_vec element_center(scalar(0.f), scalar(0.f), scalar(0.f));
                 for (int k = 0;k < dim;++k)
                 { 
                     element_center[k]=mesh().center(i,k);
@@ -381,13 +381,13 @@ struct device_mesh_funcs
                 for (int face_j=0;face_j<number_of_faces;face_j++)
                 {
                     int face_verteces_number=elem_ref().get_face_verts_n(elem_type,face_j);
-                    t_vec face_center(real(0.f), real(0.f), real(0.f));
+                    t_vec face_center(scalar(0.f), scalar(0.f), scalar(0.f));
                     t_vec  verteces[4]=
                         {
-                            (real(0.f), real(0.f), real(0.f)),
-                            (real(0.f), real(0.f), real(0.f)),
-                            (real(0.f), real(0.f), real(0.f)),
-                            (real(0.f), real(0.f), real(0.f))
+                            (scalar(0.f), scalar(0.f), scalar(0.f)),
+                            (scalar(0.f), scalar(0.f), scalar(0.f)),
+                            (scalar(0.f), scalar(0.f), scalar(0.f)),
+                            (scalar(0.f), scalar(0.f), scalar(0.f))
                         };
 
                     for (int k = 0;k < dim;++k)
@@ -411,8 +411,8 @@ struct device_mesh_funcs
             if (elem_type == 6) 
             {
                 //prism
-                real prism_volume = real(0.f);
-                t_vec element_center(real(0.f), real(0.f), real(0.f));
+                scalar prism_volume = scalar(0.f);
+                t_vec element_center(scalar(0.f), scalar(0.f), scalar(0.f));
                 for (int k = 0;k < dim;++k){ 
                     element_center[k]=mesh().center(i,k);
                 }
@@ -420,11 +420,11 @@ struct device_mesh_funcs
                 for (int face_j=0;face_j<number_of_faces;face_j++)
                 {
                     int face_verteces_number=elem_ref().get_face_verts_n(elem_type,face_j);
-                    t_vec face_center(real(0.f), real(0.f), real(0.f));
-                    t_vec  verteces[4]={(real(0.f), real(0.f), real(0.f)),
-                            (real(0.f), real(0.f), real(0.f)),
-                            (real(0.f), real(0.f), real(0.f)),
-                            (real(0.f), real(0.f), real(0.f))};
+                    t_vec face_center(scalar(0.f), scalar(0.f), scalar(0.f));
+                    t_vec  verteces[4]={(scalar(0.f), scalar(0.f), scalar(0.f)),
+                            (scalar(0.f), scalar(0.f), scalar(0.f)),
+                            (scalar(0.f), scalar(0.f), scalar(0.f)),
+                            (scalar(0.f), scalar(0.f), scalar(0.f))};
 
                     for (int k = 0;k < dim;++k)
                     { 
@@ -444,7 +444,7 @@ struct device_mesh_funcs
                     }
                     else
                     { //face_verteces_number==3
-                        real m[4][dim];
+                        scalar m[4][dim];
                         for (int face_vert_j = 0;face_vert_j < 3;face_vert_j++) 
                         { 
                             int vert_j = elem_ref().get_face_vert_i(elem_type,face_j,face_vert_j);
@@ -472,7 +472,7 @@ struct device_mesh_funcs
                 int number_of_faces = elem_ref().get_faces_n(elem_type);
                 int verteces_indexes[4];
                 int quad_face_number=-1;
-                t_vec face_center(real(0.f), real(0.f), real(0.f));
+                t_vec face_center(scalar(0.f), scalar(0.f), scalar(0.f));
 
                 for (int face_j=0;face_j<number_of_faces;face_j++)
                 {
@@ -513,13 +513,13 @@ struct device_mesh_funcs
                         break;
 
                 }
-                t_vec  vertex_pinacle_coords(real(0.f), real(0.f), real(0.f));
+                t_vec  vertex_pinacle_coords(scalar(0.f), scalar(0.f), scalar(0.f));
                 t_vec  verteces[4]=
                     {
-                        (real(0.f), real(0.f), real(0.f)),
-                        (real(0.f), real(0.f), real(0.f)),
-                        (real(0.f), real(0.f), real(0.f)),
-                        (real(0.f), real(0.f), real(0.f))
+                        (scalar(0.f), scalar(0.f), scalar(0.f)),
+                        (scalar(0.f), scalar(0.f), scalar(0.f)),
+                        (scalar(0.f), scalar(0.f), scalar(0.f)),
+                        (scalar(0.f), scalar(0.f), scalar(0.f))
                     };
                 
                 for (int k = 0;k < dim;++k)
@@ -653,7 +653,7 @@ void copy_deform_2_cpu_mesh
     t_cpu_mesh          &cpu_mesh
 )
 {
-    t_tensor2_field_view_tml<real,vert_max_n,dim,tf_storage>         vertexes_view(gpu_mesh.vertexes, true);
+    t_tensor2_field_view_tml<scalar,vert_max_n,dim,tf_storage>         vertexes_view(gpu_mesh.vertexes, true);
     for (int i_ = 0;i_ < map_elems.get_size();++i_) 
     {
         int i_glob = map_elems.own_glob_ind(i_),
@@ -664,7 +664,7 @@ void copy_deform_2_cpu_mesh
     vertexes_view.release(false);
 
     //ISSUE do we need to copy stencil element's centers as well??
-    t_tensor1_field_view_tml<real,dim,tf_storage>                    center_view(gpu_mesh.center, true);
+    t_tensor1_field_view_tml<scalar,dim,tf_storage>                    center_view(gpu_mesh.center, true);
     for (int i_ = 0;i_ < map_elems.get_size();++i_) 
     {
         int i_glob = map_elems.own_glob_ind(i_),
@@ -673,7 +673,7 @@ void copy_deform_2_cpu_mesh
     }
     center_view.release(false);
 
-    t_tensor2_field_view_tml<real,faces_max_n,dim,tf_storage>        center_faces_view(gpu_mesh.center_faces, true);
+    t_tensor2_field_view_tml<scalar,faces_max_n,dim,tf_storage>        center_faces_view(gpu_mesh.center_faces, true);
     for (int i_ = 0;i_ < map_elems.get_size();++i_) 
     {
         int i_glob = map_elems.own_glob_ind(i_),
@@ -683,7 +683,7 @@ void copy_deform_2_cpu_mesh
     }
     center_faces_view.release(false);
 
-    t_tensor2_field_view_tml<real,faces_max_n,dim,tf_storage>        norm_view(gpu_mesh.Norm, true);
+    t_tensor2_field_view_tml<scalar,faces_max_n,dim,tf_storage>        norm_view(gpu_mesh.Norm, true);
     for (int i_ = 0;i_ < map_elems.get_size();++i_) 
     {
         int i_glob = map_elems.own_glob_ind(i_),
@@ -693,7 +693,7 @@ void copy_deform_2_cpu_mesh
     }
     norm_view.release(false);
 
-    t_tensor1_field_view_tml<real,faces_max_n,tf_storage>            faces_S_view(gpu_mesh.faces_S, true);
+    t_tensor1_field_view_tml<scalar,faces_max_n,tf_storage>            faces_S_view(gpu_mesh.faces_S, true);
     for (int i_ = 0;i_ < map_elems.get_size();++i_) 
     {
         int i_glob = map_elems.own_glob_ind(i_),
@@ -703,7 +703,7 @@ void copy_deform_2_cpu_mesh
     }
     faces_S_view.release(false);
 
-    t_tensor1_field_view_tml<real,1,tf_storage>                      vol_view(gpu_mesh.Vol, true);
+    t_tensor1_field_view_tml<scalar,1,tf_storage>                      vol_view(gpu_mesh.Vol, true);
     for (int i_ = 0;i_ < map_elems.get_size();++i_) 
     {
         int i_glob = map_elems.own_glob_ind(i_),
