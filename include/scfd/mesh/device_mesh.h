@@ -186,7 +186,7 @@ struct device_mesh
         }
         norm_view.release(false);
     }
-    template<class MapNodes,class BasicMesh>
+    /*template<class MapNodes,class BasicMesh>
     void    dump_nodes_geom_data(const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)const
     {
         auto                    node_coords_view = nodes_coords.create_view(true);
@@ -197,7 +197,7 @@ struct device_mesh
             node_coords_view.getv(i_loc, cpu_mesh.nodes[i_glob].c);
         }
         node_coords_view.release(false);
-    }
+    }*/
 
     ~device_mesh()
     {
