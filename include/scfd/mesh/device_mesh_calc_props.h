@@ -43,11 +43,6 @@ namespace mesh
 namespace detail
 {
 
-typedef scalar_traits<real>                                             sc_tr;
-typedef t_vec_tml<real,dim>                                             t_vec;
-typedef t_mesh_elem_reference_tml<real>                                 t_elem_reference;
-typedef for_each_1d<for_each_type>                                      t_for_each_1d;
-
 DEFINE_CONSTANT_BUFFER(t_gpu_mesh, mesh)
 DEFINE_CONSTANT_BUFFER(t_elem_reference, elem_ref)
 
@@ -77,6 +72,12 @@ __DEVICE_TAG__ int      get_elem_vert_n(int elem_type)
 template<class T,class Memory,int Dim,class Ord>
 struct device_mesh_funcs
 {
+    using scalar = T;
+    using sc_tr = scalar_traits<real>;
+    using t_vec = t_vec_tml<real,dim>;
+    using t_elem_reference = t_mesh_elem_reference_tml<real>;
+    using t_for_each_1d = for_each_1d<for_each_type>;
+
 
     struct calc_center
     {
