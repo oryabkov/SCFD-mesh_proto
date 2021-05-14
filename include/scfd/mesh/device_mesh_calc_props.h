@@ -69,7 +69,7 @@ __DEVICE_TAG__ int      get_elem_vert_n(int elem_type)
     return 0;       //just to remove warning
 }
 
-struct t_calc_center_func
+struct calc_center_func
 {
     __DEVICE_TAG__ void operator()(const int &i)const
     {
@@ -96,7 +96,7 @@ struct t_calc_center_func
     }
 };
 
-struct t_calc_center_faces_func
+struct calc_center_faces_func
 {
     __DEVICE_TAG__ void operator()(const int &i)const
     {
@@ -152,7 +152,7 @@ __DEVICE_TAG__ t_vec construct_normal_vector_for_triangle_face(const t_vec &vert
 }       
 
 //calculates normals to faces and araes of faces
-struct t_calc_norm_func
+struct calc_norm_func
 {
     __DEVICE_TAG__ void operator()(const int &i)const
     {
@@ -264,7 +264,7 @@ struct t_calc_norm_func
     }
 };
 
-struct t_calc_faces_S_func
+struct calc_faces_S_func
 {
     __DEVICE_TAG__ void operator()(const int &i)const
     {
@@ -325,7 +325,7 @@ __DEVICE_TAG__ real volume_of_4_tetraheda_from_4_verteces_and_center
 }
 
 
-struct t_calc_vol_func
+struct calc_vol_func
 {
     __DEVICE_TAG__ void operator()(const int &i)const
     {
@@ -535,7 +535,7 @@ struct t_calc_vol_func
     }
 };
 
-struct t_update_center_neighbour_func
+struct update_center_neighbour_func
 {
     __DEVICE_TAG__ void operator()(const int &i)const
     {
@@ -625,14 +625,14 @@ void mesh_deform_shepard
     //TODO here we need to sync new coords between processors
     for_each_1d( t_update_vertexes(), 0, gpu_mesh.n_cv );
     //update geometry features
-    for_each_1d( t_calc_center_func(), 0, gpu_mesh.n_cv );
-    for_each_1d( t_calc_center_faces_func(), 0, gpu_mesh.n_cv );
-    for_each_1d( t_calc_norm_func(), 0, gpu_mesh.n_cv );
-    //for_each_1d( t_calc_faces_S_func(), 0, gpu_mesh.n_cv );
-    for_each_1d( t_calc_vol_func(), 0, gpu_mesh.n_cv );
+    for_each_1d( calc_center_func(), 0, gpu_mesh.n_cv );
+    for_each_1d( calc_center_faces_func(), 0, gpu_mesh.n_cv );
+    for_each_1d( calc_norm_func(), 0, gpu_mesh.n_cv );
+    //for_each_1d( calc_faces_S_func(), 0, gpu_mesh.n_cv );
+    for_each_1d( calc_vol_func(), 0, gpu_mesh.n_cv );
     //TODO we need to sync all updated geometry features between processors 
     //(for those one which are stored not only for own elements, like element centers)
-    for_each_1d( t_update_center_neighbour_func(), 0, gpu_mesh.n_cv );
+    for_each_1d( update_center_neighbour_func(), 0, gpu_mesh.n_cv );
 }
 
 void copy_deform_2_cpu_mesh
