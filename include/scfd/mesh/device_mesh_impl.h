@@ -204,6 +204,31 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
         }
     }
     elem_node_ids_view.release();
+
+    t_elem_reference        elem_ref_;
+    COPY_TO_CONSTANT_BUFFER(elem_ref, elem_ref_);
+
+    COPY_TO_CONSTANT_BUFFER(mesh, gpu_mesh);
+
+    t_for_each_1d           for_each_1d;
+    #ifdef MESH_DEFORM_SHEPARD_CUDA_NODE
+    for_each_1d.block_size = 256;
+    #endif
+    #ifdef MESH_DEFORM_SHEPARD_OPENMP_NODE
+    for_each_1d.threads_num = -1;
+    #endif
+
+    //copy boundary deformations to separate buffer
+    //put new coords to vertex array
+    //update geometry features
+    for_each_1d( calc_center(), 0, gpu_mesh.n_cv );
+    for_each_1d( calc_center_faces(), 0, gpu_mesh.n_cv );
+    for_each_1d( calc_norm(), 0, gpu_mesh.n_cv );
+    //for_each_1d( calc_faces_S(), 0, gpu_mesh.n_cv );
+    for_each_1d( calc_vol(), 0, gpu_mesh.n_cv );
+    //TODO we need to sync all updated geometry features between processors 
+    //(for those one which are stored not only for own elements, like element centers)
+    for_each_1d( update_center_neighbour(), 0, gpu_mesh.n_cv );
 }
 
 template<class T,class Memory,int Dim,class Ord>

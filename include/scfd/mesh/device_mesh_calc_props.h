@@ -565,53 +565,6 @@ struct device_mesh_funcs
 
 };
 
-void init_mesh_deform_shepard
-(
-    const t_map_nodes &map_nodes, const t_cpu_mesh &cpu_mesh, 
-    const std::set<int> &bnd_ids,
-    t_vec_field &deform_vec,
-    t_idx_field &buffer_idx,
-    t_vec_field &deform_vec_buffer,
-    t_idx_field &deform_idx_buffer
-)
-{
-    t_elem_reference        elem_ref_;
-    COPY_TO_CONSTANT_BUFFER(elem_ref, elem_ref_);
-}
-
-//deform_vec is input field (contains deforamtion in boundary nodes) but also is used as buffer
-void mesh_deform_shepard
-(
-    const t_vec_field &deform_vec,
-    const t_gpu_mesh &gpu_mesh, 
-    const t_idx_field &buffer_idx,
-    const t_vec_field &deform_vec_buffer,
-    const t_idx_field &deform_idx_buffer
-)
-{
-    COPY_TO_CONSTANT_BUFFER(mesh, gpu_mesh);
-
-    t_for_each_1d           for_each_1d;
-#ifdef MESH_DEFORM_SHEPARD_CUDA_NODE
-    for_each_1d.block_size = 256;
-#endif
-#ifdef MESH_DEFORM_SHEPARD_OPENMP_NODE
-    for_each_1d.threads_num = -1;
-#endif
-
-    //copy boundary deformations to separate buffer
-    //put new coords to vertex array
-    //update geometry features
-    for_each_1d( calc_center(), 0, gpu_mesh.n_cv );
-    for_each_1d( calc_center_faces(), 0, gpu_mesh.n_cv );
-    for_each_1d( calc_norm(), 0, gpu_mesh.n_cv );
-    //for_each_1d( calc_faces_S(), 0, gpu_mesh.n_cv );
-    for_each_1d( calc_vol(), 0, gpu_mesh.n_cv );
-    //TODO we need to sync all updated geometry features between processors 
-    //(for those one which are stored not only for own elements, like element centers)
-    for_each_1d( update_center_neighbour(), 0, gpu_mesh.n_cv );
-}
-
 /*void copy_deform_2_cpu_mesh
 (
     const t_gpu_mesh    &gpu_mesh,
