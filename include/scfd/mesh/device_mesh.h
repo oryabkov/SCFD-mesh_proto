@@ -119,7 +119,7 @@ struct device_mesh
     }
 
     //TODO change bane
-    template<class MapElems,class BasicMesh>
+    /*template<class MapElems,class BasicMesh>
     void    dump_elems_geom_data(const MapElems &map_e, host_mesh<BasicMesh> &cpu_mesh)const
     {
         auto                    center_view = elems_centers.create_view(true);
@@ -185,7 +185,7 @@ struct device_mesh
                 norm_view.getv(i,j,cpu_mesh.cv[i_glob].norms[j]);
         }
         norm_view.release(false);
-    }
+    }*/
     /*template<class MapNodes,class BasicMesh>
     void    dump_nodes_geom_data(const MapNodes &map_n, host_mesh<BasicMesh> &cpu_mesh)const
     {

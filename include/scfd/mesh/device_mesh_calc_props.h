@@ -575,39 +575,6 @@ void init_mesh_deform_shepard
     t_idx_field &deform_idx_buffer
 )
 {
-    int bnd_nodes_n = 0;
-    for (int i_loc = map_nodes.min_loc_ind();i_loc <= map_nodes.max_loc_ind();++i_loc) 
-    {
-        if (!map_nodes.check_loc_has_loc_ind(i_loc)) continue;
-        int i_glob = map_nodes.loc2glob(i_loc);
-        if (bnd_ids.find(cpu_mesh.nodes[i_glob].bnd_id) == bnd_ids.end()) continue;
-        bnd_nodes_n++;
-    }
-    deform_vec_buffer.init(bnd_nodes_n);
-    deform_idx_buffer.init(bnd_nodes_n);
-    deform_vec.init(map_nodes.max_loc_ind() - map_nodes.min_loc_ind() + 1, map_nodes.min_loc_ind());
-    buffer_idx.init(map_nodes.max_loc_ind() - map_nodes.min_loc_ind() + 1, map_nodes.min_loc_ind());
-
-    int bnd_nodes_i = 0;
-    typename t_idx_field::view_type buffer_idx_view(buffer_idx, false),
-                                    deform_idx_buffer_view(deform_idx_buffer, false);
-    for (int i_loc = map_nodes.min_loc_ind();i_loc <= map_nodes.max_loc_ind();++i_loc) 
-    {
-        if (!map_nodes.check_loc_has_loc_ind(i_loc)) continue;
-        int i_glob = map_nodes.loc2glob(i_loc);
-        
-        if (bnd_ids.find(cpu_mesh.nodes[i_glob].bnd_id) == bnd_ids.end()) 
-        {
-            buffer_idx_view(i_loc) = -1;
-            continue;
-        }
-        buffer_idx_view(i_loc) = bnd_nodes_i;
-        deform_idx_buffer_view(bnd_nodes_i) = i_loc;
-        bnd_nodes_i++;
-    }
-    buffer_idx_view.release(true);
-    deform_idx_buffer_view.release(true);
-
     t_elem_reference        elem_ref_;
     COPY_TO_CONSTANT_BUFFER(elem_ref, elem_ref_);
 }
