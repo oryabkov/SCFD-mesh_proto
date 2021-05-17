@@ -43,10 +43,6 @@ namespace mesh
 namespace detail
 {
 
-//TODO move.. where??
-DEFINE_CONSTANT_BUFFER(t_gpu_mesh, mesh)
-DEFINE_CONSTANT_BUFFER(t_elem_reference, elem_ref)
-
 //TODO just temporal -> use mesh_reference instead
 __DEVICE_TAG__ int      get_elem_faces_n(int elem_type)
 {
