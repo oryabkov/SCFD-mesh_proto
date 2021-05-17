@@ -46,6 +46,7 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
     using vec_t = static_vec::vec<T,dim>;
     using host_mesh_t = host_mesh<BasicMesh>;
     using host_ordinal = host_mesh_t::ordinal_type;
+    using elem_reference_t = gmsh_mesh_elem_reference<T>;
 
     //n_cv = _n_cv; n_cv_all = _n_cv_all; i0 = _i0;
     own_elems_range.n = map_e.get_size();
@@ -216,10 +217,9 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
     }
     elem_node_ids_view.release();
 
-    t_elem_reference        elem_ref_;
+    elem_reference_t        elem_ref_;
     COPY_TO_CONSTANT_BUFFER(elem_ref, elem_ref_);
-
-    COPY_TO_CONSTANT_BUFFER(mesh, gpu_mesh);
+    COPY_TO_CONSTANT_BUFFER(mesh, *this);
 
     t_for_each_1d           for_each_1d;
     #ifdef MESH_DEFORM_SHEPARD_CUDA_NODE
