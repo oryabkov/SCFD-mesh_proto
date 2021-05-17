@@ -24,10 +24,10 @@
 //TODO do something with possible simultanious several types INSTANTIATE (mesh and elem_ref names conflict)
 //maybe create some kind of DEFINE_TEMPLATE_CONSTANT_BUFFER with explicit template params argumnet
 #define SCFD_DEVICE_MESH_INSTANTIATE(T,MEMORY,DIM,ORD)                            \
-  namespace scfd { namespace mesh {                                               \
+  namespace scfd { namespace mesh { namespace detail {                            \
     DEFINE_CONSTANT_BUFFER((device_mesh<T,MEMORY,DIM,ORD>), mesh)                 \
     DEFINE_CONSTANT_BUFFER((gmsh_mesh_elem_reference<T>), elem_ref)               \
-  } }                                                                             \
+  } } }                                                                           \
   template class scfd::mesh::device_mesh<T,MEMORY,DIM,ORD>;
 
 namespace scfd
