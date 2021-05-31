@@ -1,2 +1,3 @@
 
 add_subdirectory(host_poisson_solver)
+add_subdirectory(gpu_poisson_solver)
