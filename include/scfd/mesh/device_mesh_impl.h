@@ -36,11 +36,12 @@ namespace mesh
 {
 
 template<class T,class Memory,int Dim,class Ord>
-template<class BasicMesh,class MapElems,class MapFaces,class MapNodes>
+template<class BasicMesh,class MapElems,class MapFaces,class MapNodes,class ForEach>
 void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
 (
     const host_mesh<BasicMesh> &cpu_mesh,
-    const MapElems &map_e, const MapFaces &map_f, const MapNodes &map_n
+    const MapElems &map_e, const MapFaces &map_f, const MapNodes &map_n,
+    const ForEach &for_each
 )
 {
     using vec_t = static_vec::vec<T,dim>;
@@ -221,33 +222,26 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
     COPY_TO_CONSTANT_BUFFER(elem_ref, elem_ref_);
     COPY_TO_CONSTANT_BUFFER(mesh, *this);
 
-    t_for_each_1d           for_each_1d;
-    #ifdef MESH_DEFORM_SHEPARD_CUDA_NODE
-    for_each_1d.block_size = 256;
-    #endif
-    #ifdef MESH_DEFORM_SHEPARD_OPENMP_NODE
-    for_each_1d.threads_num = -1;
-    #endif
-
     //copy boundary deformations to separate buffer
     //put new coords to vertex array
     //update geometry features
-    for_each_1d( device_mesh_funcs_t::calc_center(), 0, gpu_mesh.n_cv );
-    for_each_1d( device_mesh_funcs_t::calc_center_faces(), 0, gpu_mesh.n_cv );
-    for_each_1d( device_mesh_funcs_t::calc_norm(), 0, gpu_mesh.n_cv );
+    for_each( device_mesh_funcs_t::calc_center(), 0, gpu_mesh.n_cv );
+    for_each( device_mesh_funcs_t::calc_center_faces(), 0, gpu_mesh.n_cv );
+    for_each( device_mesh_funcs_t::calc_norm(), 0, gpu_mesh.n_cv );
     //for_each_1d( calc_faces_S(), 0, gpu_mesh.n_cv );
-    for_each_1d( device_mesh_funcs_t::calc_vol(), 0, gpu_mesh.n_cv );
+    for_each( device_mesh_funcs_t::calc_vol(), 0, gpu_mesh.n_cv );
     //TODO we need to sync all updated geometry features between processors 
     //(for those one which are stored not only for own elements, like element centers)
-    for_each_1d( device_mesh_funcs_t::update_center_neighbour(), 0, gpu_mesh.n_cv );
+    for_each( device_mesh_funcs_t::update_center_neighbour(), 0, gpu_mesh.n_cv );
 }
 
 template<class T,class Memory,int Dim,class Ord>
-template<class BasicMesh,class MapElems,class MapFaces,class MapNodes>
+template<class BasicMesh,class MapElems,class MapFaces,class MapNodes,class ForEach>
 void    device_mesh<T,Memory,Dim,Ord>::init_nodes_data
 (
     const host_mesh<BasicMesh> &cpu_mesh,
-    const MapElems &map_e, const MapFaces &map_f, const MapNodes &map_n
+    const MapElems &map_e, const MapFaces &map_f, const MapNodes &map_n,
+    const ForEach &for_each
 )
 {
     own_nodes_range.n = map_n.get_size();

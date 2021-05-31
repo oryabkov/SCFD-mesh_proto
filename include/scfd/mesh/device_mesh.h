@@ -202,6 +202,21 @@ struct device_mesh
     ~device_mesh()
     {
     }
+
+    template<class BasicMesh,class MapElems,class MapFaces,class MapNodes,class ForEach>
+    void    init_elems_data
+    (
+        const host_mesh<BasicMesh> &cpu_mesh,
+        const MapElems &map_e, const MapFaces &map_f, const MapNodes &map_n,
+        const ForEach &for_each = ForEach()
+    );
+    template<class BasicMesh,class MapElems,class MapFaces,class MapNodes,class ForEach>
+    void    init_nodes_data
+    (
+        const host_mesh<BasicMesh> &cpu_mesh,
+        const MapElems &map_e, const MapFaces &map_f, const MapNodes &map_n,
+        const ForEach &for_each = ForEach()
+    );
 };
 
 }  /// namespace mesh
