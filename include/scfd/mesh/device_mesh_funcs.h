@@ -17,24 +17,15 @@
 #ifndef __SCFD_MESH_DEVICE_MESH_CALC_PROPS_H__
 #define __SCFD_MESH_DEVICE_MESH_CALC_PROPS_H__
 
-#include "mesh_deform_shepard_config.h"
 #include <set>
-#include <utils/device_tag.h>
-#include <utils/scalar_traits.h>
-#include <utils/constant_data.h>
-#include <tensor_field/t_tensor_field_tml.h>
-#include <for_each/for_each_1d.h>
-#ifdef MESH_DEFORM_SHEPARD_CUDA_NODE
-#include <for_each/for_each_1d_cuda_impl.cuh>
-#endif
-#ifdef MESH_DEFORM_SHEPARD_OPENMP_NODE
-#include <for_each/for_each_1d_openmp_impl.h>
-#endif
-#include <for_each/for_each_storage_types.h>
-#include <for_each/for_each_func_macro.h>
-#include <mesh/t_mesh_elem_reference_tml.h>
-#include <mesh/t_gpu_mesh_tml.h>
-#include "mesh_deform_shepard.h"
+#include <scfd/utils/device_tag.h>
+#include <scfd/utils/scalar_traits.h>
+#include <scfd/utils/constant_data.h>
+#include <scfd/arrays/tensorN_array.h>
+//#include <for_each/for_each_storage_types.h>
+#include <scfd/for_each/for_each_func_macro.h>
+#include <scfd/mesh/gmsh_mesh_elem_reference.h>
+#include <scfd/mesh/device_mesh.h>
 
 namespace scfd
 {
@@ -69,11 +60,12 @@ __DEVICE_TAG__ int      get_elem_vert_n(int elem_type)
 template<class T,class Memory,int Dim,class Ord>
 struct device_mesh_funcs
 {
+    static const int          dim = Dim;
+
     using scalar = T;
-    using sc_tr = scalar_traits<scalar>;
-    using t_vec = t_vec_tml<scalar,dim>;
-    using t_elem_reference = t_mesh_elem_reference_tml<scalar>;
-    using t_for_each_1d = for_each_1d<for_each_type>;
+    using sc_tr = scfd::utils::scalar_traits<scalar>;
+    using t_vec = scfd::static_vec::vec<scalar,dim>;
+    using t_elem_reference = gmsh_mesh_elem_reference<T>;
 
 
     struct calc_center

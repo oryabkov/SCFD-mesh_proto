@@ -17,6 +17,7 @@
 #ifndef __SCFD_MESH_DEVICE_MESH_H__
 #define __SCFD_MESH_DEVICE_MESH_H__
 
+#include <scfd/arrays/array.h>
 #include <scfd/arrays/tensorN_array.h>
 
 namespace scfd
@@ -30,9 +31,12 @@ struct index_range_descr
     Ord i0, n;
 };
 
+namespace detail
+{
 /// Forward declaration; it is needed only for type specialization inside device_mesh class scope
 template<class T,class Memory,int Dim,class Ord>
 struct device_mesh_funcs;
+}
 
 //map_n (nodes map) and map_e (element map) during all calls must be the same 
 //ISSUE perhaps, better to make copy of maps inside (but what to do with gpu in this case?)
@@ -40,6 +44,9 @@ struct device_mesh_funcs;
 //ISSUE should not we make own flag?? (because this structure is copied to const memory)
 
 //TODO for now Ord = SCFD_ARRAYS_ORDINAL_TYPE is only supported (arrays don't have Ord template parameter for now)
+
+//TODO is it really safe?
+using namespace arrays;
 
 template<class T,class Memory,int Dim = 3,class Ord = SCFD_ARRAYS_ORDINAL_TYPE>
 struct device_mesh
@@ -55,7 +62,7 @@ struct device_mesh
 
     using device_mesh_funcs_t = detail::device_mesh_funcs<T,Memory,Dim,Ord>;
 
-    using namespace arrays;
+    //using namespace detail;
 
     //ISSUE neither n_cv
     //but i0, n_cv_all somehow does

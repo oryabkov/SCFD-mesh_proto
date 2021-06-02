@@ -43,16 +43,16 @@ using host_mesh_t = scfd::mesh::host_mesh<gmsh_wrap_t>;
 using vec_t = scfd::static_vec::vec<real,dim>;
 using log_t = scfd::utils::log_std;
 using mem_t = scfd::memory::cuda_device;
-using device_mesh = scfd::mesh::device_mesh<real,mem_t,dim,ordinal>;
+using device_mesh_t = scfd::mesh::device_mesh<real,mem_t,dim,ordinal>;
 
-typedef t_serial_map            t_map;
-typedef t_tensor0_field_tml<real>   t_vars;
+typedef scfd::communication::serial_map  map_t;
+typedef scfd::arrays::array<real,mem_t>  vars_t;
 
-DEFINE_CONSTANT_BUFFER(t_gpu_mesh, mesh)
+DEFINE_CONSTANT_BUFFER(device_mesh_t, mesh)
 
 __device__ int  get_elem_type(int i)    //gmsh element type
 {
-    if (mesh().is_homogeneous) return mesh().homogeneous_elem_type; else return mesh().elem_type(i,0);
+    if (mesh().is_homogeneous) return mesh().homogeneous_elem_type; else return mesh().elems_types(i);
 }
 
 //these service function related to mesh reference information could be placed in gpu_mesh
@@ -79,7 +79,7 @@ __device__ int  get_elem_vert_n(int elem_type)
 }
 
 //returns p0 reflected with respect to plane with normal norm and point p1 on it
-__device__ t_vec reflect_point(const t_vec &norm, const t_vec &p1, const t_vec &p0)
+__device__ vec_t reflect_point(const vec_t &norm, const vec_t &p1, const vec_t &p0)
 {
     real d = -scalar_prod(norm,p1);
     //could be of any sign
@@ -87,26 +87,26 @@ __device__ t_vec reflect_point(const t_vec &norm, const t_vec &p1, const t_vec &
     return p0 + norm*(real(2.f)*dest);
 }
 
-__global__ void ker_poisson_iteration(t_vars vars_old, t_vars vars_new, int bnd1, int bnd2)
+__global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new, int bnd1, int bnd2)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (!((i >= 0)&&(i < mesh().n_cv))) return;
+    if (!((i >= mesh().own_elems_range.i0)&&(i < mesh().own_elems_range.i0 + mesh().own_elems_range.n))) return;
 
-        int elem_type = get_elem_type(i);
+    int     elem_type = get_elem_type(i);
     real    numerator(0.f), denominator(0.f);
     for (int j = 0;j < get_elem_faces_n(elem_type);++j) {
-        int nb = mesh().Neighbour(i,j);
-        t_vec   nb_center;
+        int nb = mesh().elems_neighbours0(i,j);
+        vec_t   nb_center;
         real    dist, var_nb;
-        if (nb != CUDA_EMPTY_IDX) {
-            mesh().center_neighbour.getv(i,j,nb_center);
+        if (nb != device_mesh_t::special_id) {
+            mesh().elems_neighbours0_centers.get_vec(nb_center,i,j);
             var_nb = vars_old(nb);
         } else {
-            nb_center = reflect_point(mesh().Norm.getv(i,j), mesh().center_faces.getv(i,j), mesh().center.getv(i));
-            if (mesh().Boundary(i,j) == bnd1) {
+            nb_center = reflect_point(mesh().elems_faces_norms.get_vec(i,j), mesh().elems_faces_centers.get_vec(i,j), mesh().elems_centers.get_vec(i));
+            if (mesh().elems_faces_group_ids(i,j) == bnd1) {
                 //dirichle 0. value
                 var_nb = -vars_old(i);
-            } else if (mesh().Boundary(i,j) == bnd2) {
+            } else if (mesh().elems_faces_group_ids(i,j) == bnd2) {
                 //dirichle 1. value
                 var_nb = real(2.f)*real(1.f)-vars_old(i);
             } else {
@@ -114,39 +114,41 @@ __global__ void ker_poisson_iteration(t_vars vars_old, t_vars vars_new, int bnd1
                 var_nb = vars_old(i);
             }
         }
-        dist = scalar_prod(mesh().Norm.getv(i,j), nb_center - mesh().center.getv(i));
+        dist = scalar_prod(mesh().elems_faces_norms.get_vec(i,j), nb_center - mesh().elems_centers.get_vec(i));
 
-        numerator += mesh().faces_S(i,j)*var_nb/dist;
-        denominator += mesh().faces_S(i,j)/dist;
+        numerator += mesh().elems_faces_areas(i,j)*var_nb/dist;
+        denominator += mesh().elems_faces_areas(i,j)/dist;
     }
     vars_new(i) = numerator/denominator;
 }
 
 //B := A
-__global__ void ker_fill_zero(t_vars A)
+__global__ void ker_fill_zero(vars_t A)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (!((i >= 0)&&(i < mesh().n_cv))) return;
-        A(i) = real(0.f);
+    if (!((i >= mesh().own_elems_range.i0)&&(i < mesh().own_elems_range.i0 + mesh().own_elems_range.n))) return;
+    A(i) = real(0.f);
 }
 
 //B := A
-__global__ void ker_assign(t_vars B, t_vars A)
+__global__ void ker_assign(vars_t B, vars_t A)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (!((i >= 0)&&(i < mesh().n_cv))) return;
-        B(i) = A(i);
+    if (!((i >= mesh().own_elems_range.i0)&&(i < mesh().own_elems_range.i0 + mesh().own_elems_range.n))) return;
+    B(i) = A(i);
 }
 
 int main(int argc, char **args)
 {
-    LogStd          log;
-    t_cpu_mesh      cpu_mesh;
-        t_map           map;
-    t_gpu_mesh      gpu_mesh;
-    t_vars          vars0, vars1;
-    int         device_number;
-    int         bnd1, bnd2, iters_num;
+    log_t           log;
+    auto            part = std::make_shared<partitioner_t>();
+    auto            host_mesh = std::make_shared<host_mesh_t>();
+
+    map_t           map;
+    device_mesh_t   gpu_mesh;
+    vars_t          vars0, vars1;
+    int             device_number;
+    int             bnd1, bnd2, iters_num;
     dim3            dimBlock, dimGrid;
 
     USE_MAIN_TRY_CATCH(log)
@@ -154,7 +156,8 @@ int main(int argc, char **args)
     log.set_verbosity(1);
 
     //process args
-    if (argc < 5) {
+    if (argc < 5) 
+    {
         printf("usage: gpu_poisson_solver device_number bnd1_id bnd2_id iters_num\n");
         printf("    mesh is read from 'mesh.dat' file\n");
         printf("example: ./gpu_poisson_solver 0 6 166 1000\n");
@@ -166,53 +169,54 @@ int main(int argc, char **args)
     iters_num = atoi(args[4]);
 
     MAIN_TRY("reading mesh")
-        if (!cpu_mesh.read("mesh.dat")) throw std::runtime_error("failed to read mesh from mesh.dat");
-        //init map object
-        map = t_serial_map(cpu_mesh.cv.size());
-        //TODO add 0th order stencil through add_stencil_element()
-        map.complete();
+    if (!host_mesh.read("mesh.dat")) throw std::runtime_error("failed to read mesh from mesh.dat");
+    //init map object
+    map = map_t(host_mesh.cv.size());
+    //TODO add 0th order stencil through add_stencil_element()
+    map.complete();
     MAIN_CATCH(2)
 
     MAIN_TRY("init CUDA")
-        if (!InitCUDA(device_number)) throw std::runtime_error("InitCUDA failed");
+    if (!InitCUDA(device_number)) throw std::runtime_error("InitCUDA failed");
     MAIN_CATCH(3)
 
     MAIN_TRY("allocate memory for mesh in device")
-        gpu_mesh.init(map);
+    gpu_mesh.init(map);
     MAIN_CATCH(4)
 
     MAIN_TRY("copy mesh data to device")
-        init_gpu_mesh(map, gpu_mesh, cpu_mesh);
-        //copy info about gpu mesh to gpu constant buffer
-                COPY_TO_CONSTANT_BUFFER(mesh, gpu_mesh);
+    init_gpu_mesh(map, gpu_mesh, host_mesh);
+    //copy info about gpu mesh to gpu constant buffer
+    COPY_TO_CONSTANT_BUFFER(mesh, gpu_mesh);
     MAIN_CATCH(5)
     
     dimBlock = dim3(128);
     dimGrid = dim3((gpu_mesh.n_cv+128)/dimBlock.x);
 
     MAIN_TRY("allocating variables array")
-        //TODO we could make cool init using MAP concept, like init init_local methods
-        vars0.init(map.max_loc_ind() - map.min_loc_ind() + 1, map.min_loc_ind());
-        vars1.init(map.max_loc_ind() - map.min_loc_ind() + 1, map.min_loc_ind());
-        MAIN_CATCH(6)
+    //TODO we could make cool init using MAP concept, like init init_local methods
+    vars0.init(map.max_loc_ind() - map.min_loc_ind() + 1, map.min_loc_ind());
+    vars1.init(map.max_loc_ind() - map.min_loc_ind() + 1, map.min_loc_ind());
+    MAIN_CATCH(6)
 
-        MAIN_TRY("iterate poisson equation")
-        ker_fill_zero<<<dimGrid, dimBlock>>>(vars0);
-        ker_fill_zero<<<dimGrid, dimBlock>>>(vars1);
-            for (int i = 0;i < iters_num;++i) {
-            log.info_f("iteration %d", i);
-            //put result in vars1
-            ker_poisson_iteration<<<dimGrid, dimBlock>>>(vars0, vars1, bnd1, bnd2);
-            //vars0 := vars1
-                        ker_assign<<<dimGrid, dimBlock>>>(vars0, vars1);
-        }
-        MAIN_CATCH(7)
-        
-        MAIN_TRY("writing pos output to result.pos")
-            write_out_pos_scalar_file("result.pos", "poisson_phi", cpu_mesh, map, vars0);
-        MAIN_CATCH(8)
+    MAIN_TRY("iterate poisson equation")
+    ker_fill_zero<<<dimGrid, dimBlock>>>(vars0);
+    ker_fill_zero<<<dimGrid, dimBlock>>>(vars1);
+    for (int i = 0;i < iters_num;++i) 
+    {
+        log.info_f("iteration %d", i);
+        //put result in vars1
+        ker_poisson_iteration<<<dimGrid, dimBlock>>>(vars0, vars1, bnd1, bnd2);
+        //vars0 := vars1
+                    ker_assign<<<dimGrid, dimBlock>>>(vars0, vars1);
+    }
+    MAIN_CATCH(7)
+    
+    MAIN_TRY("writing pos output to result.pos")
+    write_out_pos_scalar_file("result.pos", "poisson_phi", host_mesh, map, vars0);
+    MAIN_CATCH(8)
 
-        //NOTE memory deallocation done in destrcutor automatically
+    //NOTE memory deallocation done in destrcutor automatically
 
     return 0;
 }
