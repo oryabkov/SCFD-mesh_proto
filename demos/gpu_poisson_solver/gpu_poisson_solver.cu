@@ -22,7 +22,7 @@
 #include <scfd/utils/log_std.h>
 #include <scfd/utils/main_try_catch_macro.h>
 #include <scfd/utils/init_cuda.h>
-#include <utils/constant_data.h>
+#include <scfd/utils/constant_data.h>
 #include <scfd/static_vec/vec.h>
 #include <scfd/memory/cuda.h>
 #include <scfd/communication/linear_partitioner.h>

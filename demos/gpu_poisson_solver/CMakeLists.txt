@@ -31,8 +31,7 @@ function(generate_target add_double)
 
   set(CURRENT_TARGET_NAME "${CURRENT_TARGET_NAME}.bin")
 
-  add_executable(${CURRENT_TARGET_NAME} gpu_poisson_solver.cu
-                 OPTIONS ${CURRENT_TARGET_FLAGS})
+  add_executable(${CURRENT_TARGET_NAME} gpu_poisson_solver.cu)
   if(NOT (CURRENT_TARGET_FLAGS STREQUAL ""))
     set_target_properties(${CURRENT_TARGET_NAME}
                           PROPERTIES COMPILE_FLAGS ${CURRENT_TARGET_FLAGS}
