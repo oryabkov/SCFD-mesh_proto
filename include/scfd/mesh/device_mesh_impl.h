@@ -24,16 +24,41 @@
 //TODO do something with possible simultanious several types INSTANTIATE (mesh and elem_ref names conflict)
 //maybe create some kind of DEFINE_TEMPLATE_CONSTANT_BUFFER with explicit template params argumnet
 #define SCFD_DEVICE_MESH_INSTANTIATE(T,MEMORY,DIM,ORD)                            \
-  namespace scfd { namespace mesh { namespace detail {                            \
+    namespace scfd { namespace mesh { namespace detail {                          \
     DEFINE_CONSTANT_BUFFER((device_mesh<T,MEMORY,DIM,ORD>), mesh)                 \
     DEFINE_CONSTANT_BUFFER((gmsh_mesh_elem_reference<T>), elem_ref)               \
-  } } }                                                                           \
-  template class scfd::mesh::device_mesh<T,MEMORY,DIM,ORD>;
+    template<>                                                                    \
+    void copy_data_to_const_buf<T,MEMORY,DIM,ORD>                                 \
+    (                                                                             \
+        const gmsh_mesh_elem_reference<T> &elem_ref_,                             \
+        const device_mesh<T,MEMORY,DIM,ORD> &device_mesh_                         \
+    )                                                                             \
+    {                                                                             \
+        COPY_TO_CONSTANT_BUFFER(elem_ref, elem_ref_);                             \
+        COPY_TO_CONSTANT_BUFFER(mesh, device_mesh_);                              \
+    }                                                                             \
+    } } }                                                                         \
+    template class scfd::mesh::device_mesh<T,MEMORY,DIM,ORD>;
 
 namespace scfd
 {
 namespace mesh
 {
+
+namespace detail
+{
+
+template<class T,class Memory,int Dim,class Ord>
+void copy_data_to_const_buf
+(
+    const gmsh_mesh_elem_reference<T> &elem_ref_,
+    const device_mesh<T,Memory,Dim,Ord> &device_mesh_
+)
+{
+    //TODO some kind of error
+}
+
+}
 
 template<class T,class Memory,int Dim,class Ord>
 template<class BasicMesh,class MapElems,class MapFaces,class MapNodes,class ForEach>
@@ -219,20 +244,19 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
     elem_node_ids_view.release();
 
     elem_reference_t        elem_ref_;
-    COPY_TO_CONSTANT_BUFFER(elem_ref, elem_ref_);
-    COPY_TO_CONSTANT_BUFFER(mesh, *this);
+    copy_data_to_const_buf(elem_ref_,*this);
 
     //copy boundary deformations to separate buffer
     //put new coords to vertex array
     //update geometry features
-    for_each( device_mesh_funcs_t::calc_center(), 0, gpu_mesh.n_cv );
-    for_each( device_mesh_funcs_t::calc_center_faces(), 0, gpu_mesh.n_cv );
-    for_each( device_mesh_funcs_t::calc_norm(), 0, gpu_mesh.n_cv );
-    //for_each_1d( calc_faces_S(), 0, gpu_mesh.n_cv );
-    for_each( device_mesh_funcs_t::calc_vol(), 0, gpu_mesh.n_cv );
+    for_each( device_mesh_funcs_t::calc_center(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
+    for_each( device_mesh_funcs_t::calc_center_faces(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
+    for_each( device_mesh_funcs_t::calc_norm(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
+    //for_each_1d( calc_faces_S(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
+    for_each( device_mesh_funcs_t::calc_vol(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
     //TODO we need to sync all updated geometry features between processors 
     //(for those one which are stored not only for own elements, like element centers)
-    for_each( device_mesh_funcs_t::update_center_neighbour(), 0, gpu_mesh.n_cv );
+    for_each( device_mesh_funcs_t::update_center_neighbour(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
 }
 
 template<class T,class Memory,int Dim,class Ord>
@@ -250,26 +274,26 @@ void    device_mesh<T,Memory,Dim,Ord>::init_nodes_data
     nodes_range.i0 = map_n.min_loc_ind();
 
     nodes_coords.init(own_nodes_range.n,own_nodes_range.i0);
-    node_vol_id.init(own_nodes_range.n,own_nodes_range.i0);
+    nodes_group_ids.init(own_nodes_range.n,own_nodes_range.i0);
     //node_bnd_id.init(n_nodes);
 
     auto                 node_coords_view = nodes_coords.create_view(false);
     for(Ord i_ = 0;i_ < map_n.get_size();++i_) 
     {
         int     i_glob = map_n.own_glob_ind(i_),
-            i_loc = map_n.own_loc_ind(i_);
-        node_coords_view.setv(i_loc, cpu_mesh.nodes[i_glob].c);
+                i_loc = map_n.own_loc_ind(i_);
+        node_coords_view.setv(i_loc, cpu_mesh.get_node_coords(i_glob));
     }
     node_coords_view.release();
 
-    auto                   node_vol_id_view = node_vol_id.create_view(false);
+    auto                 nodes_group_ids_view = nodes_group_ids.create_view(false);
     for(Ord i_ = 0;i_ < map_n.get_size();++i_) 
     {
         int     i_glob = map_n.own_glob_ind(i_),
-            i_loc = map_n.own_loc_ind(i_);
-        node_vol_id_view(i_loc) = cpu_mesh.nodes[i_glob].vol_id;
+                i_loc = map_n.own_loc_ind(i_);
+        nodes_group_ids_view(i_loc) = cpu_mesh.get_node_group_id(i_glob);
     }
-    node_vol_id_view.release();
+    nodes_group_ids_view.release();
 
     /*auto                   node_bnd_id_view = node_bnd_id.create_view(false);
     for(Ord i_ = 0;i_ < map_n.get_size();++i_) {

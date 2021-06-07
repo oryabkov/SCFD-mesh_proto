@@ -298,6 +298,10 @@ public:
         if (dim >= 2) coords[1] = static_cast<T>(v->y());
         if (dim >= 3) coords[2] = static_cast<T>(v->z());
     }
+    Ord get_node_group_id(Ord i)const
+    {
+        //TODO
+    }
     /// Nodes to elements graph access interface
     Ord get_node_incident_elems_num(Ord i)const
     {
