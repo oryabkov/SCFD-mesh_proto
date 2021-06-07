@@ -46,7 +46,7 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
 {
     using vec_t = static_vec::vec<T,dim>;
     using host_mesh_t = host_mesh<BasicMesh>;
-    using host_ordinal = host_mesh_t::ordinal_type;
+    using host_ordinal = typename host_mesh_t::ordinal_type;
     using elem_reference_t = gmsh_mesh_elem_reference<T>;
 
     //n_cv = _n_cv; n_cv_all = _n_cv_all; i0 = _i0;

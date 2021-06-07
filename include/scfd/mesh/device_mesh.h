@@ -122,7 +122,7 @@ struct device_mesh
 
     __DEVICE_TAG__ elem_type_ordinal_type  get_elem_type(Ord i)const
     {
-        if (is_homogeneous) return homogeneous_elem_type; else return elems_types(i,0);
+        if (is_homogeneous) return homogeneous_elem_type; else return elems_types(i);
     }
 
     //TODO change bane

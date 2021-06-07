@@ -198,6 +198,7 @@ public:
 
         
     }
+    //ISSUE is it part of BasicMesh concept?
     Ord get_total_elems_num()const
     {
         return g_model_->getNumMeshElements(dim);

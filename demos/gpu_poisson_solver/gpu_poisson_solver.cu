@@ -44,6 +44,9 @@ using vec_t = scfd::static_vec::vec<real,dim>;
 using log_t = scfd::utils::log_std;
 using mem_t = scfd::memory::cuda_device;
 using device_mesh_t = scfd::mesh::device_mesh<real,mem_t,dim,ordinal>;
+using host_real_vector_t = std::vector<real>;
+
+SCFD_DEVICE_MESH_INSTANTIATE(real,mem_t,dim,ordinal)
 
 typedef scfd::communication::serial_map  map_t;
 typedef scfd::arrays::array<real,mem_t>  vars_t;
@@ -140,63 +143,75 @@ __global__ void ker_assign(vars_t B, vars_t A)
 
 int main(int argc, char **args)
 {
-    log_t           log;
-    auto            part = std::make_shared<partitioner_t>();
-    auto            host_mesh = std::make_shared<host_mesh_t>();
+    std::string         mesh_fn;
+    int                 device_number;
+    ordinal             bnd1, bnd2, iters_num;
 
-    map_t           map;
-    device_mesh_t   gpu_mesh;
-    vars_t          vars0, vars1;
-    int             device_number;
-    int             bnd1, bnd2, iters_num;
-    dim3            dimBlock, dimGrid;
+    log_t               log;
+    auto                part = std::make_shared<partitioner_t>();
+    auto                host_mesh = std::make_shared<host_mesh_t>();
+
+    auto                map = std::make_shared<map_t>();
+    device_mesh_t       gpu_mesh;
+    host_real_vector_t  vars_host;
+    vars_t              vars0, vars1;
+    dim3                dimBlock, dimGrid;
 
     USE_MAIN_TRY_CATCH(log)
 
     log.set_verbosity(1);
 
     //process args
-    if (argc < 5) 
+    if (argc < 6)
     {
-        printf("usage: gpu_poisson_solver device_number bnd1_id bnd2_id iters_num\n");
-        printf("    mesh is read from 'mesh.dat' file\n");
-        printf("example: ./gpu_poisson_solver 0 6 166 1000\n");
+        printf("Usage: ./gpu_poisson_solver DEVICE_NUMBER MESH_FN BND1_ID BND2_ID ITERS_NUM\n");
+        printf("Example: ./gpu_poisson_solver 0 mesh.msh 5 27 1000\n");
         return 1;
     }
     device_number = atoi(args[1]);
-    bnd1 = atoi(args[2]);
-    bnd2 = atoi(args[3]);
-    iters_num = atoi(args[4]);
+    mesh_fn = args[2];
+    bnd1 = atoi(args[3]);
+    bnd2 = atoi(args[4]);
+    iters_num = atoi(args[5]);
 
-    MAIN_TRY("reading mesh")
-    if (!host_mesh.read("mesh.dat")) throw std::runtime_error("failed to read mesh from mesh.dat");
+    MAIN_TRY("reading mesh from " + mesh_fn)
+    host_mesh->set_mesh_filename(mesh_fn);
+    host_mesh->read();
+    *part = partitioner_t(host_mesh->get_total_elems_num(), 1, 0);
+    host_mesh->set_partitioner(part);
+    host_mesh->enlarge_stencil(1);
     //init map object
-    map = map_t(host_mesh.cv.size());
+    *map = map_t(host_mesh->get_total_elems_num());
     //TODO add 0th order stencil through add_stencil_element()
-    map.complete();
+    map->complete();
     MAIN_CATCH(2)
 
     MAIN_TRY("init CUDA")
-    if (!InitCUDA(device_number)) throw std::runtime_error("InitCUDA failed");
+    //TODO
+    //if (!InitCUDA(device_number)) throw std::runtime_error("InitCUDA failed");
     MAIN_CATCH(3)
 
     MAIN_TRY("allocate memory for mesh in device")
-    gpu_mesh.init(map);
+    //TODO
+    //gpu_mesh.init(map);
     MAIN_CATCH(4)
 
     MAIN_TRY("copy mesh data to device")
-    init_gpu_mesh(map, gpu_mesh, host_mesh);
+    //TODO
+    //init_gpu_mesh(map, gpu_mesh, host_mesh);
     //copy info about gpu mesh to gpu constant buffer
-    COPY_TO_CONSTANT_BUFFER(mesh, gpu_mesh);
+    //COPY_TO_CONSTANT_BUFFER(mesh, gpu_mesh);
     MAIN_CATCH(5)
     
-    dimBlock = dim3(128);
-    dimGrid = dim3((gpu_mesh.n_cv+128)/dimBlock.x);
+    //TODO
+    //dimBlock = dim3(128);
+    //dimGrid = dim3((gpu_mesh.n_cv+128)/dimBlock.x);
 
     MAIN_TRY("allocating variables array")
     //TODO we could make cool init using MAP concept, like init init_local methods
-    vars0.init(map.max_loc_ind() - map.min_loc_ind() + 1, map.min_loc_ind());
-    vars1.init(map.max_loc_ind() - map.min_loc_ind() + 1, map.min_loc_ind());
+    //TODO
+    //vars0.init(map.max_loc_ind() - map.min_loc_ind() + 1, map.min_loc_ind());
+    //vars1.init(map.max_loc_ind() - map.min_loc_ind() + 1, map.min_loc_ind());
     MAIN_CATCH(6)
 
     MAIN_TRY("iterate poisson equation")
@@ -213,7 +228,7 @@ int main(int argc, char **args)
     MAIN_CATCH(7)
     
     MAIN_TRY("writing pos output to result.pos")
-    write_out_pos_scalar_file("result.pos", "poisson_phi", host_mesh, map, vars0);
+    write_out_pos_scalar_file("result.pos", "poisson_phi", *host_mesh, vars_host);
     MAIN_CATCH(8)
 
     //NOTE memory deallocation done in destrcutor automatically

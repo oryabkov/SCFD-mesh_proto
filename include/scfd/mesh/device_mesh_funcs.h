@@ -67,6 +67,16 @@ struct device_mesh_funcs
     using t_vec = scfd::static_vec::vec<scalar,dim>;
     using t_elem_reference = gmsh_mesh_elem_reference<T>;
 
+    using device_mesh_t = device_mesh<T,Memory,Dim,Ord>;
+
+    device_mesh_t       mesh()const
+    {
+        //TODO
+    }
+    t_elem_reference    elem_ref()const
+    {
+        //TODO
+    }
 
     struct calc_center
     {
@@ -542,7 +552,7 @@ struct device_mesh_funcs
             for (int face_i = 0;face_i < elem_ref().get_faces_n(elem_type);++face_i) 
             {
                 int     nb = mesh().Neighbour(i, face_i);
-                if (nb != CUDA_EMPTY_IDX) 
+                if (nb != device_mesh_t::special_id) 
                 {
                     t_vec   nb_center;
                     mesh().center.getv(nb, nb_center);
