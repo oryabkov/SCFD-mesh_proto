@@ -20,6 +20,7 @@
 #include "device_mesh.h"
 #include "device_mesh_funcs.h"
 #include "gmsh_mesh_elem_reference.h"
+#include "detail/const_data_access.h"
 
 //TODO do something with possible simultanious several types INSTANTIATE (mesh and elem_ref names conflict)
 //maybe create some kind of DEFINE_TEMPLATE_CONSTANT_BUFFER with explicit template params argumnet
@@ -36,6 +37,16 @@
     {                                                                             \
         COPY_TO_CONSTANT_BUFFER(elem_ref, elem_ref_);                             \
         COPY_TO_CONSTANT_BUFFER(mesh, device_mesh_);                              \
+    }                                                                             \
+    template<>                                                                    \
+    const device_mesh<T,MEMORY,DIM,ORD> &get_mesh<T,MEMORY,DIM,ORD>()             \
+    {                                                                             \
+        return mesh();                                                            \
+    }                                                                             \
+    template<>                                                                    \
+    const gmsh_mesh_elem_reference<T> &get_elem_ref<T>()                          \
+    {                                                                             \
+        return elem_ref();                                                        \
     }                                                                             \
     } } }                                                                         \
     template class scfd::mesh::device_mesh<T,MEMORY,DIM,ORD>;

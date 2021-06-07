@@ -17,6 +17,8 @@
 #ifndef __SCFD_MESH_DEVICE_MESH_CALC_PROPS_H__
 #define __SCFD_MESH_DEVICE_MESH_CALC_PROPS_H__
 
+//TODO move to detail folder
+
 #include <set>
 #include <scfd/utils/device_tag.h>
 #include <scfd/utils/scalar_traits.h>
@@ -26,6 +28,7 @@
 #include <scfd/for_each/for_each_func_macro.h>
 #include <scfd/mesh/gmsh_mesh_elem_reference.h>
 #include <scfd/mesh/device_mesh.h>
+#include "detail/const_data_access.h"
 
 namespace scfd
 {
@@ -69,13 +72,13 @@ struct device_mesh_funcs
 
     using device_mesh_t = device_mesh<T,Memory,Dim,Ord>;
 
-    device_mesh_t       mesh()const
+    const device_mesh_t  &mesh()const
     {
-        //TODO
+        return get_mesh<T,Memory,Dim,Ord>();
     }
-    t_elem_reference    elem_ref()const
+    const t_elem_reference &elem_ref()const
     {
-        //TODO
+        return get_elem_ref<T>();
     }
 
     struct calc_center
