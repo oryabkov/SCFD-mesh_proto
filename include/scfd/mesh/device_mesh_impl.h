@@ -160,7 +160,7 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
         for (Ord j = 0;j < nodes_n;++j)
         {
             vec_t   vertex = cpu_mesh.get_node_coords(elem_nodes[j]);
-            vertexes_view.setv(i,j,vertex);
+            vertexes_view.set_vec(vertex,i,j);
         }
     }
     vertexes_view.release();
@@ -242,17 +242,20 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
     }
     vol_id_view.release();
 
-    auto   elem_node_ids_view = elems_prim_nodes_ids.create_view(false);
-    for(Ord i_ = 0;i_ < map_e.get_size();i_++) 
+    if (params.has_elems_nodes_data)
     {
-        int     i_glob = map_e.own_glob_ind(i_),
-            i_loc = map_e.own_loc_ind(i_);
-        for (Ord vert_i = 0;vert_i < cpu_mesh.cv[i_glob].vert_n;++vert_i) 
+        auto   elem_node_ids_view = elems_prim_nodes_ids.create_view(false);
+        for(Ord i_ = 0;i_ < map_e.get_size();i_++) 
         {
-            elem_node_ids_view(i_loc,vert_i) = map_n.glob2loc( cpu_mesh.cv_2_node_ids[i_glob].ids[vert_i] );
+            int     i_glob = map_e.own_glob_ind(i_),
+                    i_loc = map_e.own_loc_ind(i_);
+            for (Ord vert_i = 0;vert_i < cpu_mesh.cv[i_glob].vert_n;++vert_i) 
+            {
+                elem_node_ids_view(i_loc,vert_i) = map_n.glob2loc( cpu_mesh.cv_2_node_ids[i_glob].ids[vert_i] );
+            }
         }
+        elem_node_ids_view.release();
     }
-    elem_node_ids_view.release();
 
     elem_reference_t        elem_ref_;
     copy_data_to_const_buf(elem_ref_,*this);

@@ -21,4 +21,6 @@
 #define  GPU_POISSON_SOLVER_SCALAR_TYPE float
 #endif
 
+#define SCFD_ARRAYS_ENABLE_INDEX_SHIFT
+
 #endif

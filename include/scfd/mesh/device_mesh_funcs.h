@@ -72,11 +72,11 @@ struct device_mesh_funcs
 
     using device_mesh_t = device_mesh<T,Memory,Dim,Ord>;
 
-    const device_mesh_t  &mesh()const
+    static const device_mesh_t  &mesh()
     {
         return get_mesh<T,Memory,Dim,Ord>();
     }
-    const t_elem_reference &elem_ref()const
+    static const t_elem_reference &elem_ref()
     {
         return get_elem_ref<T>();
     }
@@ -175,9 +175,9 @@ struct device_mesh_funcs
                 if(face_verteces_number==3)
                 {
                     // This is shit, i must find a way to return mesh().vertexes(i,vert_j) as t_vec!
-                    t_vec  verteces[3]={(scalar(0.f), scalar(0.f), scalar(0.f)),
-                            (scalar(0.f), scalar(0.f), scalar(0.f)),
-                            (scalar(0.f), scalar(0.f), scalar(0.f))};
+                    t_vec  verteces[3]={t_vec(scalar(0.f), scalar(0.f), scalar(0.f)),
+                                        t_vec(scalar(0.f), scalar(0.f), scalar(0.f)),
+                                        t_vec(scalar(0.f), scalar(0.f), scalar(0.f))};
                     
                     t_vec  center = (scalar(0.f), scalar(0.f), scalar(0.f));
                     
@@ -213,10 +213,10 @@ struct device_mesh_funcs
 
                     t_vec  verteces[4] =
                         {
-                            (scalar(0.f), scalar(0.f), scalar(0.f)),
-                            (scalar(0.f), scalar(0.f), scalar(0.f)),
-                            (scalar(0.f), scalar(0.f), scalar(0.f)),
-                            (scalar(0.f), scalar(0.f), scalar(0.f))
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f)),
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f)),
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f)),
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f))
                         };
                     
                     t_vec  center = (scalar(0.f), scalar(0.f), scalar(0.f)); 
@@ -386,10 +386,10 @@ struct device_mesh_funcs
                     t_vec face_center(scalar(0.f), scalar(0.f), scalar(0.f));
                     t_vec  verteces[4]=
                         {
-                            (scalar(0.f), scalar(0.f), scalar(0.f)),
-                            (scalar(0.f), scalar(0.f), scalar(0.f)),
-                            (scalar(0.f), scalar(0.f), scalar(0.f)),
-                            (scalar(0.f), scalar(0.f), scalar(0.f))
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f)),
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f)),
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f)),
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f))
                         };
 
                     for (int k = 0;k < dim;++k)
@@ -423,10 +423,13 @@ struct device_mesh_funcs
                 {
                     int face_verteces_number=elem_ref().get_face_verts_n(elem_type,face_j);
                     t_vec face_center(scalar(0.f), scalar(0.f), scalar(0.f));
-                    t_vec  verteces[4]={(scalar(0.f), scalar(0.f), scalar(0.f)),
-                            (scalar(0.f), scalar(0.f), scalar(0.f)),
-                            (scalar(0.f), scalar(0.f), scalar(0.f)),
-                            (scalar(0.f), scalar(0.f), scalar(0.f))};
+                    t_vec  verteces[4]=
+                        {
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f)),
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f)),
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f)),
+                            t_vec(scalar(0.f), scalar(0.f), scalar(0.f))
+                        };
 
                     for (int k = 0;k < dim;++k)
                     { 

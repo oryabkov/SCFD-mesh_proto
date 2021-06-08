@@ -25,6 +25,8 @@
 #include <scfd/utils/constant_data.h>
 #include <scfd/static_vec/vec.h>
 #include <scfd/memory/cuda.h>
+#include <scfd/for_each/cuda.h>
+#include <scfd/for_each/cuda_impl.cuh>
 #include <scfd/communication/linear_partitioner.h>
 //TODO add serial_map
 #include <scfd/communication/serial_map.h>
@@ -33,6 +35,7 @@
 #include <scfd/mesh/device_mesh.h>
 #include <scfd/mesh/device_mesh_impl.h>
 #include "gmsh_pos_output.h"
+#include "map_mock.h"
 
 using real = GPU_POISSON_SOLVER_SCALAR_TYPE;
 using ordinal = int;
@@ -45,6 +48,7 @@ using log_t = scfd::utils::log_std;
 using mem_t = scfd::memory::cuda_device;
 using device_mesh_t = scfd::mesh::device_mesh<real,mem_t,dim,ordinal>;
 using host_real_vector_t = std::vector<real>;
+using for_each_t = scfd::for_each::cuda<>;
 
 SCFD_DEVICE_MESH_INSTANTIATE(real,mem_t,dim,ordinal)
 
@@ -189,11 +193,17 @@ int main(int argc, char **args)
     MAIN_TRY("init CUDA")
     //TODO
     //if (!InitCUDA(device_number)) throw std::runtime_error("InitCUDA failed");
+    scfd::utils::init_cuda(-2, 0);
     MAIN_CATCH(3)
 
     MAIN_TRY("allocate memory for mesh in device")
     //TODO
     //gpu_mesh.init(map);
+    for_each_t  for_each;
+    gpu_mesh.init_elems_data
+    (
+        *host_mesh, *map, map_mock(), map_mock(), for_each
+    );
     MAIN_CATCH(4)
 
     MAIN_TRY("copy mesh data to device")

@@ -62,6 +62,9 @@ struct device_mesh
 
     using device_mesh_funcs_t = detail::device_mesh_funcs<T,Memory,Dim,Ord>;
 
+
+    device_mesh_params  params;
+
     //using namespace detail;
 
     //ISSUE neither n_cv
@@ -90,7 +93,7 @@ struct device_mesh
     tensor1_array<Ord,Memory,dyn_dim>               elems_neighbours0;
     tensor1_array<Ord,Memory,dyn_dim>               elems_neighbours0_loc_face_i;
     tensor1_array<Ord,Memory,dyn_dim>               elems_faces_group_ids;
-    tensor1_array<Ord,Memory,1>                     elems_group_ids;
+    array<Ord,Memory>                               elems_group_ids;
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_faces_norms;
     tensor1_array<T,Memory,dyn_dim>                 elems_faces_areas;
     tensor1_array<T,Memory,1>                       elems_vols;
