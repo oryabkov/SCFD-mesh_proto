@@ -44,8 +44,8 @@ public:
     using elem_type_ordinal_type = typename basic_mesh_type::elem_type_ordinal_type;
     using partitioner_type = typename basic_mesh_type::partitioner_type;
 
-    static const int          dim = basic_mesh_type::dim;
-    static const ordinal_type special_id = basic_mesh_type::special_id;
+    static constexpr int          dim = basic_mesh_type::dim;
+    static constexpr ordinal_type special_id = basic_mesh_type::special_id;
 
 public:
     /// Need default contructable BasicMesh
