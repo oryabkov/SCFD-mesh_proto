@@ -21,9 +21,15 @@
 #include <exception>
 #include "log.h"
 
+#ifndef SCFD_MAIN_TRY_CATCH_DISABLE_CATCH
+#define SCFD_MAIN_TRY_CATCH_DISABLE_CATCH 0
+#endif
+
 #define USE_MAIN_TRY_CATCH(log_obj)                                       \
     auto                  *MAIN_TRY_CATCH_LOG_OBJ_POINTER = &log_obj;     \
     std::string           MAIN_TRY_CATCH_CURRENT_BLOCK_NAME;
+
+#if SCFD_MAIN_TRY_CATCH_DISABLE_CATCH == 0
 
 #define MAIN_TRY(block_name) try {                                  \
     MAIN_TRY_CATCH_CURRENT_BLOCK_NAME = block_name;                 \
@@ -33,5 +39,15 @@
         MAIN_TRY_CATCH_LOG_OBJ_POINTER->error(std::string("error during ") + MAIN_TRY_CATCH_CURRENT_BLOCK_NAME + std::string(": ") + e.what());         \
         return error_return_code;                                                                                                                       \
     }
+
+#else
+
+#define MAIN_TRY(block_name)                                        \
+    MAIN_TRY_CATCH_CURRENT_BLOCK_NAME = block_name;                 \
+    MAIN_TRY_CATCH_LOG_OBJ_POINTER->info(block_name);
+
+#define MAIN_CATCH(error_return_code)                             
+
+#endif
 
 #endif
