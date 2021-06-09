@@ -196,22 +196,14 @@ int main(int argc, char **args)
     scfd::utils::init_cuda(-2, 0);
     MAIN_CATCH(3)
 
-    MAIN_TRY("allocate memory for mesh in device")
-    //TODO
-    //gpu_mesh.init(map);
+    MAIN_TRY("allocate memory for mesh in device and copy mesh data to device")
     for_each_t  for_each;
     gpu_mesh.init_elems_data
     (
         *host_mesh, *map, map_mock(), map_mock(), for_each
     );
+    COPY_TO_CONSTANT_BUFFER(mesh, gpu_mesh);
     MAIN_CATCH(4)
-
-    MAIN_TRY("copy mesh data to device")
-    //TODO
-    //init_gpu_mesh(map, gpu_mesh, host_mesh);
-    //copy info about gpu mesh to gpu constant buffer
-    //COPY_TO_CONSTANT_BUFFER(mesh, gpu_mesh);
-    MAIN_CATCH(5)
     
     //TODO
     //dimBlock = dim3(128);
@@ -220,9 +212,9 @@ int main(int argc, char **args)
     MAIN_TRY("allocating variables array")
     //TODO we could make cool init using MAP concept, like init init_local methods
     //TODO
-    //vars0.init(map.max_loc_ind() - map.min_loc_ind() + 1, map.min_loc_ind());
-    //vars1.init(map.max_loc_ind() - map.min_loc_ind() + 1, map.min_loc_ind());
-    MAIN_CATCH(6)
+    vars0.init(map->max_loc_ind() - map->min_loc_ind() + 1, map->min_loc_ind());
+    vars1.init(map->max_loc_ind() - map->min_loc_ind() + 1, map->min_loc_ind());
+    MAIN_CATCH(5)
 
     MAIN_TRY("iterate poisson equation")
     ker_fill_zero<<<dimGrid, dimBlock>>>(vars0);
@@ -233,13 +225,13 @@ int main(int argc, char **args)
         //put result in vars1
         ker_poisson_iteration<<<dimGrid, dimBlock>>>(vars0, vars1, bnd1, bnd2);
         //vars0 := vars1
-                    ker_assign<<<dimGrid, dimBlock>>>(vars0, vars1);
+        ker_assign<<<dimGrid, dimBlock>>>(vars0, vars1);
     }
-    MAIN_CATCH(7)
+    MAIN_CATCH(6)
     
     MAIN_TRY("writing pos output to result.pos")
     write_out_pos_scalar_file("result.pos", "poisson_phi", *host_mesh, vars_host);
-    MAIN_CATCH(8)
+    MAIN_CATCH(7)
 
     //NOTE memory deallocation done in destrcutor automatically
 
