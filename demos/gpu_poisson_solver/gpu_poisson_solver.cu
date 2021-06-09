@@ -112,6 +112,7 @@ __global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new, int bnd1
             var_nb = vars_old(nb);
         } else {
             nb_center = reflect_point(mesh().elems_faces_norms.get_vec(i,j), mesh().elems_faces_centers.get_vec(i,j), mesh().elems_centers.get_vec(i));
+            //real x = mesh().elems_faces_centers(i,j,0);
             if (mesh().elems_faces_group_ids(i,j) == bnd1) {
                 //dirichle 0. value
                 var_nb = -vars_old(i);
@@ -122,6 +123,7 @@ __global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new, int bnd1
                 //neumann
                 var_nb = vars_old(i);
             }
+            //var_nb = real(2.f)*x-vars_old(i);
         }
         dist = scalar_prod(mesh().elems_faces_norms.get_vec(i,j), nb_center - mesh().elems_centers.get_vec(i));
 
@@ -129,6 +131,8 @@ __global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new, int bnd1
         denominator += mesh().elems_faces_areas(i,j)/dist;
     }
     vars_new(i) = numerator/denominator;
+    //real x = mesh().elems_centers(i,0);
+    //vars_new(i) = x;
 }
 
 //B := A
