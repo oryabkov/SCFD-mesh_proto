@@ -30,6 +30,11 @@ template<class Ord>
 struct index_range_descr
 {
     Ord i0, n;
+
+    __DEVICE_TAG__ Ord i1()const 
+    {
+        return i0+n;
+    }
 };
 
 namespace detail

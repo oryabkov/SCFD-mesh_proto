@@ -209,14 +209,15 @@ int main(int argc, char **args)
     MAIN_CATCH(4)
     
     //TODO
-    //dimBlock = dim3(128);
-    //dimGrid = dim3((gpu_mesh.n_cv+128)/dimBlock.x);
+    dimBlock = dim3(128);
+    dimGrid = dim3((gpu_mesh.own_elems_range.i1() + dimBlock.x)/dimBlock.x);
 
     MAIN_TRY("allocating variables array")
     //TODO we could make cool init using MAP concept, like init init_local methods
     //TODO
     vars0.init(map->max_loc_ind() - map->min_loc_ind() + 1, map->min_loc_ind());
     vars1.init(map->max_loc_ind() - map->min_loc_ind() + 1, map->min_loc_ind());
+    vars_host = host_real_vector_t(map->get_total_size());
     MAIN_CATCH(5)
 
     MAIN_TRY("iterate poisson equation")
@@ -231,10 +232,23 @@ int main(int argc, char **args)
         ker_assign<<<dimGrid, dimBlock>>>(vars0, vars1);
     }
     MAIN_CATCH(6)
+
+    MAIN_TRY("copy results to host")
+    auto                    vars0_view = vars0.create_view(true);
+    //auto                    vars0_view = gpu_mesh.elems_vols.create_view(true);
+    for (ordinal i_ = 0;i_ < map->get_size();++i_) 
+    {
+        ordinal         i_glob = map->own_glob_ind(i_);
+        ordinal         i = map->own_loc_ind(i_);
+        vars_host[i_glob] = vars0_view(i);
+        //vars_host[i_glob] = vars0_view(i,0);
+    }
+    vars0_view.release(false);
+    MAIN_CATCH(7)
     
     MAIN_TRY("writing pos output to result.pos")
     write_out_pos_scalar_file("result.pos", "poisson_phi", *host_mesh, vars_host);
-    MAIN_CATCH(7)
+    MAIN_CATCH(8)
 
     //NOTE memory deallocation done in destrcutor automatically
 
