@@ -16,6 +16,8 @@
 
 //TODO include cuda explicitly
 
+//#define SCFD_MAIN_TRY_CATCH_DISABLE_CATCH 1
+
 #include "gpu_poisson_solver_config.h"
 #include <string>
 #include <cmath>
