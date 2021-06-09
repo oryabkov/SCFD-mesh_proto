@@ -249,28 +249,28 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
         {
             int     i_glob = map_e.own_glob_ind(i_),
                     i_loc = map_e.own_loc_ind(i_);
-            for (Ord vert_i = 0;vert_i < cpu_mesh.cv[i_glob].vert_n;++vert_i) 
+            for (Ord vert_i = 0;vert_i < cpu_mesh.get_elem_prim_nodes_num(i_glob);++vert_i) 
             {
-                elem_node_ids_view(i_loc,vert_i) = map_n.glob2loc( cpu_mesh.cv_2_node_ids[i_glob].ids[vert_i] );
+                elem_node_ids_view(i_loc,vert_i) = map_n.glob2loc( cpu_mesh.get_elem_node(i_glob,vert_i) );
             }
         }
         elem_node_ids_view.release();
     }
 
     elem_reference_t        elem_ref_;
-    copy_data_to_const_buf(elem_ref_,*this);
+    detail::copy_data_to_const_buf(elem_ref_,*this);
 
     //copy boundary deformations to separate buffer
     //put new coords to vertex array
     //update geometry features
-    for_each( device_mesh_funcs_t::calc_center(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
-    for_each( device_mesh_funcs_t::calc_center_faces(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
-    for_each( device_mesh_funcs_t::calc_norm(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
+    for_each( typename device_mesh_funcs_t::calc_center(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
+    for_each( typename device_mesh_funcs_t::calc_center_faces(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
+    for_each( typename device_mesh_funcs_t::calc_norm(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
     //for_each_1d( calc_faces_S(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
-    for_each( device_mesh_funcs_t::calc_vol(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
+    for_each( typename device_mesh_funcs_t::calc_vol(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
     //TODO we need to sync all updated geometry features between processors 
     //(for those one which are stored not only for own elements, like element centers)
-    for_each( device_mesh_funcs_t::update_center_neighbour(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
+    for_each( typename device_mesh_funcs_t::update_center_neighbour(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
 }
 
 template<class T,class Memory,int Dim,class Ord>

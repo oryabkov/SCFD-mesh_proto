@@ -19,6 +19,7 @@
 
 #include <scfd/arrays/array.h>
 #include <scfd/arrays/tensorN_array.h>
+#include "device_mesh_params.h"
 
 namespace scfd
 {

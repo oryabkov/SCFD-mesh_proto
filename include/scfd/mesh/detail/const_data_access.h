@@ -25,13 +25,13 @@ namespace detail
 {
 
 template<class T,class Memory,int Dim,class Ord>
-const device_mesh<T,Memory,Dim,Ord> &get_mesh()
+__DEVICE_TAG__ const device_mesh<T,Memory,Dim,Ord> &get_mesh()
 {
     //TODO some kind of error
 }
 
 template<class T>
-const gmsh_mesh_elem_reference<T> &get_elem_ref()
+__DEVICE_TAG__ const gmsh_mesh_elem_reference<T> &get_elem_ref()
 {
     //TODO some kind of error
 }

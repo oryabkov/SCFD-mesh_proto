@@ -3,10 +3,6 @@
 
 struct map_mock
 {
-    //creates uninitialized map
-    map_mock() 
-    {
-    }
     //dummy constructor
     map_mock()
     {

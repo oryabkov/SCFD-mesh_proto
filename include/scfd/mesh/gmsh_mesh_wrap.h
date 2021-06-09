@@ -288,6 +288,11 @@ public:
             nodes[j] = node_tag_to_node_id(s->getVertex(j)->getNum());
         }
     }
+    Ord get_elem_node(Ord i, Ord j)const
+    {
+        MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
+        return node_tag_to_node_id(s->getVertex(j)->getNum());
+    }
 
     /// Nodes interface
 
