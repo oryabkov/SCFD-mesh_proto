@@ -198,6 +198,7 @@ int main(int argc, char **args)
 
     MAIN_TRY("allocate memory for mesh in device and copy mesh data to device")
     for_each_t  for_each;
+    gpu_mesh.params.has_elems_nodes_data = false;
     gpu_mesh.init_elems_data
     (
         *host_mesh, *map, map_mock(), map_mock(), for_each

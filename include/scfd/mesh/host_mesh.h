@@ -289,7 +289,8 @@ protected:
             {
                 elems_to_neighbours0_graph_.add_to_range
                 (
-                    elem_id, std::pair<ordinal_type,ordinal_type>(special_id,special_id)
+                    elem_id, 
+                    std::pair<ordinal_type,ordinal_type>(ordinal_type(special_id),ordinal_type(special_id))
                 );
                 continue;
             }
