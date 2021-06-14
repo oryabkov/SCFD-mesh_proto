@@ -58,7 +58,8 @@ TEST(TestGMSHCPPAPIGeom, BasicReadMSH)
     {
         auto  g_model_ = std::make_shared<GModel>();;
 
-        std::string fn = "test.msh";
+        //std::string fn = "test.msh";
+        std::string fn = "test_box3d_small_mesh.msh";
         /// Read mesh
         if (!g_model_->readMSH(fn)) 
         {
