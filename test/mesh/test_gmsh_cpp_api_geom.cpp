@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with SCFD.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <iostream>
+#include <stdexcept>
+#include "gtest/gtest.h"
 #include <gmsh/GmshGlobal.h>
 #include <gmsh/GModel.h>
 
@@ -27,7 +30,7 @@ TEST(TestGMSHCPPAPIGeom, BasicReadGEO)
         /// Read mesh
         if (!g_model_->readMSH(fn)) 
         {
-            throw file_read_error("gmsh_mesh_wrap::read(): ",fn);
+            throw std::runtime_error("gmsh_mesh_wrap::read(): " + fn);
         }
 
         ASSERT_EQ(g_model_->getNumRegions(), 1138);
