@@ -84,7 +84,9 @@ TEST(TestGMSHCPPAPIGeom, BasicReadMSH)
         ASSERT_EQ(r->vertices().size(),8);
         //TODO add tags checks
 
-        const GFace*  f = g_model_->getFaceByTag(5);
+        //const GFace*  f = g_model_->getFaceByTag(5);
+        //NOTE const contradicts with getMeshVertex later here
+        GFace*  f = g_model_->getFaceByTag(5);
 
         ASSERT_EQ(f->edges().size(),4);
         std::set<int> edges_tags;
@@ -109,7 +111,10 @@ TEST(TestGMSHCPPAPIGeom, BasicReadMSH)
         {
             edge_vert_tags.insert(vert->tag());
         }
-        ASSERT_EQ(edge_vert_tags, std::set<int>({5,6}));        
+        ASSERT_EQ(edge_vert_tags, std::set<int>({5,6})); 
+
+        ASSERT_EQ(f->getNumMeshVertices(),1);
+        ASSERT_EQ(f->getMeshVertex(0)->getNum(),9);
 
     } 
     catch(const std::exception &e)
