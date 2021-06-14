@@ -1,5 +1,6 @@
 
 file(COPY test.msh DESTINATION .)
+file(COPY test.geo DESTINATION .)
 
 #find_library(GMSH_LIB_DIR Gmsh PATH_SUFFIXES lib DOC "directory where gmsh lib files are located")
 #find_path(GMSH_INCLUDE_DIR "Gmsh.h" PATH_SUFFIXES include gmsh include/gmsh DOC "directory where gmsh header files are located")
