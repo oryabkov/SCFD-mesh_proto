@@ -71,7 +71,7 @@ TEST(TestGMSHCPPAPIGeom, BasicReadMSH)
         ASSERT_EQ(g_model_->getNumEdges(), 12);
         ASSERT_EQ(g_model_->getNumVertices(), 8);
          
-        const GRegion*  r = *(g_model_->firstRegion());
+        GRegion*  r = *(g_model_->firstRegion());
         ASSERT_EQ(r->faces().size(),6);
         std::set<int> faces_tags;
         for (auto face : r->faces())
@@ -116,6 +116,11 @@ TEST(TestGMSHCPPAPIGeom, BasicReadMSH)
         ASSERT_EQ(f->getNumMeshVertices(),1);
         ASSERT_EQ(f->getMeshVertex(0)->getNum(),9);
 
+        ASSERT_EQ(r->getNumMeshVertices(),0);
+    
+        GVertex*  v = g_model_->getVertexByTag(14);
+        ASSERT_EQ(v->getNumMeshVertices(),1);
+        ASSERT_EQ(v->getMeshVertex(0)->getNum(),8);
     } 
     catch(const std::exception &e)
     {
