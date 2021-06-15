@@ -129,3 +129,100 @@ TEST(TestGMSHCPPAPIGeom, BasicReadMSH)
         FAIL();
     }    
 }
+
+TEST(TestGMSHCPPAPIGeom, BasicReadMSHPeriod) 
+{
+    try 
+    {
+        auto  g_model_ = std::make_shared<GModel>();;
+
+        //std::string fn = "test.msh";
+        std::string fn = "test_box3d_period_small_mesh.msh";
+        /// Read mesh
+        if (!g_model_->readMSH(fn)) 
+        {
+            throw std::runtime_error("gmsh_mesh_wrap::read(): " + fn);
+        }
+
+        ASSERT_EQ(g_model_->getNumRegions(), 1);
+        ASSERT_EQ(g_model_->getNumFaces(), 6);
+        ASSERT_EQ(g_model_->getNumEdges(), 12);
+        ASSERT_EQ(g_model_->getNumVertices(), 8);
+         
+        GRegion*  r = *(g_model_->firstRegion());
+        ASSERT_EQ(r->faces().size(),6);
+        std::set<int> faces_tags;
+        for (auto face : r->faces())
+        {
+            faces_tags.insert(face->tag());
+        }
+        ASSERT_EQ(faces_tags, std::set<int>({5,14,18,22,26,27}));
+
+        ASSERT_EQ(r->edges().size(),12);
+        ASSERT_EQ(r->vertices().size(),8);
+        //TODO add tags checks
+
+        //const GFace*  f = g_model_->getFaceByTag(5);
+        //NOTE const contradicts with getMeshVertex later here
+        GFace*  f = g_model_->getFaceByTag(5);
+
+        ASSERT_EQ(f->edges().size(),4);
+        std::set<int> edges_tags;
+        for (auto edge : f->edges())
+        {
+            edges_tags.insert(edge->tag());
+        }
+        ASSERT_EQ(edges_tags, std::set<int>({1,2,3,4}));
+
+        ASSERT_EQ(f->vertices().size(),4);
+        std::set<int> vert_tags;
+        for (auto vert : f->vertices())
+        {
+            vert_tags.insert(vert->tag());
+        }
+        ASSERT_EQ(vert_tags, std::set<int>({1,2,3,4}));
+
+        const GEdge*  e = g_model_->getEdgeByTag(7);
+        ASSERT_EQ(e->vertices().size(),2);
+        std::set<int> edge_vert_tags;
+        for (auto vert : e->vertices())
+        {
+            edge_vert_tags.insert(vert->tag());
+        }
+        ASSERT_EQ(edge_vert_tags, std::set<int>({5,6})); 
+
+        ASSERT_EQ(f->getNumMeshVertices(),1);
+        ASSERT_EQ(f->getMeshVertex(0)->getNum(),9);
+
+        ASSERT_EQ(r->getNumMeshVertices(),0);
+    
+        GVertex*  v = g_model_->getVertexByTag(14);
+        ASSERT_EQ(v->getNumMeshVertices(),1);
+        ASSERT_EQ(v->getMeshVertex(0)->getNum(),8);
+
+        GFace   *f5 = g_model_->getFaceByTag(5),
+                *f14 = g_model_->getFaceByTag(14),
+                *f18 = g_model_->getFaceByTag(18),
+                *f22 = g_model_->getFaceByTag(22),
+                *f26 = g_model_->getFaceByTag(26),
+                *f27 = g_model_->getFaceByTag(27);
+
+        ASSERT_EQ(f18->getMeshMaster()->tag(),26);
+        ASSERT_EQ(f22->getMeshMaster()->tag(),14);
+        ASSERT_EQ(f27->getMeshMaster()->tag(),5);
+
+        ASSERT_EQ(f26->getMeshMaster()->tag(),26);
+        ASSERT_EQ(f14->getMeshMaster()->tag(),14);
+        ASSERT_EQ(f5->getMeshMaster()->tag(),5);
+
+        //{18} = {26} Translate {1, 0, 0};
+        //{22} = {14} Translate {0, 1, 0};
+        //{27} = {5} Translate {0, 0, 1};
+    } 
+    catch(const std::exception &e)
+    {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "exit" << std::endl;
+        FAIL();
+    }    
+}
