@@ -215,6 +215,48 @@ TEST(TestGMSHCPPAPIGeom, BasicReadMSHPeriod)
         ASSERT_EQ(f14->getMeshMaster()->tag(),14);
         ASSERT_EQ(f5->getMeshMaster()->tag(),5);
 
+        auto at = f18->affineTransform;
+
+        /*std::cout << at[0] << " " << at[1] << " " << at[2] << " " << at[3] << std::endl
+                  << at[4] << " " << at[5] << " " << at[6] << " " << at[7] << std::endl
+                  << at[8] << " " << at[9] << " " << at[10] << " " << at[11] << std::endl
+                  << at[12] << " " << at[13] << " " << at[14] << " " << at[15] << std::endl;
+
+        std::cout << std::endl;*/
+
+        EXPECT_DOUBLE_EQ(at[0], 1); EXPECT_DOUBLE_EQ(at[1], 0); EXPECT_DOUBLE_EQ(at[2], 0); EXPECT_DOUBLE_EQ(at[3], 1);
+        EXPECT_DOUBLE_EQ(at[4], 0); EXPECT_DOUBLE_EQ(at[5], 1); EXPECT_DOUBLE_EQ(at[6], 0); EXPECT_DOUBLE_EQ(at[7], 0);
+        EXPECT_DOUBLE_EQ(at[8], 0); EXPECT_DOUBLE_EQ(at[9], 0); EXPECT_DOUBLE_EQ(at[10],1); EXPECT_DOUBLE_EQ(at[11],0);
+        EXPECT_DOUBLE_EQ(at[12],0); EXPECT_DOUBLE_EQ(at[13],0); EXPECT_DOUBLE_EQ(at[14],0); EXPECT_DOUBLE_EQ(at[15],1);
+
+        at = f22->affineTransform;
+
+        /*std::cout << at[0] << " " << at[1] << " " << at[2] << " " << at[3] << std::endl
+                  << at[4] << " " << at[5] << " " << at[6] << " " << at[7] << std::endl
+                  << at[8] << " " << at[9] << " " << at[10] << " " << at[11] << std::endl
+                  << at[12] << " " << at[13] << " " << at[14] << " " << at[15] << std::endl;
+
+        std::cout << std::endl;*/
+
+        EXPECT_DOUBLE_EQ(at[0], 1); EXPECT_DOUBLE_EQ(at[1], 0); EXPECT_DOUBLE_EQ(at[2], 0); EXPECT_DOUBLE_EQ(at[3], 0);
+        EXPECT_DOUBLE_EQ(at[4], 0); EXPECT_DOUBLE_EQ(at[5], 1); EXPECT_DOUBLE_EQ(at[6], 0); EXPECT_DOUBLE_EQ(at[7], 1);
+        EXPECT_DOUBLE_EQ(at[8], 0); EXPECT_DOUBLE_EQ(at[9], 0); EXPECT_DOUBLE_EQ(at[10],1); EXPECT_DOUBLE_EQ(at[11],0);
+        EXPECT_DOUBLE_EQ(at[12],0); EXPECT_DOUBLE_EQ(at[13],0); EXPECT_DOUBLE_EQ(at[14],0); EXPECT_DOUBLE_EQ(at[15],1);
+
+        at = f27->affineTransform;
+
+        /*std::cout << at[0] << " " << at[1] << " " << at[2] << " " << at[3] << std::endl
+                  << at[4] << " " << at[5] << " " << at[6] << " " << at[7] << std::endl
+                  << at[8] << " " << at[9] << " " << at[10] << " " << at[11] << std::endl
+                  << at[12] << " " << at[13] << " " << at[14] << " " << at[15] << std::endl;
+
+        std::cout << std::endl;*/
+
+        EXPECT_DOUBLE_EQ(at[0], 1); EXPECT_DOUBLE_EQ(at[1], 0); EXPECT_DOUBLE_EQ(at[2], 0); EXPECT_DOUBLE_EQ(at[3], 0);
+        EXPECT_DOUBLE_EQ(at[4], 0); EXPECT_DOUBLE_EQ(at[5], 1); EXPECT_DOUBLE_EQ(at[6], 0); EXPECT_DOUBLE_EQ(at[7], 0);
+        EXPECT_DOUBLE_EQ(at[8], 0); EXPECT_DOUBLE_EQ(at[9], 0); EXPECT_DOUBLE_EQ(at[10],1); EXPECT_DOUBLE_EQ(at[11],1);
+        EXPECT_DOUBLE_EQ(at[12],0); EXPECT_DOUBLE_EQ(at[13],0); EXPECT_DOUBLE_EQ(at[14],0); EXPECT_DOUBLE_EQ(at[15],1);
+        
         //{18} = {26} Translate {1, 0, 0};
         //{22} = {14} Translate {0, 1, 0};
         //{27} = {5} Translate {0, 0, 1};
