@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <algorithm>
+#include <scfd/static_vec/vec.h>
 #include "detail/face_key.h"
 
 //TODO building face_key for element face fully repeated 3 times - move into separate method

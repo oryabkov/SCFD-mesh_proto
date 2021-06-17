@@ -28,6 +28,8 @@
 #include <gmsh/MTriangle.h>
 #include <gmsh/MPrism.h>
 #include <gmsh/MTetrahedron.h>
+#include <scfd/static_vec/vec.h>
+#include <scfd/static_mat/mat.h>
 #include "detail/ranges_sparse_arr.h"
 #include "detail/face_key.h"
 #include "gmsh_mesh_elem_reference.h"
@@ -377,6 +379,12 @@ private:
     /// Here pair's first is id of incident element, second - local node index inside this element
     using nodes_to_elems_graph_t = detail::ranges_sparse_arr<std::pair<Ord,Ord>,Ord>;
 
+    using nodes_virt_master_ids_arr_t =  detail::sparse_arr<Ord>;
+    //using faces_virt_master_ids_arr_t =  detail::sparse_arr<Ord>;
+
+    using vec_t = static_vec::vec<scalar_type,dim>;
+    using mat_t = static_mat::mat<scalar_type,dim,dim>;
+
 private:
     mesh_elem_reference_type        mesh_elem_reference_;
 
@@ -396,6 +404,8 @@ private:
 
     std::map<face_key_t,Ord,face_key_less_func>        bnd_faces_group_ids_;
 
+    nodes_virt_master_ids_arr_t     nodes_virt_master_ids_arr_;
+
     /// Converts internal gmsh tag into 'visible' element index
     Ord elem_tag_to_elem_id(Ord elem_tag)const
     {
@@ -413,6 +423,92 @@ private:
     Ord node_id_to_node_tag(Ord node_id)const
     {
         return node_id;
+    }
+
+    //TODO O(n^2) algo is basically used here - use kd-tree instead of ref_all_nodes
+    /// a and b pair gives affine transfrom
+    /// graph is symmetric by construction
+    void add_virt_nodes_graph_connections
+    (
+        const std::set<Ord> &nodes,
+        const mat_t &a, const vec_t &b,
+        const std::set<Ord> &ref_all_nodes,
+        std::map<Ord,std::set<Ord>> &graph
+    )
+    {
+        for (auto node_id : nodes)
+        {
+            vec_t  c, c_pair;
+            get_node_coords(node_id,c.d);
+            c_pair = a*c + b;
+            bool    node_pair_id_found = false;
+            Ord     node_pair_id;
+            for (auto node1_id : ref_all_nodes)
+            {
+                vec_t  c1, c_diff;
+                get_node_coords(node1_id,c1.d);
+                c_diff = c - c1;
+                bool is_found = true;
+                for (int j = 0;j < dim;++j)
+                    if (!(std::abs(c_diff[j]) <= std::numeric_limits<T>::epsilon()))
+                        is_found = false;
+                if (is_found)
+                {
+                    node_pair_id_found = true;
+                    node_pair_id = node1_id;
+                    break;
+                }
+            }
+            if (!node_pair_id_found)
+                throw 
+                    std::runtime_error
+                    (
+                        "gmsh_mesh_wrap::add_virt_nodes_graph_connections: node pair for node " + 
+                        std::to_string(node_id) + " was not found; perhaps periodicity in mesh is broken"
+                    );
+            graph[node_id].insert(node_pair_id);
+            graph[node_pair_id].insert(node_id);
+        }
+    }
+    void build_virt_nodes(const std::set<Ord> &periodic_g_faces_tags)
+    {
+        /// Check for periodic_g_faces_tags logic integrity
+        std::set<Ord> master_periodic_g_faces_tags;
+        for (auto g_face_tag : periodic_g_faces_tags)
+        {
+            GFace *f = g_model_->getFaceByTag(g_face_tag);
+            if (f->getMeshMaster()->tag() == f->tag())
+            {
+                master_periodic_g_faces_tags.insert(f->tag());
+            }
+        }
+        for (auto g_face_tag : periodic_g_faces_tags)
+        {
+            GFace *f = g_model_->getFaceByTag(g_face_tag);
+            if (f->getMeshMaster()->tag() == f->tag()) continue;
+            if (master_periodic_g_faces_tags.find(f->getMeshMaster()->tag()) == master_periodic_g_faces_tags.end())
+                throw 
+                    std::runtime_error
+                    (
+                        "gmsh_mesh_wrap::build_virt_nodes: face " + std::to_string(f->tag()) + " is present in"
+                        "periodic_g_faces_tags while its master " + std::to_string(f->getMeshMaster()->tag()) + 
+                        " is not"
+                    );
+            /// ISSUE is it possible that on master surface is referenced by two other surfaces??
+            master_periodic_g_faces_tags.erase(f->getMeshMaster()->tag());
+        }
+        if (!master_periodic_g_faces_tags.empty())
+            throw 
+                std::runtime_error
+                (
+                    "gmsh_mesh_wrap::build_virt_nodes: master face " + 
+                    std::to_string(*master_periodic_g_faces_tags.begin()) + 
+                    " is present in periodic_g_faces_tags while there is not pair for it"
+                );
+
+
+
+        //nodes_virt_master_ids_arr_
     }
 };
 
