@@ -480,9 +480,9 @@ private:
             switch (curr_dim)
             {
                 case 0: 
-                    return f->vertices();
+                    return std::vector<GEntity*>(f->vertices());
                 case 1:
-                    return f->edges();
+                    return std::vector<GEntity*>(f->edges());
                 default:
                     throw std::logic_error("gmsh_mesh_wrap::get_face_bound_g_entities: dim > 2");
             };
@@ -534,7 +534,7 @@ private:
         /// Build nodes virtual connectivity graph
         /// First, build reference nodes set (must be replaced with kd-tree in future)
         std::set<Ord> ref_all_nodes;
-        for (int curr_dim = dim-1;dim >= 0;--dim)
+        for (int curr_dim = dim-1;curr_dim >= 0;--curr_dim)
         {
             std::vector<GEntity *> entities;
             g_model_->getEntities(entities, curr_dim);
@@ -554,12 +554,12 @@ private:
 
             auto at = f->affineTransform;
 
-            mat_t a(at[0].at[1],at[2],
-                    at[4].at[5],at[6],
-                    at[8].at[9],at[10]);
+            mat_t a(at[0],at[1],at[2],
+                    at[4],at[5],at[6],
+                    at[8],at[9],at[10]);
             vec_t b(at[3],at[7],at[11]);
 
-            for (int curr_dim = dim-1;dim >= 0;--dim)
+            for (int curr_dim = dim-1;curr_dim >= 0;--curr_dim)
             {
                 std::vector<GEntity*> entities = get_face_bound_g_entities(curr_dim, f);
                 for (auto entity : entities)
