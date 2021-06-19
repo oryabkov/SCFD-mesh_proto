@@ -470,21 +470,46 @@ private:
             graph[node_pair_id].insert(node_id);
         }
     }
+    /// Here we assert that f dimension is dim-1 (i.e. it is considered to be 'face')
+    std::vector<GEntity*> get_face_bound_g_entities(int curr_dim, GEntity* f)
+    {
+        if (curr_dim == dim-1)
+            return std::vector<GEntity*>({f});
+        else
+        {
+            switch (curr_dim)
+            {
+                case 0: 
+                    return f->vertices();
+                case 1:
+                    return f->edges();
+                default:
+                    throw std::logic_error("gmsh_mesh_wrap::get_face_bound_g_entities: dim > 2");
+            };
+        }
+    }
     void build_virt_nodes(const std::set<Ord> &periodic_g_faces_tags)
     {
+        std::set<Ord> master_periodic_g_faces_tags,
+                      subordinates_periodic_g_faces_tags;
+
         /// Check for periodic_g_faces_tags logic integrity
-        std::set<Ord> master_periodic_g_faces_tags;
+
         for (auto g_face_tag : periodic_g_faces_tags)
         {
-            GFace *f = g_model_->getFaceByTag(g_face_tag);
+            GEntity *f = g_model_->getEntityByTag(dim-1, g_face_tag);
             if (f->getMeshMaster()->tag() == f->tag())
             {
                 master_periodic_g_faces_tags.insert(f->tag());
             }
+            else 
+            {
+                subordinates_periodic_g_faces_tags.insert(f->tag());
+            }
         }
         for (auto g_face_tag : periodic_g_faces_tags)
         {
-            GFace *f = g_model_->getFaceByTag(g_face_tag);
+            GEntity *f = g_model_->getEntityByTag(dim-1, g_face_tag);
             if (f->getMeshMaster()->tag() == f->tag()) continue;
             if (master_periodic_g_faces_tags.find(f->getMeshMaster()->tag()) == master_periodic_g_faces_tags.end())
                 throw 
@@ -506,7 +531,40 @@ private:
                     " is present in periodic_g_faces_tags while there is not pair for it"
                 );
 
+        /// Build nodes virtual connectivity graph
+        /// First, build reference nodes set (must be replaced with kd-tree in future)
+        std::set<Ord> ref_all_nodes;
 
+        /// Second, build graph itself
+        std::map<Ord,std::set<Ord>> graph;
+        for (auto g_face_tag : subordinates_periodic_g_faces_tags)
+        {
+            GEntity *f = g_model_->getEntityByTag(dim-1, g_face_tag);
+
+            auto at = f->affineTransform;
+
+            mat_t a(at[0].at[1],at[2],
+                    at[4].at[5],at[6],
+                    at[8].at[9],at[10]);
+            vec_t b(at[3],at[7],at[11]);
+
+            for (int curr_dim = dim-1;dim >= 0;--dim)
+            {
+                std::vector<GEntity*> entities = get_face_bound_g_entities(curr_dim, f);
+                for (auto entity : entities)
+                {
+                    std::set<Ord> nodes;
+                    for (Ord vertex_i = 0;vertex_i < entity->getNumMeshVertices();++vertex_i)
+                    {
+                        nodes.insert(node_tag_to_node_id(entity->getMeshVertex(vertex_i)->getNum()));
+                    }
+                    add_virt_nodes_graph_connections
+                    (
+                        nodes, a, b, ref_all_nodes, graph
+                    );
+                }
+            }
+        }
 
         //nodes_virt_master_ids_arr_
     }
