@@ -488,6 +488,42 @@ private:
             };
         }
     }
+    /// works in recursive manner 
+    void calc_virt_nodes_set
+    (
+        const std::map<Ord,std::set<Ord>> &graph, Ord node_id,
+        std::set<Ord> &curr_visited_nodes
+    )
+    {
+        if (curr_visited_nodes.find(node_id) != curr_visited_nodes.end()) return;
+        //if (nodes_virt_master_ids_arr_.has(node_id)) return;
+        curr_visited_nodes.insert(node_id);
+        /// Case of sigle node without any incidence
+        if (graph.find(node_id) == graph.end()) return; 
+        for (Ord next_node : graph.at(node_id))
+        {
+            calc_virt_nodes_set(graph, next_node, curr_visited_nodes);
+        }
+    }
+    /// updates current nodes_virt_master_ids_arr_
+    void calc_node_virt_master_id(const std::map<Ord,std::set<Ord>> &graph, Ord node_id)
+    {
+        /// If already calced, do nothing
+        if (nodes_virt_master_ids_arr_.has(node_id)) return;
+        std::set<Ord> curr_visited_nodes;
+        calc_virt_nodes_set(graph, node_id, curr_visited_nodes);
+        if (curr_visited_nodes.size() == 0)
+            throw std::logic_error("gmsh_mesh_wrap::calc_node_virt_master_id: curr_visited_nodes is empty");
+        Ord res = *curr_visited_nodes.begin();
+        for (Ord curr_node_id : curr_visited_nodes)
+        {
+            res = std::min(res,curr_node_id);
+        }
+        for (Ord curr_node_id : curr_visited_nodes)
+        {
+            nodes_virt_master_ids_arr_.add(curr_node_id,res);
+        }
+    }
     void build_virt_nodes(const std::set<Ord> &periodic_g_faces_tags)
     {
         std::set<Ord> master_periodic_g_faces_tags,
@@ -533,6 +569,7 @@ private:
 
         /// Build nodes virtual connectivity graph
         /// First, build reference nodes set (must be replaced with kd-tree in future)
+        /// ref_all_nodes contains only nodes on entities with dimension strictly lower then dim
         std::set<Ord> ref_all_nodes;
         for (int curr_dim = dim-1;curr_dim >= 0;--curr_dim)
         {
@@ -577,7 +614,30 @@ private:
             }
         }
 
-        //nodes_virt_master_ids_arr_
+        /// Build nodes_virt_master_ids_arr_ for lower dimension nodes
+        for (auto node_id : ref_all_nodes)
+        {
+            calc_node_virt_master_id(graph, node_id);
+        }
+        /// Build nodes_virt_master_ids_arr_ for dim nodes (trivial)
+        std::vector<GEntity *> entities;
+        g_model_->getEntities(entities, dim);
+        for (auto entity : entities)
+        {
+            for (Ord vertex_i = 0;vertex_i < entity->getNumMeshVertices();++vertex_i)
+            {
+                Ord node_id = node_tag_to_node_id(entity->getMeshVertex(vertex_i)->getNum());
+                if (nodes_virt_master_ids_arr_.has(node_id))
+                    throw 
+                        std::runtime_error
+                        (
+                            "gmsh_mesh_wrap::build_virt_nodes: node " + std::to_string(node_id) + " with dimension" + 
+                            std::to_string(dim) + " already has assigned nodes_virt_master_ids_arr_ value"
+                        );
+                /// Add self reference
+                nodes_virt_master_ids_arr_.add(node_id,node_id);
+            }
+        }
     }
 };
 
