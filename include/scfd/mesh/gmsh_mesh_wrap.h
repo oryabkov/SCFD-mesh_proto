@@ -534,7 +534,18 @@ private:
         /// Build nodes virtual connectivity graph
         /// First, build reference nodes set (must be replaced with kd-tree in future)
         std::set<Ord> ref_all_nodes;
-
+        for (int curr_dim = dim-1;dim >= 0;--dim)
+        {
+            std::vector<GEntity *> entities;
+            g_model_->getEntities(entities, curr_dim);
+            for (auto entity : entities)
+            {
+                for (Ord vertex_i = 0;vertex_i < entity->getNumMeshVertices();++vertex_i)
+                {
+                    ref_all_nodes.insert(node_tag_to_node_id(entity->getMeshVertex(vertex_i)->getNum()));
+                }
+            }
+        }
         /// Second, build graph itself
         std::map<Ord,std::set<Ord>> graph;
         for (auto g_face_tag : subordinates_periodic_g_faces_tags)
