@@ -24,7 +24,7 @@ using ordinal = int;
 using partitioner_t = scfd::communication::linear_partitioner;
 using gmsh_wrap_t = scfd::mesh::gmsh_mesh_wrap<real,partitioner_t,3,ordinal>;
 
-TEST(GMSHMeshWrapTest, BasicRead) 
+TEST(TestGMSHMeshWrap, BasicRead) 
 {
     try 
     {
@@ -87,6 +87,58 @@ TEST(GMSHMeshWrapTest, BasicRead)
         std::cout << coords[0] << " " << coords[1] << " " << coords[2] << std::endl;
         //1 0.8852084354774035 0.4191415113762025
 
+    } 
+    catch(const std::exception &e)
+    {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "exit" << std::endl;
+        FAIL();
+    }    
+}
+
+TEST(TestGMSHMeshWrap, BasicReadPeriodic1)
+{
+    try 
+    {
+        auto        part = std::make_shared<partitioner_t>();
+        auto        gmsh_wrap = std::make_shared<gmsh_wrap_t>();
+        gmsh_wrap->set_mesh_filename("test_box3d_period_small_mesh.msh");
+        /// No periodic surfaces is set (so, mesh is not periodic)
+        gmsh_wrap->read();
+        *part = partitioner_t(gmsh_wrap->get_total_elems_num(), 1, 0);
+        gmsh_wrap->set_partitioner(part);
+
+        ASSERT_EQ(gmsh_wrap->get_total_nodes_num(), 14);
+        for (ordinal i = 1;i <= 14;++i)
+        {
+            ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(i), i);
+        }
+    } 
+    catch(const std::exception &e)
+    {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "exit" << std::endl;
+        FAIL();
+    }    
+}
+
+TEST(TestGMSHMeshWrap, BasicReadPeriodic2)
+{
+    try 
+    {
+        auto        part = std::make_shared<partitioner_t>();
+        auto        gmsh_wrap = std::make_shared<gmsh_wrap_t>();
+        gmsh_wrap->set_mesh_filename("test_box3d_period_small_mesh.msh");
+        /// No periodic surfaces is set (so, mesh is not periodic)
+        gmsh_wrap->read(std::set<ordinal>({5,27}));
+        *part = partitioner_t(gmsh_wrap->get_total_elems_num(), 1, 0);
+        gmsh_wrap->set_partitioner(part);
+
+        ASSERT_EQ(gmsh_wrap->get_total_nodes_num(), 14);
+        for (ordinal i = 1;i <= 14;++i)
+        {
+            ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(i), i);
+        }
     } 
     catch(const std::exception &e)
     {

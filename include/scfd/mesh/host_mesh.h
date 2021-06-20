@@ -65,6 +65,7 @@ public:
     void enlarge_stencil(ordinal_type ghost_level)
     {
         parent_type::enlarge_stencil(ghost_level);
+        //TODO enlarge_stancil must be reusable - make build_faces reusable (delete old faces, perhaps?)
         build_faces(ghost_level);
     }
 

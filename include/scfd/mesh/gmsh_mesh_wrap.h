@@ -202,9 +202,16 @@ public:
         build_virt_nodes(periodic_g_faces_tags);
     }
     //ISSUE is it part of BasicMesh concept?
+    //ISSUE rename total to glob as in Map?
     Ord get_total_elems_num()const
     {
         return g_model_->getNumMeshElements(dim);
+    }
+    //ISSUE is it part of BasicMesh concept?
+    //ISSUE rename total to glob as in Map?
+    Ord get_total_nodes_num()const
+    {
+        return g_model_->getNumMeshVertices();
     }
     //TODO think read_parted is not suited here; different wrap class is requered for parted gmsh read
     /*void read_parted()
