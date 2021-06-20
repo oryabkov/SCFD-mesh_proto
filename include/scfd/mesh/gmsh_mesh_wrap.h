@@ -21,6 +21,7 @@
 #include <stdexcept>
 #include <map>
 #include <limits>
+#include <algorithm>
 #include <gmsh/GmshGlobal.h>
 #include <gmsh/GModel.h>
 #include <gmsh/MElement.h>
@@ -83,7 +84,7 @@ public:
         fn_ = fn;
     }
     /// only one call to either read() or read_parted() method is allowed during lifetime
-    void read()
+    void read(const std::set<Ord> &periodic_g_faces_tags = std::set<Ord>())
     {
         /// Read mesh
         if (!g_model_->readMSH(fn_)) 
@@ -198,7 +199,7 @@ public:
             }
         }
 
-        
+        build_virt_nodes(periodic_g_faces_tags);
     }
     //ISSUE is it part of BasicMesh concept?
     Ord get_total_elems_num()const
@@ -329,6 +330,10 @@ public:
         {
             elems[j] = it->first;
         }
+    }
+    Ord get_node_virt_master_id(Ord i)const
+    {
+        return nodes_virt_master_ids_arr_[i];
     }
 
     /// Parts of face interface on this level
@@ -477,15 +482,27 @@ private:
             return std::vector<GEntity*>({f});
         else
         {
+            std::vector<GEntity*> res;
             switch (curr_dim)
             {
                 case 0: 
-                    return std::vector<GEntity*>(f->vertices());
+                    std::transform
+                    (
+                        f->vertices().begin(), f->vertices().end(), 
+                        std::back_inserter(res), [](GVertex *v) { return static_cast<GEntity*>(v); }
+                    );
+                    break;
                 case 1:
-                    return std::vector<GEntity*>(f->edges());
+                    std::transform
+                    (
+                        f->edges().begin(), f->edges().end(), 
+                        std::back_inserter(res), [](GEdge *e) { return static_cast<GEntity*>(e); }
+                    );
+                    break;
                 default:
                     throw std::logic_error("gmsh_mesh_wrap::get_face_bound_g_entities: dim > 2");
             };
+            return res;
         }
     }
     /// works in recursive manner 
