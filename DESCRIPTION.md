@@ -5,6 +5,13 @@ BasicMesh
 Basic level of abstarction (nodes, element to nodes, nodes to element), elem types, group ids,
 some misc staff.
 
+BasicMesh has following issues:
+What about elements and nodes enumeration?
+Must they be contigious? Must they start from zero?
+For now, elements are shrinked to zero, non-contigious case is logic_error.
+At the same time nodes id are taken as is from gmsh file.
+Not sure about it.
+
 host_mesh<cBasicMesh>
 Wrap of BasicMesh abstraction
 Most of faces interface (faces to elements, elements to faces, 0 order neighbours).
