@@ -438,7 +438,7 @@ private:
     }
 
     //TODO O(n^2) algo is basically used here - use kd-tree instead of ref_all_nodes
-    /// a and b pair gives affine transfrom
+    /// a and b pair gives affine transfrom FROM master TO subordinate
     /// graph is symmetric by construction
     void add_virt_nodes_graph_connections
     (
@@ -450,16 +450,16 @@ private:
     {
         for (auto node_id : nodes)
         {
-            vec_t  c, c_pair;
+            vec_t  c;
             get_node_coords(node_id,c.d);
-            c_pair = a*c + b;
             bool    node_pair_id_found = false;
             Ord     node_pair_id;
             for (auto node1_id : ref_all_nodes)
             {
-                vec_t  c1, c_diff;
+                vec_t  c1, c1_pair, c_diff;
                 get_node_coords(node1_id,c1.d);
-                c_diff = c - c1;
+                c1_pair = a*c1 + b;
+                c_diff = c1_pair - c;
                 bool is_found = true;
                 for (int j = 0;j < dim;++j)
                     if (!(std::abs(c_diff[j]) <= std::numeric_limits<T>::epsilon()))
@@ -493,11 +493,15 @@ private:
             switch (curr_dim)
             {
                 case 0: 
-                    std::transform
+                    /*std::transform
                     (
                         f->vertices().begin(), f->vertices().end(), 
                         std::back_inserter(res), [](GVertex *v) { return static_cast<GEntity*>(v); }
-                    );
+                    );*/
+                    for (auto v : f->vertices())
+                    {
+                        res.push_back(static_cast<GEntity*>(v));
+                    }
                     break;
                 case 1:
                     std::transform

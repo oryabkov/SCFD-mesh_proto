@@ -135,10 +135,24 @@ TEST(TestGMSHMeshWrap, BasicReadPeriodic2)
         gmsh_wrap->set_partitioner(part);
 
         ASSERT_EQ(gmsh_wrap->get_total_nodes_num(), 14);
-        for (ordinal i = 1;i <= 14;++i)
+        /*for (ordinal i = 1;i <= 14;++i)
         {
             ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(i), i);
-        }
+        }*/
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(1 ), 1 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(2 ), 2 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(3 ), 3 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(4 ), 4 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(5 ), 1 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(6 ), 2 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(7 ), 4 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(8 ), 3 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(9 ), 9 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(10), 10);
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(11), 11);
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(12), 12);
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(13), 13);
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(14), 9 );
     } 
     catch(const std::exception &e)
     {
