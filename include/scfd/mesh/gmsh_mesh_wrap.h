@@ -149,7 +149,10 @@ public:
                 elements_group_ids_[elem_id] = e->tag();
                 for (Ord elem_vert_i = 0; elem_vert_i < s->getNumVertices(); ++elem_vert_i) 
                 {
-                    nodes_to_elems_graph_.inc_max_range_size(s->getVertex(elem_vert_i)->getNum(),1);
+                    nodes_to_elems_graph_.inc_max_range_size
+                    (
+                        node_tag_to_node_id(s->getVertex(elem_vert_i)->getNum()),1
+                    );
                 }
                 elems_max_faces_num_ = std::max(elems_max_faces_num_,s->getNumFaces());
             }
@@ -168,7 +171,7 @@ public:
                     //nodes_to_elems_graph_.inc_max_range_size(s->getVertex(elem_vert_i)->getNum(),1);
                     nodes_to_elems_graph_.add_to_range
                     (
-                        s->getVertex(elem_vert_i)->getNum(),
+                        node_tag_to_node_id(s->getVertex(elem_vert_i)->getNum()),
                         std::pair<Ord,Ord>(elem_id,elem_vert_i)
                     );
                 }
