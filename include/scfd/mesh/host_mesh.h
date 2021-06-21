@@ -142,12 +142,17 @@ private:
     /// Here pair's first is id of incident element, second - local face index inside this element
     using elems_to_neighbours0_graph_t = detail::ranges_sparse_arr<std::pair<ordinal_type,ordinal_type>,ordinal_type>;
 
+    using faces_virt_master_ids_arr_t =  detail::sparse_arr<ordinal_type>;
+
     //std::shared_ptr<const BasicMesh>  basic_mesh_;
 
 private:
     elems_to_faces_graph_t          elems_to_faces_graph_;
     faces_to_elems_graph_t          faces_to_elems_graph_;
     elems_to_neighbours0_graph_t    elems_to_neighbours0_graph_;
+
+    faces_virt_master_ids_arr_t     faces_virt_master_ids_arr_;
+
     elems_to_faces_graph_t          elems_to_virt_faces_graph_;
     faces_to_elems_graph_t          virt_faces_to_elems_graph_;
     elems_to_neighbours0_graph_t    elems_to_virt_neighbours0_graph_;
@@ -218,13 +223,38 @@ protected:
         for (ordinal_type i = 0;i < part.get_size();++i)
         {
             ordinal_type  elem_id = part.own_glob_ind(i);
-            fill_neib_graph_for_elem(elem_id);
+            fill_neib_graph_for_elem
+            (
+                elem_id, elems_to_faces_graph_, faces_to_elems_graph_, elems_to_neighbours0_graph_
+            );
         }
         /// Process stencil elements
         for (auto elem_id : stencil_ids)
         {
-            fill_neib_graph_for_elem(elem_id);
+            fill_neib_graph_for_elem
+            (
+                elem_id, elems_to_faces_graph_, faces_to_elems_graph_, elems_to_neighbours0_graph_
+            );
         }
+
+        /// Fill actual graph elems_to_virt_neighbours0_graph_
+        /// Process own elements
+        for (ordinal_type i = 0;i < part.get_size();++i)
+        {
+            ordinal_type  elem_id = part.own_glob_ind(i);
+            fill_neib_graph_for_elem
+            (
+                elem_id, elems_to_virt_faces_graph_, virt_faces_to_elems_graph_, elems_to_virt_neighbours0_graph_
+            );
+        }
+        /// Process stencil elements
+        for (auto elem_id : stencil_ids)
+        {
+            fill_neib_graph_for_elem
+            (
+                elem_id, elems_to_virt_faces_graph_, virt_faces_to_elems_graph_, elems_to_virt_neighbours0_graph_
+            );
+        }        
     }
     void build_faces_for_elem(ordinal_type elem_id, std::map<face_key_t,ordinal_type,face_key_less_func> &faces)
     {
@@ -260,10 +290,16 @@ protected:
             auto face_it = faces.find(face_key);
             if (face_it == faces.end())
                 throw std::logic_error("host_mesh::reserve_graphs_for_elem: no face found!");
-            ordinal_type face_id = face_it->second;
+            ordinal_type    face_id = face_it->second,
+                            virt_face_id = faces_virt_master_ids_arr_[face_id];
+
             elems_to_faces_graph_.inc_max_range_size(elem_id,1);
             elems_to_neighbours0_graph_.inc_max_range_size(elem_id,1);
             faces_to_elems_graph_.inc_max_range_size(face_id,1);
+
+            elems_to_virt_faces_graph_.inc_max_range_size(elem_id,1);
+            elems_to_virt_neighbours0_graph_.inc_max_range_size(elem_id,1);
+            virt_faces_to_elems_graph_.inc_max_range_size(virt_face_id,1);            
         }
     }
     void fill_graphs_for_elem(ordinal_type elem_id, const std::map<face_key_t,ordinal_type,face_key_less_func> &faces)
@@ -276,39 +312,48 @@ protected:
             auto face_it = faces.find(face_key);
             if (face_it == faces.end())
                 throw std::logic_error("host_mesh::reserve_graphs_for_elem: no face found!");
-            ordinal_type face_id = face_it->second;
+            ordinal_type    face_id = face_it->second,
+                            virt_face_id = faces_virt_master_ids_arr_[face_id];
+
             elems_to_faces_graph_.add_to_range(elem_id, face_id);            
             faces_to_elems_graph_.add_to_range(face_id,std::pair<ordinal_type,ordinal_type>(elem_id,j));
+
+            elems_to_virt_faces_graph_.add_to_range(elem_id, virt_face_id);            
+            virt_faces_to_elems_graph_.add_to_range(virt_face_id,std::pair<ordinal_type,ordinal_type>(elem_id,j));
         }
     }
-    void fill_neib_graph_for_elem(ordinal_type elem_id)
+    void fill_neib_graph_for_elem
+    (
+        ordinal_type elem_id,
+        const elems_to_faces_graph_t  &curr_elems_to_faces_graph,
+        const faces_to_elems_graph_t  &curr_faces_to_elems_graph,
+        elems_to_neighbours0_graph_t  &curr_elems_to_neighbours0_graph
+    )
     {
         const auto &ref = parent_type::mesh_elem_reference();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
-        auto it_range = elems_to_faces_graph_.get_range(elem_id);
+        auto it_range = curr_elems_to_faces_graph.get_range(elem_id);
         ordinal_type loc_face_i = 0;
         for (auto it = it_range.first;it != it_range.second;++it,++loc_face_i)
         {
             ordinal_type face_id = *it;
-            if (get_face_elems_num(face_id) != 2) 
+            if (curr_faces_to_elems_graph.get_range_size(face_id) != 2)
             {
-                elems_to_neighbours0_graph_.add_to_range
+                curr_elems_to_neighbours0_graph.add_to_range
                 (
                     elem_id, 
                     std::pair<ordinal_type,ordinal_type>(ordinal_type(special_id),ordinal_type(special_id))
                 );
                 continue;
             }
-            ordinal_type elems[2];
             ordinal_type neib0_id;
-            get_face_elems(face_id,elems);
-            /// We now know there are two elements for this face
-            for (ordinal_type j = 0;j < 2;++j)
+            auto it_range1 = curr_faces_to_elems_graph.get_range(i);
+            for (auto it1 = it_range1.first;it1 != it_range1.second;++it1)
             {
-                if (elems[j] == elem_id) continue;
-                neib0_id = elems[j];
+                if (it1->first == elem_id) continue;
+                neib0_id = it1->first;
             }
-            elems_to_neighbours0_graph_.add_to_range
+            curr_elems_to_neighbours0_graph.add_to_range
             (
                 elem_id, std::pair<ordinal_type,ordinal_type>(neib0_id,loc_face_i)
             );
