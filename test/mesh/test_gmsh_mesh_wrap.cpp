@@ -113,6 +113,24 @@ TEST(TestGMSHMeshWrap, BasicReadPeriodic1)
         {
             ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(i), i);
         }
+
+        ordinal prim_nodes_num; 
+        ordinal nodes[4];
+        gmsh_wrap->get_elem_prim_nodes(65-45, nodes, &prim_nodes_num);
+        ASSERT_EQ(prim_nodes_num, 4);
+        ASSERT_EQ(nodes[0], 13);
+        ASSERT_EQ(nodes[1], 8);
+        ASSERT_EQ(nodes[2], 14);
+        ASSERT_EQ(nodes[3], 12);
+
+        ordinal prim_virt_nodes_num; 
+        ordinal virt_nodes[4];
+        gmsh_wrap->get_elem_prim_virt_nodes(65-45, virt_nodes, &prim_virt_nodes_num);
+        ASSERT_EQ(prim_virt_nodes_num, 4);
+        ASSERT_EQ(virt_nodes[0], 13);
+        ASSERT_EQ(virt_nodes[1], 8);
+        ASSERT_EQ(virt_nodes[2], 14);
+        ASSERT_EQ(virt_nodes[3], 12);
     } 
     catch(const std::exception &e)
     {
@@ -153,6 +171,24 @@ TEST(TestGMSHMeshWrap, BasicReadPeriodic2)
         ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(12), 12);
         ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(13), 13);
         ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(14), 9 );
+
+        ordinal prim_nodes_num; 
+        ordinal nodes[4];
+        gmsh_wrap->get_elem_prim_nodes(65-45, nodes, &prim_nodes_num);
+        ASSERT_EQ(prim_nodes_num, 4);
+        ASSERT_EQ(nodes[0], 13);
+        ASSERT_EQ(nodes[1], 8);
+        ASSERT_EQ(nodes[2], 14);
+        ASSERT_EQ(nodes[3], 12);
+
+        ordinal prim_virt_nodes_num; 
+        ordinal virt_nodes[4];
+        gmsh_wrap->get_elem_prim_virt_nodes(65-45, virt_nodes, &prim_virt_nodes_num);
+        ASSERT_EQ(prim_virt_nodes_num, 4);
+        ASSERT_EQ(virt_nodes[0], 13);
+        ASSERT_EQ(virt_nodes[1], 3);
+        ASSERT_EQ(virt_nodes[2], 9);
+        ASSERT_EQ(virt_nodes[3], 12);
     } 
     catch(const std::exception &e)
     {
@@ -194,6 +230,24 @@ TEST(TestGMSHMeshWrap, BasicReadPeriodic3)
         ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(12), 10);
         ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(13), 11);
         ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(14), 9 );
+
+        ordinal prim_nodes_num; 
+        ordinal nodes[4];
+        gmsh_wrap->get_elem_prim_nodes(65-45, nodes, &prim_nodes_num);
+        ASSERT_EQ(prim_nodes_num, 4);
+        ASSERT_EQ(nodes[0], 13);
+        ASSERT_EQ(nodes[1], 8);
+        ASSERT_EQ(nodes[2], 14);
+        ASSERT_EQ(nodes[3], 12);
+
+        ordinal prim_virt_nodes_num; 
+        ordinal virt_nodes[4];
+        gmsh_wrap->get_elem_prim_virt_nodes(65-45, virt_nodes, &prim_virt_nodes_num);
+        ASSERT_EQ(prim_virt_nodes_num, 4);
+        ASSERT_EQ(virt_nodes[0], 11);
+        ASSERT_EQ(virt_nodes[1], 1);
+        ASSERT_EQ(virt_nodes[2], 9);
+        ASSERT_EQ(virt_nodes[3], 10);
     } 
     catch(const std::exception &e)
     {
