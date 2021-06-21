@@ -297,6 +297,57 @@ TEST(TestGMSHMeshWrap, BasicReadPeriodic3)
         ASSERT_EQ(virt_nodes[1], 1);
         ASSERT_EQ(virt_nodes[2], 9);
         ASSERT_EQ(virt_nodes[3], 10);
+
+        ordinal elems_num0; 
+        ordinal elems0[4];
+        ASSERT_EQ(gmsh_wrap->get_node_incident_elems_num(8),4);
+        gmsh_wrap->get_node_incident_elems(8,elems0,&elems_num0);
+        ASSERT_EQ(elems_num0, 4);
+        ///TODO order is in fact not garanteed here
+        ASSERT_EQ(elems0[0], 50-45);
+        ASSERT_EQ(elems0[1], 51-45);
+        ASSERT_EQ(elems0[2], 56-45);
+        ASSERT_EQ(elems0[3], 65-45);
+
+        ordinal elems_num; 
+        ordinal elems[32];
+        /// NOTE here we use 3 instead of 8 because there is not virtual node '8'
+        ASSERT_EQ(gmsh_wrap->get_virt_node_incident_elems_num(3),32);
+        gmsh_wrap->get_virt_node_incident_elems(3,elems,&elems_num);
+        ASSERT_EQ(elems_num, 32);
+        ///TODO order is in fact not garanteed here
+        ASSERT_EQ(elems[0], 49-45);
+        ASSERT_EQ(elems[1], 49-45);
+        ASSERT_EQ(elems[2], 50-45);
+        ASSERT_EQ(elems[3], 50-45);
+        ASSERT_EQ(elems[4], 51-45);
+        ASSERT_EQ(elems[5], 51-45);
+        ASSERT_EQ(elems[6], 52-45);
+        ASSERT_EQ(elems[7], 52-45);
+        ASSERT_EQ(elems[8], 53-45);
+        ASSERT_EQ(elems[9], 53-45);
+        ASSERT_EQ(elems[10], 54-45);
+        ASSERT_EQ(elems[11], 54-45);
+        ASSERT_EQ(elems[12], 55-45);
+        ASSERT_EQ(elems[13], 55-45);
+        ASSERT_EQ(elems[14], 56-45);
+        ASSERT_EQ(elems[15], 56-45);
+        ASSERT_EQ(elems[16], 57-45);
+        ASSERT_EQ(elems[17], 57-45);
+        ASSERT_EQ(elems[18], 58-45);
+        ASSERT_EQ(elems[19], 58-45);
+        ASSERT_EQ(elems[20], 59-45);
+        ASSERT_EQ(elems[21], 59-45);
+        ASSERT_EQ(elems[22], 60-45);
+        ASSERT_EQ(elems[23], 60-45);
+        ASSERT_EQ(elems[24], 61-45);
+        ASSERT_EQ(elems[25], 62-45);
+        ASSERT_EQ(elems[26], 63-45);
+        ASSERT_EQ(elems[27], 64-45);
+        ASSERT_EQ(elems[28], 65-45);
+        ASSERT_EQ(elems[29], 66-45);
+        ASSERT_EQ(elems[30], 67-45);
+        ASSERT_EQ(elems[31], 68-45);
     } 
     catch(const std::exception &e)
     {
