@@ -278,6 +278,32 @@ public:
             nodes[j] = node_tag_to_node_id(s->getVertex(j)->getNum());
         }
     }
+    void get_elem_prim_virt_nodes(Ord i, Ord *virt_nodes, Ord *prim_nodes_num = nullptr)const
+    {
+        MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
+        if (prim_nodes_num)
+            *prim_nodes_num = s->getNumPrimaryVertices();
+        /// TODO we explicitly use here that primary vertices goes 1st (used in mesh_prepare)
+        /// Chrch is this always true.
+        for (Ord j = 0;j < s->getNumPrimaryVertices();++j)
+        {   
+            virt_nodes[j] = get_node_virt_master_id(node_tag_to_node_id(s->getVertex(j)->getNum()));
+        }
+    }
+    Ord get_elem_prim_node(Ord i, Ord j)const
+    {
+        MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
+        /// TODO we explicitly use here that primary vertices goes 1st (used in mesh_prepare)
+        /// Check is this always true.
+        return node_tag_to_node_id(s->getVertex(j)->getNum());
+    }
+    Ord get_elem_prim_virt_node(Ord i, Ord j)const
+    {
+        MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
+        /// TODO we explicitly use here that primary vertices goes 1st (used in mesh_prepare)
+        /// Check is this always true.
+        return get_node_virt_master_id(node_tag_to_node_id(s->getVertex(j)->getNum()));
+    }
     Ord get_elems_max_nodes_num()const
     {
         return elems_max_nodes_num_;
@@ -298,10 +324,26 @@ public:
             nodes[j] = node_tag_to_node_id(s->getVertex(j)->getNum());
         }
     }
+    void get_elem_virt_nodes(Ord i, Ord *virt_nodes, Ord *nodes_num = nullptr)const
+    {
+        MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
+        if (nodes_num) *nodes_num = s->getNumVertices();
+        /// TODO we explicitly use here that primary vertices goes 1st (used in mesh_prepare)
+        /// Chrch is this always true.
+        for (Ord j = 0;j < s->getNumVertices();++j)
+        {   
+            virt_nodes[j] = get_node_virt_master_id(node_tag_to_node_id(s->getVertex(j)->getNum()));
+        }
+    }
     Ord get_elem_node(Ord i, Ord j)const
     {
         MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
         return node_tag_to_node_id(s->getVertex(j)->getNum());
+    }
+    Ord get_elem_virt_node(Ord i, Ord j)const
+    {
+        MElement *s = g_model_->getMeshElementByTag(elem_id_to_elem_tag(i));
+        return get_node_virt_master_id(node_tag_to_node_id(s->getVertex(j)->getNum()));
     }
 
     /// Nodes interface
