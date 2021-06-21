@@ -226,26 +226,18 @@ TEST(TestGMSHMeshWrap, BasicReadPeriodic2)
         ordinal elems_num; 
         ordinal elems[8];
         /// NOTE here we use 3 instead of 8 because there is not virtual node '8'
-        //ASSERT_EQ(gmsh_wrap->get_virt_node_incident_elems_num(3),7);
+        ASSERT_EQ(gmsh_wrap->get_virt_node_incident_elems_num(3),8);
         gmsh_wrap->get_virt_node_incident_elems(3,elems,&elems_num);
-        //ASSERT_EQ(elems_num, 7);
+        ASSERT_EQ(elems_num, 8);
         ///TODO order is in fact not garanteed here
-        /*ASSERT_EQ(elems[0], 49-45);
+        ASSERT_EQ(elems[0], 49-45);
         ASSERT_EQ(elems[1], 50-45);
         ASSERT_EQ(elems[2], 51-45);
-        ASSERT_EQ(elems[3], 56-45);
-        ASSERT_EQ(elems[4], 58-45);
-        ASSERT_EQ(elems[5], 62-45);
-        ASSERT_EQ(elems[6], 65-45);*/
-        std::cout << elems_num << std::endl;
-        std::cout << elems[0]+45 << std::endl;
-        std::cout << elems[1]+45 << std::endl;
-        std::cout << elems[2]+45 << std::endl;
-        std::cout << elems[3]+45 << std::endl;
-        std::cout << elems[4]+45 << std::endl;
-        std::cout << elems[5]+45 << std::endl;
-        std::cout << elems[6]+45 << std::endl;
-        std::cout << elems[7]+45 << std::endl;
+        ASSERT_EQ(elems[3], 51-45);
+        ASSERT_EQ(elems[4], 56-45);
+        ASSERT_EQ(elems[5], 58-45);
+        ASSERT_EQ(elems[6], 62-45);
+        ASSERT_EQ(elems[7], 65-45);
     } 
     catch(const std::exception &e)
     {
