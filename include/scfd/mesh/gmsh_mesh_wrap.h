@@ -428,6 +428,26 @@ public:
     {
         return nodes_virt_master_ids_arr_[i];
     }
+    Ord get_virt_node_incident_elems_num(Ord i)const
+    {
+        return virt_nodes_to_elems_graph_.get_range_size(i);
+    }
+    Ord get_virt_nodes_max_incident_elems_num()const
+    {
+        return virt_nodes_to_elems_graph_.get_max_ranges_size();
+    }
+    //TODO here i'm not sure about external storage for result; mb, return internal array point
+    void get_virt_node_incident_elems(Ord i,Ord *elems, Ord *elems_num = nullptr)const
+    {
+        if (elems_num)
+            *elems_num = get_virt_node_incident_elems_num(i);
+        auto it_range = virt_nodes_to_elems_graph_.get_range(i);
+        Ord j = 0;
+        for (auto it = it_range.first;it != it_range.second;++it,++j)
+        {
+            elems[j] = it->first;
+        }
+    }
 
     /// Parts of face interface on this level
 
