@@ -347,7 +347,7 @@ protected:
                 continue;
             }
             ordinal_type neib0_id;
-            auto it_range1 = curr_faces_to_elems_graph.get_range(i);
+            auto it_range1 = curr_faces_to_elems_graph.get_range(face_id);
             for (auto it1 = it_range1.first;it1 != it_range1.second;++it1)
             {
                 if (it1->first == elem_id) continue;
