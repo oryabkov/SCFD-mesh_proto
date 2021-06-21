@@ -50,8 +50,4 @@ Virtual faces are induced from virtual nodes.
 Virtual nodes and faces are stored through 'master' node or 'master' face id. Basically all nodes and faces that 
 belong to the group of specific virtual node or face are assigned a special id which is virtual node or face id.
 There is strict agreement that 'master' node or 'master' face id is id of one of its physical nodes or faces.
-This agreement makes some operations easier. For example, when we need to store some graph (for example, graph
-of incidence from nodes to elements), we need to create only one special 'virtual' case of this graph - from
-phisical entities to virtual entities (from phisical nodes to virtual elements, in example). There is no need
-to create separate virtual entity to phisical or virtual entity graph because virtual entities ids are subset 
-of physical entities ids.
+This agreement makes some operations easier. For example, we don't need to create separate partiotioning or map for virtual entities.
