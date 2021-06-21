@@ -132,6 +132,17 @@ TEST(TestGMSHMeshWrap, BasicReadPeriodic1)
         ASSERT_EQ(virt_nodes[2], 14);
         ASSERT_EQ(virt_nodes[3], 12);
 
+        ordinal elems_num0; 
+        ordinal elems0[4];
+        ASSERT_EQ(gmsh_wrap->get_node_incident_elems_num(8),4);
+        gmsh_wrap->get_node_incident_elems(8,elems0,&elems_num0);
+        ASSERT_EQ(elems_num0, 4);
+        ///TODO order is in fact not garanteed here
+        ASSERT_EQ(elems0[0], 50-45);
+        ASSERT_EQ(elems0[1], 51-45);
+        ASSERT_EQ(elems0[2], 56-45);
+        ASSERT_EQ(elems0[3], 65-45);
+
         ordinal elems_num; 
         ordinal elems[4];
         ASSERT_EQ(gmsh_wrap->get_virt_node_incident_elems_num(8),4);
@@ -200,6 +211,41 @@ TEST(TestGMSHMeshWrap, BasicReadPeriodic2)
         ASSERT_EQ(virt_nodes[1], 3);
         ASSERT_EQ(virt_nodes[2], 9);
         ASSERT_EQ(virt_nodes[3], 12);
+
+        ordinal elems_num0; 
+        ordinal elems0[4];
+        ASSERT_EQ(gmsh_wrap->get_node_incident_elems_num(8),4);
+        gmsh_wrap->get_node_incident_elems(8,elems0,&elems_num0);
+        ASSERT_EQ(elems_num0, 4);
+        ///TODO order is in fact not garanteed here
+        ASSERT_EQ(elems0[0], 50-45);
+        ASSERT_EQ(elems0[1], 51-45);
+        ASSERT_EQ(elems0[2], 56-45);
+        ASSERT_EQ(elems0[3], 65-45);
+
+        ordinal elems_num; 
+        ordinal elems[8];
+        /// NOTE here we use 3 instead of 8 because there is not virtual node '8'
+        //ASSERT_EQ(gmsh_wrap->get_virt_node_incident_elems_num(3),7);
+        gmsh_wrap->get_virt_node_incident_elems(3,elems,&elems_num);
+        //ASSERT_EQ(elems_num, 7);
+        ///TODO order is in fact not garanteed here
+        /*ASSERT_EQ(elems[0], 49-45);
+        ASSERT_EQ(elems[1], 50-45);
+        ASSERT_EQ(elems[2], 51-45);
+        ASSERT_EQ(elems[3], 56-45);
+        ASSERT_EQ(elems[4], 58-45);
+        ASSERT_EQ(elems[5], 62-45);
+        ASSERT_EQ(elems[6], 65-45);*/
+        std::cout << elems_num << std::endl;
+        std::cout << elems[0]+45 << std::endl;
+        std::cout << elems[1]+45 << std::endl;
+        std::cout << elems[2]+45 << std::endl;
+        std::cout << elems[3]+45 << std::endl;
+        std::cout << elems[4]+45 << std::endl;
+        std::cout << elems[5]+45 << std::endl;
+        std::cout << elems[6]+45 << std::endl;
+        std::cout << elems[7]+45 << std::endl;
     } 
     catch(const std::exception &e)
     {
