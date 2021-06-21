@@ -148,6 +148,9 @@ private:
     elems_to_faces_graph_t          elems_to_faces_graph_;
     faces_to_elems_graph_t          faces_to_elems_graph_;
     elems_to_neighbours0_graph_t    elems_to_neighbours0_graph_;
+    elems_to_faces_graph_t          elems_to_virt_faces_graph_;
+    faces_to_elems_graph_t          virt_faces_to_elems_graph_;
+    elems_to_neighbours0_graph_t    elems_to_virt_neighbours0_graph_;
 
 protected:
 

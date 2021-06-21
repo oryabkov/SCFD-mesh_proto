@@ -455,6 +455,7 @@ private:
     Ord                             elems_max_prim_nodes_num_,
                                     elems_max_nodes_num_;
     nodes_to_elems_graph_t          nodes_to_elems_graph_;
+    nodes_to_elems_graph_t          virt_nodes_to_elems_graph_;
     //TODO turn into sparse_arr?
     std::map<Ord,Ord>               elements_group_ids_;
     Ord                             elems_max_faces_num_;
