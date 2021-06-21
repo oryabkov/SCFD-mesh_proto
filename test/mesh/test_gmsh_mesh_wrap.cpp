@@ -312,8 +312,8 @@ TEST(TestGMSHMeshWrap, BasicReadPeriodic3)
         ordinal elems_num; 
         ordinal elems[32];
         /// NOTE here we use 3 instead of 8 because there is not virtual node '8'
-        ASSERT_EQ(gmsh_wrap->get_virt_node_incident_elems_num(3),32);
-        gmsh_wrap->get_virt_node_incident_elems(3,elems,&elems_num);
+        ASSERT_EQ(gmsh_wrap->get_virt_node_incident_elems_num(1),32);
+        gmsh_wrap->get_virt_node_incident_elems(1,elems,&elems_num);
         ASSERT_EQ(elems_num, 32);
         ///TODO order is in fact not garanteed here
         ASSERT_EQ(elems[0], 49-45);
