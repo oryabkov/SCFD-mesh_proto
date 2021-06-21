@@ -131,6 +131,17 @@ TEST(TestGMSHMeshWrap, BasicReadPeriodic1)
         ASSERT_EQ(virt_nodes[1], 8);
         ASSERT_EQ(virt_nodes[2], 14);
         ASSERT_EQ(virt_nodes[3], 12);
+
+        ordinal elems_num; 
+        ordinal elems[4];
+        ASSERT_EQ(gmsh_wrap->get_virt_node_incident_elems_num(8),4);
+        gmsh_wrap->get_virt_node_incident_elems(8,elems,&elems_num);
+        ASSERT_EQ(elems_num, 4);
+        ///TODO order is in fact not garanteed here
+        ASSERT_EQ(elems[0], 50-45);
+        ASSERT_EQ(elems[1], 51-45);
+        ASSERT_EQ(elems[2], 56-45);
+        ASSERT_EQ(elems[3], 65-45);
     } 
     catch(const std::exception &e)
     {
