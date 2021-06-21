@@ -161,3 +161,44 @@ TEST(TestGMSHMeshWrap, BasicReadPeriodic2)
         FAIL();
     }    
 }
+
+/// Fully periodic case 
+TEST(TestGMSHMeshWrap, BasicReadPeriodic3)
+{
+    try 
+    {
+        auto        part = std::make_shared<partitioner_t>();
+        auto        gmsh_wrap = std::make_shared<gmsh_wrap_t>();
+        gmsh_wrap->set_mesh_filename("test_box3d_period_small_mesh.msh");
+        /// No periodic surfaces is set (so, mesh is not periodic)
+        gmsh_wrap->read(std::set<ordinal>({5,14,18,22,26,27}));
+        *part = partitioner_t(gmsh_wrap->get_total_elems_num(), 1, 0);
+        gmsh_wrap->set_partitioner(part);
+
+        ASSERT_EQ(gmsh_wrap->get_total_nodes_num(), 14);
+        /*for (ordinal i = 1;i <= 14;++i)
+        {
+            ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(i), i);
+        }*/
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(1 ), 1 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(2 ), 1 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(3 ), 1 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(4 ), 1 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(5 ), 1 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(6 ), 1 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(7 ), 1 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(8 ), 1 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(9 ), 9 );
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(10), 10);
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(11), 11);
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(12), 10);
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(13), 11);
+        ASSERT_EQ(gmsh_wrap->get_node_virt_master_id(14), 9 );
+    } 
+    catch(const std::exception &e)
+    {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "exit" << std::endl;
+        FAIL();
+    }    
+}
