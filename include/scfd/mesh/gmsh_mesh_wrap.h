@@ -203,6 +203,47 @@ public:
         }
 
         build_virt_nodes(periodic_g_faces_tags);
+
+        /// Build virtual nodes to elements graph
+        //TODO would be usefull to call it but don't know how to efficently calc virt. nodes number
+        //virt_nodes_to_elems_graph_.reserve(nodes_num?)
+
+        /// First estimate nodes to elements graph sizes
+        for (auto e : entities)
+        {
+            for (Ord j = 0; j < e->getNumMeshElements(); ++j)
+            {
+                MElement *s = e->getMeshElement(j);
+                Ord elem_id = elem_tag_to_elem_id(s->getNum());
+                for (Ord elem_vert_i = 0; elem_vert_i < s->getNumVertices(); ++elem_vert_i) 
+                {
+                    virt_nodes_to_elems_graph_.inc_max_range_size
+                    (
+                        get_node_virt_master_id(node_tag_to_node_id(s->getVertex(elem_vert_i)->getNum())),1
+                    );
+                }
+            }
+        }
+        /// Complete graph structure
+        virt_nodes_to_elems_graph_.complete_structure();
+        /// Fill actual incidence data
+        for (auto e : entities)
+        {
+            for (Ord j = 0; j < e->getNumMeshElements(); ++j)
+            {
+                MElement *s = e->getMeshElement(j);
+                Ord elem_id = elem_tag_to_elem_id(s->getNum());
+                for (Ord elem_vert_i = 0; elem_vert_i < s->getNumVertices(); ++elem_vert_i)
+                {
+                    //virt_nodes_to_elems_graph_.inc_max_range_size(s->getVertex(elem_vert_i)->getNum(),1);
+                    virt_nodes_to_elems_graph_.add_to_range
+                    (
+                        get_node_virt_master_id(node_tag_to_node_id(s->getVertex(elem_vert_i)->getNum())),
+                        std::pair<Ord,Ord>(elem_id,elem_vert_i)
+                    );
+                }
+            }
+        }
     }
     //ISSUE is it part of BasicMesh concept?
     //ISSUE rename total to glob as in Map?
