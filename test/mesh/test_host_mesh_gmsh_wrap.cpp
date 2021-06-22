@@ -172,15 +172,16 @@ TEST(TestHostMeshGMSHWrap, BasicReadPeriodic1)
         ASSERT_EQ(host_mesh->get_elem_group_id(50-45),1);
         ASSERT_EQ(host_mesh->get_elem_group_id(60-45),1);
         //test neigbours0 54-45 
-        std::set<ordinal>   elem_54_neibs0_set;
-        ordinal             elem_54_neibs0[host_mesh->get_elem_faces_num(54-45)];
+        ASSERT_EQ(host_mesh->get_elem_faces_num(54-45),4);
+        ordinal                 elem_54_neibs0[host_mesh->get_elem_faces_num(54-45)];
         host_mesh->get_elem_neighbours0(54-45, elem_54_neibs0);
-        for (ordinal j = 0;j < host_mesh->get_elem_faces_num(54-45);++j)
+        std::sort(elem_54_neibs0,elem_54_neibs0+host_mesh->get_elem_faces_num(54-45));
+        ordinal                 elem_54_neibs0_ref[] = {64-45,67-45,host_mesh_t::special_id,host_mesh_t::special_id};
+        std::sort(elem_54_neibs0_ref,elem_54_neibs0_ref+4);
+        for (ordinal i = 0;i < 4;++i)
         {
-            elem_54_neibs0_set.insert(elem_54_neibs0[j]);
+            ASSERT_EQ(elem_54_neibs0[i],elem_54_neibs0_ref[i]);
         }
-        std::set<ordinal>   elem_54_neibs0_ref_set({64-45,67-45});
-        ASSERT_TRUE(elem_54_neibs0_set == elem_54_neibs0_ref_set);
     } 
     catch(const std::exception &e)
     {
