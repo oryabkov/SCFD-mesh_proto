@@ -113,6 +113,7 @@ TEST(TestHostMeshGMSHWrap, BasicReadPeriodic1)
         host_mesh->read();
         *part = partitioner_t(host_mesh->get_total_elems_num(), 1, 0);
         host_mesh->set_partitioner(part);
+        host_mesh->enlarge_stencil(1);
 
         ASSERT_EQ(host_mesh->get_total_nodes_num(), 14);
         for (ordinal i = 1;i <= 14;++i)
