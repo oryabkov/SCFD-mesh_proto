@@ -166,19 +166,28 @@ protected:
         calc_elems_stencil(ghost_level,stencil_ids);
         const auto &part = *parent_type::get_partitioner();
 
-        /// Create faces dict
+        /// Create faces and virt_faces dicts
 
-        std::map<face_key_t,ordinal_type,face_key_less_func>    faces;
+        std::map<face_key_t,ordinal_type,face_key_less_func>    faces, virt_faces;
         /// Process own elements
         for (ordinal_type i = 0;i < part.get_size();++i)
         {
             ordinal_type  elem_id = part.own_glob_ind(i);
-            build_faces_for_elem(elem_id,faces);
+            build_faces_for_elem(elem_id,faces,virt_faces);
         }
         /// Process stencil elements
         for (auto elem_id : stencil_ids)
         {
-            build_faces_for_elem(elem_id,faces);
+            build_faces_for_elem(elem_id,faces,virt_faces);
+        }
+
+        for (auto face_pair : faces)
+        {
+            face_key_t      face_key = face_pair.first;
+            ordinal_type    face_id = face_pair.second;
+            face_key_t      virt_face_key = face_key.create_virt(*this);
+            ordinal_type    virt_face_id = virt_faces[virt_face_key];
+            faces_virt_master_ids_arr_.add(face_id, virt_face_id);
         }
 
         /// Create graphs elems_to_faces_graph_ and faces_to_elems_graph_ based on dict
@@ -256,7 +265,12 @@ protected:
             );
         }        
     }
-    void build_faces_for_elem(ordinal_type elem_id, std::map<face_key_t,ordinal_type,face_key_less_func> &faces)
+    void build_faces_for_elem
+    (
+        ordinal_type elem_id, 
+        std::map<face_key_t,ordinal_type,face_key_less_func> &faces,
+        std::map<face_key_t,ordinal_type,face_key_less_func> &virt_faces
+    )
     {
         const auto &ref = parent_type::mesh_elem_reference();
         //TODO in general it is not good idea to take it each time (some cached value?)
@@ -266,7 +280,8 @@ protected:
         for (ordinal_type j = 0;j < ref.get_faces_n(elem_type);++j)
         {
             ordinal_type face_id = elem_id*glob_max_faces_num + j;
-            face_key_t face_key(*this,elem_id,j);
+            face_key_t  face_key(*this,elem_id,j,false),
+                        virt_face_key(*this,elem_id,j,true);
             auto face_it = faces.find(face_key);
             if (face_it == faces.end())
             {
@@ -277,6 +292,17 @@ protected:
                 /// Between two poosible ids for face we choose the minimal one
                 /// (i.e. one that was taken from element with minimal id)
                 face_it->second = std::min(face_it->second,face_id);
+            }
+            auto virt_face_it = virt_faces.find(virt_face_key);
+            if (virt_face_it == virt_faces.end())
+            {
+                virt_faces[virt_face_key] = face_id;
+            }
+            else
+            {
+                /// Between two poosible ids for face we choose the minimal one
+                /// (i.e. one that was taken from element with minimal id)
+                virt_face_it->second = std::min(virt_face_it->second,face_id);
             }
         }
     }

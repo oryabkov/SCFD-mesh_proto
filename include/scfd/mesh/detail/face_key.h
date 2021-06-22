@@ -42,7 +42,7 @@ struct face_key
         std::sort(sorted_prim_nodes_,sorted_prim_nodes_+nodes_n_);
     }
     template<class BasicMesh>
-    face_key(const BasicMesh &mesh,Ord elem_id,Ord elem_face_i)
+    face_key(const BasicMesh &mesh,Ord elem_id,Ord elem_face_i,bool make_virt_face = false)
     {
         const auto &ref = mesh.mesh_elem_reference();
         auto  elem_type = mesh.get_elem_type(elem_id);
@@ -53,9 +53,21 @@ struct face_key
         for (Ord face_vert_i = 0;face_vert_i < ref.get_face_verts_n(elem_type,elem_face_i);++face_vert_i)
         {
             face_nodes[face_vert_i] = nodes[ref.get_face_vert_i(elem_type,elem_face_i,face_vert_i)];
+            if (make_virt_face)
+                face_nodes[face_vert_i] = mesh.get_node_virt_master_id(face_nodes[face_vert_i]);
         }
         //TODO looks strange
         *this = face_key(ref.get_face_verts_n(elem_type,elem_face_i), face_nodes);
+    }
+    template<class BasicMesh>
+    face_key create_virt(const BasicMesh &mesh)const
+    {
+        face_key res;
+        res.nodes_n_ = nodes_n_;
+        for (Ord j = 0;j < res.nodes_n_;++j)
+            res.sorted_prim_nodes_[j] = mesh.get_node_virt_master_id(sorted_prim_nodes_[j]);
+        std::sort(res.sorted_prim_nodes_,res.sorted_prim_nodes_+res.nodes_n_);
+        return res;
     }
     //Not supported because lower dimension elements are not exposed now
     /*template<class BasicMesh>
