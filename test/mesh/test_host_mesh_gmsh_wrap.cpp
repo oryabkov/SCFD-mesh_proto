@@ -182,6 +182,18 @@ TEST(TestHostMeshGMSHWrap, BasicReadPeriodic1)
         {
             ASSERT_EQ(elem_54_neibs0[i],elem_54_neibs0_ref[i]);
         }
+
+        //test neigbours0 54-45 
+        ASSERT_EQ(host_mesh->get_elem_faces_num(54-45),4);
+        ordinal                 elem_54_virt_neibs0[host_mesh->get_elem_faces_num(54-45)];
+        host_mesh->get_elem_virt_neighbours0(54-45, elem_54_virt_neibs0);
+        std::sort(elem_54_virt_neibs0,elem_54_virt_neibs0+host_mesh->get_elem_faces_num(54-45));
+        ordinal                 elem_54_virt_neibs0_ref[] = {64-45,67-45,host_mesh_t::special_id,host_mesh_t::special_id};
+        std::sort(elem_54_virt_neibs0_ref,elem_54_virt_neibs0_ref+4);
+        for (ordinal i = 0;i < 4;++i)
+        {
+            ASSERT_EQ(elem_54_virt_neibs0[i],elem_54_virt_neibs0_ref[i]);
+        }
     } 
     catch(const std::exception &e)
     {
