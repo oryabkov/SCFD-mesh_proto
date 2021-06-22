@@ -26,7 +26,7 @@ using partitioner_t = scfd::communication::linear_partitioner;
 using gmsh_wrap_t = scfd::mesh::gmsh_mesh_wrap<real,partitioner_t,3,ordinal>;
 using host_mesh_t = scfd::mesh::host_mesh<gmsh_wrap_t>;
 
-TEST(HostMeshGMSHWrapTest, BasicRead) 
+TEST(TestHostMeshGMSHWrap, BasicRead) 
 {
     try 
     {
@@ -101,3 +101,70 @@ TEST(HostMeshGMSHWrapTest, BasicRead)
         FAIL();
     }    
 }
+
+TEST(TestHostMeshGMSHWrap, BasicReadPeriodic1)
+{
+    try 
+    {
+        auto        part = std::make_shared<partitioner_t>();
+        auto        host_mesh = std::make_shared<host_mesh_t>();
+        host_mesh->set_mesh_filename("test_box3d_period_small_mesh.msh");
+        /// No periodic surfaces is set (so, mesh is not periodic)
+        host_mesh->read();
+        *part = partitioner_t(host_mesh->get_total_elems_num(), 1, 0);
+        host_mesh->set_partitioner(part);
+
+        ASSERT_EQ(host_mesh->get_total_nodes_num(), 14);
+        for (ordinal i = 1;i <= 14;++i)
+        {
+            ASSERT_EQ(host_mesh->get_node_virt_master_id(i), i);
+        }
+
+        ordinal prim_nodes_num; 
+        ordinal nodes[4];
+        host_mesh->get_elem_prim_nodes(65-45, nodes, &prim_nodes_num);
+        ASSERT_EQ(prim_nodes_num, 4);
+        ASSERT_EQ(nodes[0], 13);
+        ASSERT_EQ(nodes[1], 8);
+        ASSERT_EQ(nodes[2], 14);
+        ASSERT_EQ(nodes[3], 12);
+
+        ordinal prim_virt_nodes_num; 
+        ordinal virt_nodes[4];
+        host_mesh->get_elem_prim_virt_nodes(65-45, virt_nodes, &prim_virt_nodes_num);
+        ASSERT_EQ(prim_virt_nodes_num, 4);
+        ASSERT_EQ(virt_nodes[0], 13);
+        ASSERT_EQ(virt_nodes[1], 8);
+        ASSERT_EQ(virt_nodes[2], 14);
+        ASSERT_EQ(virt_nodes[3], 12);
+
+        ordinal elems_num0; 
+        ordinal elems0[4];
+        ASSERT_EQ(host_mesh->get_node_incident_elems_num(8),4);
+        host_mesh->get_node_incident_elems(8,elems0,&elems_num0);
+        ASSERT_EQ(elems_num0, 4);
+        ///TODO order is in fact not garanteed here
+        ASSERT_EQ(elems0[0], 50-45);
+        ASSERT_EQ(elems0[1], 51-45);
+        ASSERT_EQ(elems0[2], 56-45);
+        ASSERT_EQ(elems0[3], 65-45);
+
+        ordinal elems_num; 
+        ordinal elems[4];
+        ASSERT_EQ(host_mesh->get_virt_node_incident_elems_num(8),4);
+        host_mesh->get_virt_node_incident_elems(8,elems,&elems_num);
+        ASSERT_EQ(elems_num, 4);
+        ///TODO order is in fact not garanteed here
+        ASSERT_EQ(elems[0], 50-45);
+        ASSERT_EQ(elems[1], 51-45);
+        ASSERT_EQ(elems[2], 56-45);
+        ASSERT_EQ(elems[3], 65-45);
+    } 
+    catch(const std::exception &e)
+    {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "exit" << std::endl;
+        FAIL();
+    }    
+}
+
