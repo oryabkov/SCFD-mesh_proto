@@ -257,6 +257,9 @@ protected:
         elems_to_faces_graph_.complete_structure();
         elems_to_neighbours0_graph_.complete_structure();
         faces_to_elems_graph_.complete_structure();
+        elems_to_virt_faces_graph_.complete_structure();
+        elems_to_virt_neighbours0_graph_.complete_structure();
+        virt_faces_to_elems_graph_.complete_structure();
 
         /// Fill actual graphs elems_to_faces_graph_ and faces_to_elems_graph_
         /// Process own elements
