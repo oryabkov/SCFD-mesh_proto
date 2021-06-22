@@ -159,6 +159,27 @@ TEST(TestHostMeshGMSHWrap, BasicReadPeriodic1)
         ASSERT_EQ(elems[1], 51-45);
         ASSERT_EQ(elems[2], 56-45);
         ASSERT_EQ(elems[3], 65-45);
+
+        ASSERT_EQ(host_mesh->get_elem_type(54-45),MSH_TET_4);
+        ASSERT_EQ(host_mesh->get_elem_type(64-45),MSH_TET_4);
+        ASSERT_EQ(host_mesh->get_elem_type(67-45),MSH_TET_4);
+        ASSERT_EQ(host_mesh->get_elem_type(50-45),MSH_TET_4);
+        ASSERT_EQ(host_mesh->get_elem_type(60-45),MSH_TET_4);
+        ASSERT_EQ(host_mesh->get_elem_group_id(54-45),1);
+        ASSERT_EQ(host_mesh->get_elem_group_id(64-45),1);
+        ASSERT_EQ(host_mesh->get_elem_group_id(67-45),1);
+        ASSERT_EQ(host_mesh->get_elem_group_id(50-45),1);
+        ASSERT_EQ(host_mesh->get_elem_group_id(60-45),1);
+        //test neigbours0 54-45 
+        std::set<ordinal>   elem_54_neibs0_set;
+        ordinal             elem_54_neibs0[host_mesh->get_elem_faces_num(54-45)];
+        host_mesh->get_elem_neighbours0(54-45, elem_54_neibs0);
+        for (ordinal j = 0;j < host_mesh->get_elem_faces_num(54-45);++j)
+        {
+            elem_54_neibs0_set.insert(elem_54_neibs0[j]);
+        }
+        std::set<ordinal>   elem_54_neibs0_ref_set({64-45,67-45});
+        ASSERT_TRUE(elem_54_neibs0_set == elem_54_neibs0_ref_set);
     } 
     catch(const std::exception &e)
     {
