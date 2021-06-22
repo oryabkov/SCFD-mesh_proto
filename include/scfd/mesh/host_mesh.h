@@ -94,6 +94,16 @@ public:
             faces[j] = *it;
         }
     }
+    /// No need to return number of virt_faces - use get_elem_faces_num
+    void         get_elem_virt_faces(ordinal_type i, ordinal_type *virt_faces)const
+    {
+        auto it_range = elems_to_virt_faces_graph_.get_range(i);
+        ordinal_type j = 0;
+        for (auto it = it_range.first;it != it_range.second;++it,++j)
+        {
+            virt_faces[j] = *it;
+        }
+    }
     /// Actually it can return either 1 or 2
     ordinal_type get_face_elems_num(ordinal_type i)const
     {
@@ -103,6 +113,21 @@ public:
     void         get_face_elems(ordinal_type i,ordinal_type elems[2])const
     {
         auto it_range = faces_to_elems_graph_.get_range(i);
+        ordinal_type j = 0;
+        for (auto it = it_range.first;it != it_range.second;++it,++j)
+        {
+            elems[j] = it->first;
+        }
+    }
+    /// Actually it can return either 1 or 2
+    ordinal_type get_virt_face_elems_num(ordinal_type i)const
+    {
+        //TODO some check in debug mode for result (1 or 2)
+        return virt_faces_to_elems_graph_.get_range_size(i);
+    }
+    void         get_virt_face_elems(ordinal_type i,ordinal_type elems[2])const
+    {
+        auto it_range = virt_faces_to_elems_graph_.get_range(i);
         ordinal_type j = 0;
         for (auto it = it_range.first;it != it_range.second;++it,++j)
         {
@@ -124,6 +149,25 @@ public:
     void get_elem_neighbours0_loc_face_i(ordinal_type i, ordinal_type *loc_face_i)const
     {
         auto it_range = elems_to_neighbours0_graph_.get_range(i);
+        ordinal_type j = 0;
+        for (auto it = it_range.first;it != it_range.second;++it,++j)
+        {
+            loc_face_i[j] = it->second;
+        }
+    }
+    /// No need to return number of virtual neighbours0 - use get_elem_faces_num
+    void get_elem_virt_neighbours0(ordinal_type i, ordinal_type *elems)const
+    {
+        auto it_range = elems_to_virt_neighbours0_graph_.get_range(i);
+        ordinal_type j = 0;
+        for (auto it = it_range.first;it != it_range.second;++it,++j)
+        {
+            elems[j] = it->first;
+        }
+    }
+    void get_elem_virt_neighbours0_loc_face_i(ordinal_type i, ordinal_type *loc_face_i)const
+    {
+        auto it_range = elems_to_virt_neighbours0_graph_.get_range(i);
         ordinal_type j = 0;
         for (auto it = it_range.first;it != it_range.second;++it,++j)
         {
