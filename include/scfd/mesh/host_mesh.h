@@ -233,18 +233,34 @@ protected:
         {
             face_key_t      face_key = face_pair.first;
             ordinal_type    face_id = face_pair.second;
+
+            bool            has_virt_pair_face = false;
+            face_key_t      virt_pair_face_key;
+            ordinal_type    virt_pair_face_id;
+
             for (ordinal_type virt_pair_i = 0;virt_pair_i < parent_type::get_virt_pairs_num();++virt_pair_i)
             {
                 if (!face_key.check_has_virt_pair(*this, virt_pair_i))
                 {
-                    faces_virt_master_ids_arr_.add(face_id, face_id);
+                    continue;
                 }
                 else
                 {
-                    face_key_t      virt_pair_face_key = face_key.create_virt_pair(*this, virt_pair_i);
-                    ordinal_type    virt_pair_face_id = faces[virt_pair_face_key];
-                    faces_virt_master_ids_arr_.add(face_id, virt_pair_face_id);
+                    if (has_virt_pair_face)
+                        throw 
+                            std::logic_error("host_mesh::build_faces: face " + std::to_string(face_id) + " has more then one virtual pair");
+                    has_virt_pair_face = true; 
+                    virt_pair_face_key = face_key.create_virt_pair(*this, virt_pair_i);
+                    virt_pair_face_id = faces[virt_pair_face_key];
                 }
+            }
+            if (has_virt_pair_face)
+            {
+                faces_virt_master_ids_arr_.add(face_id, virt_pair_face_id);
+            }
+            else 
+            {
+                faces_virt_master_ids_arr_.add(face_id, face_id);
             }
         }
 
