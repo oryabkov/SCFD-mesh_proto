@@ -174,8 +174,8 @@ int main(int argc, char **args)
     //process args
     if (argc < 6)
     {
-        printf("Usage: ./gpu_poisson_solver DEVICE_NUMBER MESH_FN BND1_ID BND2_ID ITERS_NUM\n");
-        printf("Example: ./gpu_poisson_solver 0 mesh.msh 5 27 1000\n");
+        printf("Usage: ./gpu_poisson_solver.bin DEVICE_NUMBER MESH_FN BND1_ID BND2_ID ITERS_NUM\n");
+        printf("Example: ./gpu_poisson_solver.bin 0 test.msh 5 27 1000\n");
         return 1;
     }
     device_number = atoi(args[1]);
