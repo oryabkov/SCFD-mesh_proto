@@ -312,10 +312,6 @@ TEST(TestHostMeshGMSHWrap, BasicReadPeriodic2)
         std::sort(elem_54_virt_neibs0_ref,elem_54_virt_neibs0_ref+4);
         for (ordinal i = 0;i < 4;++i)
         {
-            std::cout << elem_54_virt_neibs0[i] << " " << elem_54_virt_neibs0_ref[i] << std::endl;
-        }
-        for (ordinal i = 0;i < 4;++i)
-        {
             ASSERT_EQ(elem_54_virt_neibs0[i],elem_54_virt_neibs0_ref[i]);
         }
     } 
