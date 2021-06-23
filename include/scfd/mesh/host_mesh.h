@@ -242,7 +242,7 @@ protected:
                 else
                 {
                     face_key_t      virt_pair_face_key = face_key.create_virt_pair(*this, virt_pair_i);
-                    ordinal_type    virt_pair_face_id = faces[virt_face_key];
+                    ordinal_type    virt_pair_face_id = faces[virt_pair_face_key];
                     faces_virt_master_ids_arr_.add(face_id, virt_pair_face_id);
                 }
             }
@@ -362,17 +362,6 @@ protected:
                 /// (i.e. one that was taken from element with minimal id)
                 face_it->second = std::min(face_it->second,face_id);
             }
-            /*auto virt_face_it = virt_faces.find(virt_face_key);
-            if (virt_face_it == virt_faces.end())
-            {
-                virt_faces[virt_face_key] = face_id;
-            }
-            else
-            {
-                /// Between two poosible ids for face we choose the minimal one
-                /// (i.e. one that was taken from element with minimal id)
-                virt_face_it->second = std::min(virt_face_it->second,face_id);
-            }*/
         }
     }
     void reserve_graphs_for_elem(ordinal_type elem_id, const std::map<face_key_t,ordinal_type,face_key_less_func> &faces)
