@@ -94,6 +94,10 @@ public:
             faces[j] = *it;
         }
     }
+    Ord          get_face_virt_master_id(ordinal_type i)const
+    {
+        return faces_virt_master_ids_arr_[i];
+    }
     /// No need to return number of virt_faces - use get_elem_faces_num
     void         get_elem_virt_faces(ordinal_type i, ordinal_type *virt_faces)const
     {
@@ -210,28 +214,38 @@ protected:
         calc_elems_stencil(ghost_level,stencil_ids);
         const auto &part = *parent_type::get_partitioner();
 
-        /// Create faces and virt_faces dicts
+        /// Create faces dict
 
-        std::map<face_key_t,ordinal_type,face_key_less_func>    faces, virt_faces;
+        std::map<face_key_t,ordinal_type,face_key_less_func>    faces;
         /// Process own elements
         for (ordinal_type i = 0;i < part.get_size();++i)
         {
             ordinal_type  elem_id = part.own_glob_ind(i);
-            build_faces_for_elem(elem_id,faces,virt_faces);
+            build_faces_for_elem(elem_id,faces);
         }
         /// Process stencil elements
         for (auto elem_id : stencil_ids)
         {
-            build_faces_for_elem(elem_id,faces,virt_faces);
+            build_faces_for_elem(elem_id,faces);
         }
 
         for (auto face_pair : faces)
         {
             face_key_t      face_key = face_pair.first;
             ordinal_type    face_id = face_pair.second;
-            face_key_t      virt_face_key = face_key.create_virt(*this);
-            ordinal_type    virt_face_id = virt_faces[virt_face_key];
-            faces_virt_master_ids_arr_.add(face_id, virt_face_id);
+            for (Ord virt_pair_i = 0;virt_pair_i < parent_type::get_virt_pairs_num();++virt_pair_i)
+            {
+                if (!face_key.check_has_virt_pair(*this, virt_pair_i))
+                {
+                    faces_virt_master_ids_arr_.add(face_id, face_id);
+                }
+                else
+                {
+                    face_key_t      virt_pair_face_key = face_key.create_virt_pair(*this, virt_pair_i);
+                    ordinal_type    virt_pair_face_id = faces[virt_face_key];
+                    faces_virt_master_ids_arr_.add(face_id, virt_pair_face_id);
+                }
+            }
         }
 
         /// Create graphs elems_to_faces_graph_ and faces_to_elems_graph_ based on dict
@@ -315,8 +329,7 @@ protected:
     void build_faces_for_elem
     (
         ordinal_type elem_id, 
-        std::map<face_key_t,ordinal_type,face_key_less_func> &faces,
-        std::map<face_key_t,ordinal_type,face_key_less_func> &virt_faces
+        std::map<face_key_t,ordinal_type,face_key_less_func> &faces
     )
     {
         const auto &ref = parent_type::mesh_elem_reference();
@@ -327,8 +340,17 @@ protected:
         for (ordinal_type j = 0;j < ref.get_faces_n(elem_type);++j)
         {
             ordinal_type face_id = elem_id*glob_max_faces_num + j;
-            face_key_t  face_key(*this,elem_id,j,false),
-                        virt_face_key(*this,elem_id,j,true);
+            face_key_t  face_key(*this,elem_id,j);
+            /*if (elem_id == 54-45)
+            {
+                std::cout << "face " << j << std::endl;
+                for (ordinal_type jj = 0;jj < face_key.nodes_n();++jj)
+                    std::cout << face_key.sorted_prim_node(jj) << std::endl;
+                std::cout << std::endl;
+                for (ordinal_type jj = 0;jj < face_key.nodes_n();++jj)
+                    std::cout << virt_face_key.sorted_prim_node(jj) << std::endl;
+                std::cout << std::endl;
+            }*/
             auto face_it = faces.find(face_key);
             if (face_it == faces.end())
             {
@@ -340,7 +362,7 @@ protected:
                 /// (i.e. one that was taken from element with minimal id)
                 face_it->second = std::min(face_it->second,face_id);
             }
-            auto virt_face_it = virt_faces.find(virt_face_key);
+            /*auto virt_face_it = virt_faces.find(virt_face_key);
             if (virt_face_it == virt_faces.end())
             {
                 virt_faces[virt_face_key] = face_id;
@@ -350,7 +372,7 @@ protected:
                 /// Between two poosible ids for face we choose the minimal one
                 /// (i.e. one that was taken from element with minimal id)
                 virt_face_it->second = std::min(virt_face_it->second,face_id);
-            }
+            }*/
         }
     }
     void reserve_graphs_for_elem(ordinal_type elem_id, const std::map<face_key_t,ordinal_type,face_key_less_func> &faces)
@@ -364,7 +386,7 @@ protected:
             if (face_it == faces.end())
                 throw std::logic_error("host_mesh::reserve_graphs_for_elem: no face found!");
             ordinal_type    face_id = face_it->second,
-                            virt_face_id = faces_virt_master_ids_arr_[face_id];
+                            virt_face_id = get_face_virt_master_id(face_id);
 
             elems_to_faces_graph_.inc_max_range_size(elem_id,1);
             elems_to_neighbours0_graph_.inc_max_range_size(elem_id,1);
@@ -386,7 +408,7 @@ protected:
             if (face_it == faces.end())
                 throw std::logic_error("host_mesh::reserve_graphs_for_elem: no face found!");
             ordinal_type    face_id = face_it->second,
-                            virt_face_id = faces_virt_master_ids_arr_[face_id];
+                            virt_face_id = get_face_virt_master_id(face_id);
 
             elems_to_faces_graph_.add_to_range(elem_id, face_id);            
             faces_to_elems_graph_.add_to_range(face_id,std::pair<ordinal_type,ordinal_type>(elem_id,j));

@@ -42,7 +42,7 @@ struct face_key
         std::sort(sorted_prim_nodes_,sorted_prim_nodes_+nodes_n_);
     }
     template<class BasicMesh>
-    face_key(const BasicMesh &mesh,Ord elem_id,Ord elem_face_i,bool make_virt_face = false)
+    face_key(const BasicMesh &mesh,Ord elem_id,Ord elem_face_i)
     {
         const auto &ref = mesh.mesh_elem_reference();
         auto  elem_type = mesh.get_elem_type(elem_id);
@@ -53,19 +53,29 @@ struct face_key
         for (Ord face_vert_i = 0;face_vert_i < ref.get_face_verts_n(elem_type,elem_face_i);++face_vert_i)
         {
             face_nodes[face_vert_i] = nodes[ref.get_face_vert_i(elem_type,elem_face_i,face_vert_i)];
-            if (make_virt_face)
-                face_nodes[face_vert_i] = mesh.get_node_virt_master_id(face_nodes[face_vert_i]);
         }
         //TODO looks strange
         *this = face_key(ref.get_face_verts_n(elem_type,elem_face_i), face_nodes);
     }
     template<class BasicMesh>
-    face_key create_virt(const BasicMesh &mesh)const
+    bool  check_has_virt_pair(const BasicMesh &mesh, Ord virt_pair_i)const
+    {
+        for (Ord j = 0;j < nodes_n_;++j)
+        {
+            if (!mesh.check_node_has_virt_pair_node_id(sorted_prim_nodes_[j], virt_pair_i)) 
+                return false;
+        }
+        return true;
+    }
+    template<class BasicMesh>
+    face_key create_virt_pair(const BasicMesh &mesh, Ord virt_pair_i)const
     {
         face_key res;
         res.nodes_n_ = nodes_n_;
-        for (Ord j = 0;j < res.nodes_n_;++j)
-            res.sorted_prim_nodes_[j] = mesh.get_node_virt_master_id(sorted_prim_nodes_[j]);
+        for (Ord j = 0;j < nodes_n_;++j)
+        {
+            res.sorted_prim_nodes_[j] = mesh.get_node_virt_pair_node_id(sorted_prim_nodes_[j], virt_pair_i);
+        }
         std::sort(res.sorted_prim_nodes_,res.sorted_prim_nodes_+res.nodes_n_);
         return res;
     }
