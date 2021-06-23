@@ -424,9 +424,26 @@ public:
             elems[j] = it->first;
         }
     }
+    Ord get_virt_pairs_num()const
+    {
+        return virt_pairs_num_;
+    }
     Ord get_node_virt_master_id(Ord i)const
     {
         return nodes_virt_master_ids_arr_[i];
+    }
+    bool check_node_has_virt_pair_node_id(Ord i, Ord virt_pair_i)const
+    {
+        auto it1 = nodes_virt_pair_node_ids_.find(i);
+        if (it1 == nodes_virt_pair_node_ids_.end()) return false;
+        auto node_virt_pairs = it1->second;
+        auto it2 = node_virt_pairs.find(virt_pair_i);
+        if (it2 == node_virt_pairs.end()) return false;
+        return true;
+    }
+    Ord get_node_virt_pair_node_id(Ord i, Ord virt_pair_i)const
+    {
+        return nodes_virt_pair_node_ids_.at(i).at(virt_pair_i);
     }
     Ord get_virt_node_incident_elems_num(Ord i)const
     {
@@ -523,6 +540,10 @@ private:
 
     std::map<face_key_t,Ord,face_key_less_func>        bnd_faces_group_ids_;
 
+    Ord                             virt_pairs_num_;
+    /// 1st key is node_id (physical), 2nd key - virt_pair index,
+    /// value - pair node id with respect to the given pair index 
+    std::map<Ord,std::map<Ord,Ord>> nodes_virt_pair_node_ids_;
     nodes_virt_master_ids_arr_t     nodes_virt_master_ids_arr_;
 
     /// Converts internal gmsh tag into 'visible' element index
@@ -547,9 +568,10 @@ private:
     //TODO O(n^2) algo is basically used here - use kd-tree instead of ref_all_nodes
     /// a and b pair gives affine transfrom FROM master TO subordinate
     /// graph is symmetric by construction
+    /// nodes are subordinates nodes here
     void add_virt_nodes_graph_connections
     (
-        const std::set<Ord> &nodes,
+        const std::set<Ord> &nodes, Ord virt_pair_i,
         const mat_t &a, const vec_t &b,
         const std::set<Ord> &ref_all_nodes,
         std::map<Ord,std::set<Ord>> &graph
@@ -587,6 +609,9 @@ private:
                     );
             graph[node_id].insert(node_pair_id);
             graph[node_pair_id].insert(node_id);
+
+            /// NOTE these connections are unidirectional by convention
+            nodes_virt_pair_node_ids_[node_id][virt_pair_i] = node_pair_id;
         }
     }
     /// Here we assert that f dimension is dim-1 (i.e. it is considered to be 'face')
@@ -702,6 +727,8 @@ private:
                     " is present in periodic_g_faces_tags while there is not pair for it"
                 );
 
+        virt_pairs_num_ = subordinates_periodic_g_faces_tags.size();
+
         /// Build nodes virtual connectivity graph
         /// First, build reference nodes set (must be replaced with kd-tree in future)
         /// ref_all_nodes contains only nodes on entities with dimension strictly lower then dim
@@ -720,6 +747,7 @@ private:
         }
         /// Second, build graph itself
         std::map<Ord,std::set<Ord>> graph;
+        Ord virt_pair_i = 0;
         for (auto g_face_tag : subordinates_periodic_g_faces_tags)
         {
             GEntity *f = g_model_->getEntityByTag(dim-1, g_face_tag);
@@ -743,10 +771,11 @@ private:
                     }
                     add_virt_nodes_graph_connections
                     (
-                        nodes, a, b, ref_all_nodes, graph
+                        nodes, virt_pair_i, a, b, ref_all_nodes, graph
                     );
                 }
             }
+            ++virt_pair_i;
         }
 
         /// Build nodes_virt_master_ids_arr_ for lower dimension nodes
