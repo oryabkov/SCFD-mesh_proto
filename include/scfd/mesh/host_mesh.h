@@ -94,7 +94,7 @@ public:
             faces[j] = *it;
         }
     }
-    Ord          get_face_virt_master_id(ordinal_type i)const
+    ordinal_type get_face_virt_master_id(ordinal_type i)const
     {
         return faces_virt_master_ids_arr_[i];
     }
@@ -233,7 +233,7 @@ protected:
         {
             face_key_t      face_key = face_pair.first;
             ordinal_type    face_id = face_pair.second;
-            for (Ord virt_pair_i = 0;virt_pair_i < parent_type::get_virt_pairs_num();++virt_pair_i)
+            for (ordinal_type virt_pair_i = 0;virt_pair_i < parent_type::get_virt_pairs_num();++virt_pair_i)
             {
                 if (!face_key.check_has_virt_pair(*this, virt_pair_i))
                 {
