@@ -105,6 +105,18 @@ struct bnd_cond_data_t
 
 DEFINE_CONSTANT_BUFFER(bnd_cond_data_t, bnd_cond_data)
 
+struct force_data_t
+{
+    /// amplitude
+    real    a;
+    /// space multipliers
+    real    omega[dim];
+    /// space phase shifts
+    real    phi[dim];
+};
+
+DEFINE_CONSTANT_BUFFER(force_data_t, force_data)
+
 __global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new, int bnd1, int bnd2)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -203,11 +215,27 @@ void read_bnd_data(const std::string &fn, bnd_cond_data_t &res, std::set<ordinal
     }
 }
 
+force_data_t read_force_data(const std::string &fn)
+{
+    force_data_t res;
+
+    std::ifstream   f(fn.c_str());
+    if (!(f >> res.a))
+        throw std::runtime_error("read_force_data: failed to read from file " + fn);
+    for (int j = 0;j < dim;++j)
+    {
+        if (!(f >> res.omega[j] >> res.phi[j]))
+            throw std::runtime_error("read_force_data: failed to read from file " + fn);
+    }
+
+    return res;
+}
+
 int main(int argc, char **args)
 {
-    std::string         mesh_fn, bnd_fn;
+    std::string         mesh_fn, bnd_fn, force_fn;
     int                 device_number;
-    ordinal             bnd1, bnd2, iters_num;
+    ordinal             iters_num;
     std::set<ordinal>   periodic_bnds;
 
     log_t               log;
@@ -225,21 +253,27 @@ int main(int argc, char **args)
     log.set_verbosity(1);
 
     //process args
-    if (argc < 5)
+    if (argc < 6)
     {
-        printf("Usage: ./gpu_poisson_solver.bin DEVICE_NUMBER MESH_FN BNDS_FN ITERS_NUM\n");
+        printf("Usage: ./gpu_poisson_solver.bin DEVICE_NUMBER MESH_FN BNDS_FN FORCE_FN ITERS_NUM\n");
         printf("Example: ./gpu_poisson_solver.bin 0 test.msh 5 27 1000\n");
         return 1;
     }
     device_number = atoi(args[1]);
     mesh_fn = args[2];
     bnd_fn = args[3];
-    iters_num = atoi(args[4]);
+    force_fn = args[4];
+    iters_num = atoi(args[5]);
 
     MAIN_TRY("reading boundary data from from " + bnd_fn)
     bnd_cond_data_t bnd_cond_data_host;
     read_bnd_data(bnd_fn, bnd_cond_data_host, periodic_bnds);
     COPY_TO_CONSTANT_BUFFER(bnd_cond_data, bnd_cond_data_host);
+    MAIN_CATCH(2)
+
+    MAIN_TRY("reading force data from from " + force_fn)
+    force_data_t force_data_host = read_force_data(force_fn);
+    COPY_TO_CONSTANT_BUFFER(force_data, force_data_host);
     MAIN_CATCH(2)
 
     MAIN_TRY("reading mesh from " + mesh_fn)
