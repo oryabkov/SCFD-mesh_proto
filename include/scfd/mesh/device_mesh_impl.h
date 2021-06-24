@@ -102,6 +102,8 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
     elems_vertexes.init(elems_range.n,max_nodes_n,elems_range.i0,0);
     elems_neighbours0.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
     elems_neighbours0_loc_face_i.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+    elems_virt_neighbours0.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+    elems_virt_neighbours0_loc_face_i.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
     elems_faces_group_ids.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
     elems_group_ids.init(own_elems_range.n,own_elems_range.i0);
     elems_faces_norms.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
@@ -220,6 +222,37 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
         }
     }
     neighbours_loc_iface_view.release();
+
+    auto          virt_neighbours_view = elems_virt_neighbours0.create_view(false);
+    for (Ord i_ = 0;i_ < map_e.get_size();++i_) 
+    {
+        host_ordinal    i_glob = map_e.own_glob_ind(i_);
+        Ord             i = map_e.own_loc_ind(i_);
+        host_ordinal    neibs[cpu_mesh.get_elems_max_faces_num()];
+        cpu_mesh.get_elem_virt_neighbours0(i_glob, neibs);
+        for (Ord j = 0;j < cpu_mesh.get_elem_faces_num(i_glob);++j) 
+        {
+            if (neibs[j] != host_mesh_t::special_id) 
+                virt_neighbours_view(i,j) = map_e.glob2loc(neibs[j]); 
+            else 
+                virt_neighbours_view(i,j) = special_id;
+        }
+    }
+    virt_neighbours_view.release();
+
+    auto          virt_neighbours_loc_iface_view = elems_virt_neighbours0_loc_face_i.create_view(false);
+    for (Ord i_ = 0;i_ < map_e.get_size();++i_) 
+    {
+        host_ordinal    i_glob = map_e.own_glob_ind(i_);
+        Ord             i = map_e.own_loc_ind(i_);
+        Ord             loc_face_i[cpu_mesh.get_elems_max_faces_num()];
+        cpu_mesh.get_elem_virt_neighbours0_loc_face_i(i_glob, loc_face_i);
+        for (Ord j = 0;j < cpu_mesh.get_elem_faces_num(i_glob);++j) 
+        {
+            virt_neighbours_loc_iface_view(i,j) = loc_face_i[j];
+        }
+    }
+    virt_neighbours_loc_iface_view.release();
 
     auto          boundaries_view = elems_faces_group_ids.create_view(false);
     for (Ord i_ = 0;i_ < map_e.get_size();++i_) 

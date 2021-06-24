@@ -98,6 +98,8 @@ struct device_mesh
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_vertexes;
     tensor1_array<Ord,Memory,dyn_dim>               elems_neighbours0;
     tensor1_array<Ord,Memory,dyn_dim>               elems_neighbours0_loc_face_i;
+    tensor1_array<Ord,Memory,dyn_dim>               elems_virt_neighbours0;
+    tensor1_array<Ord,Memory,dyn_dim>               elems_virt_neighbours0_loc_face_i;
     tensor1_array<Ord,Memory,dyn_dim>               elems_faces_group_ids;
     array<Ord,Memory>                               elems_group_ids;
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_faces_norms;
