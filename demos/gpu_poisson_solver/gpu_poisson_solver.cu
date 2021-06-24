@@ -126,7 +126,8 @@ __global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new)
     vec_t   center0 = mesh().elems_centers.get_vec(i);
     real    numerator(0.f), denominator(0.f);
     for (int j = 0;j < get_elem_faces_n(elem_type);++j) {
-        int nb = mesh().elems_neighbours0(i,j);
+        //int nb = mesh().elems_neighbours0(i,j);
+        int nb = mesh().elems_virt_neighbours0(i,j);
         vec_t   nb_center;
         real    dist, var_nb;
         if (nb != device_mesh_t::special_id) {
