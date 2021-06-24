@@ -96,6 +96,15 @@ __device__ vec_t reflect_point(const vec_t &norm, const vec_t &p1, const vec_t &
     return p0 + norm*(real(2.f)*dest);
 }
 
+struct bnd_cond_data_t
+{
+    ordinal     dirichle_bnds_num;
+    ordinal     dirichle_bnds[10];
+    real        dirichle_vals[10];
+};
+
+DEFINE_CONSTANT_BUFFER(bnd_cond_data_t, bnd_cond_data)
+
 __global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new, int bnd1, int bnd2)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -113,12 +122,21 @@ __global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new, int bnd1
         } else {
             nb_center = reflect_point(mesh().elems_faces_norms.get_vec(i,j), mesh().elems_faces_centers.get_vec(i,j), mesh().elems_centers.get_vec(i));
             //real x = mesh().elems_faces_centers(i,j,0);
-            if (mesh().elems_faces_group_ids(i,j) == bnd1) {
-                //dirichle 0. value
-                var_nb = -vars_old(i);
-            } else if (mesh().elems_faces_group_ids(i,j) == bnd2) {
-                //dirichle 1. value
-                var_nb = real(2.f)*real(1.f)-vars_old(i);
+            ordinal  bnd_group_id = mesh().elems_faces_group_ids(i,j);
+            bool     dirichle_found = false;
+            real     dirichle_val;
+            for (ordinal bnd_i = 0;bnd_i < bnd_cond_data().dirichle_bnds_num;++bnd_i)
+            {
+                if (bnd_group_id == bnd_cond_data().dirichle_bnds[bnd_i])
+                {
+                    dirichle_found = true;
+                    dirichle_val = bnd_cond_data().dirichle_vals[bnd_i];
+                    break;
+                }
+            }
+            if (dirichle_found) {
+                //dirichle value
+                var_nb = real(2.f)*dirichle_val-vars_old(i);
             } else {
                 //neumann
                 var_nb = vars_old(i);
@@ -151,11 +169,46 @@ __global__ void ker_assign(vars_t B, vars_t A)
     B(i) = A(i);
 }
 
+void read_bnd_data(const std::string &fn, bnd_cond_data_t &res, std::set<ordinal> &periodic_bnds)
+{
+    std::ifstream   f(fn.c_str());
+    ordinal         bnds_n;
+    if (!(f >> bnds_n))
+        throw std::runtime_error("read_bnd_data: failed to read from file " + fn);
+    res.dirichle_bnds_num = 0;
+    for (ordinal bnd_i = 0;bnd_i < bnds_n;++bnd_i)
+    {
+        ordinal         bnd_id;
+        std::string     bnd_type;
+        real            bnd_val;
+        if (!(f >> bnd_id >> bnd_type >> bnd_val))
+            throw std::runtime_error("read_bnd_data: failed to read from file " + fn);
+
+        if (bnd_type == "D")
+        {
+            res.dirichle_bnds[res.dirichle_bnds_num] = bnd_id;
+            res.dirichle_vals[res.dirichle_bnds_num] = bnd_val;
+            ++res.dirichle_bnds_num;
+            if (res.dirichle_bnds_num > 10)
+                throw std::runtime_error("read_bnd_data: res.dirichle_bnds_num > 10");
+        } 
+        else if (bnd_type == "P")
+        {
+            periodic_bnds.insert(bnd_id);
+        }
+        else
+        {
+            throw std::runtime_error("read_bnd_data: unknown boundary type " + bnd_type);
+        }
+    }
+}
+
 int main(int argc, char **args)
 {
-    std::string         mesh_fn;
+    std::string         mesh_fn, bnd_fn;
     int                 device_number;
     ordinal             bnd1, bnd2, iters_num;
+    std::set<ordinal>   periodic_bnds;
 
     log_t               log;
     auto                part = std::make_shared<partitioner_t>();
@@ -172,21 +225,26 @@ int main(int argc, char **args)
     log.set_verbosity(1);
 
     //process args
-    if (argc < 6)
+    if (argc < 5)
     {
-        printf("Usage: ./gpu_poisson_solver.bin DEVICE_NUMBER MESH_FN BND1_ID BND2_ID ITERS_NUM\n");
+        printf("Usage: ./gpu_poisson_solver.bin DEVICE_NUMBER MESH_FN BNDS_FN ITERS_NUM\n");
         printf("Example: ./gpu_poisson_solver.bin 0 test.msh 5 27 1000\n");
         return 1;
     }
     device_number = atoi(args[1]);
     mesh_fn = args[2];
-    bnd1 = atoi(args[3]);
-    bnd2 = atoi(args[4]);
-    iters_num = atoi(args[5]);
+    bnd_fn = args[3];
+    iters_num = atoi(args[4]);
+
+    MAIN_TRY("reading boundary data from from " + bnd_fn)
+    bnd_cond_data_t bnd_cond_data_host;
+    read_bnd_data(bnd_fn, bnd_cond_data_host, periodic_bnds);
+    COPY_TO_CONSTANT_BUFFER(bnd_cond_data, bnd_cond_data_host);
+    MAIN_CATCH(2)
 
     MAIN_TRY("reading mesh from " + mesh_fn)
     host_mesh->set_mesh_filename(mesh_fn);
-    host_mesh->read();
+    host_mesh->read(periodic_bnds);
     *part = partitioner_t(host_mesh->get_total_elems_num(), 1, 0);
     host_mesh->set_partitioner(part);
     host_mesh->enlarge_stencil(1);
