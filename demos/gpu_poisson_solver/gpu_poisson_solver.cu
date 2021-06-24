@@ -117,12 +117,13 @@ struct force_data_t
 
 DEFINE_CONSTANT_BUFFER(force_data_t, force_data)
 
-__global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new, int bnd1, int bnd2)
+__global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (!((i >= mesh().own_elems_range.i0)&&(i < mesh().own_elems_range.i0 + mesh().own_elems_range.n))) return;
 
     int     elem_type = get_elem_type(i);
+    vec_t   center0 = mesh().elems_centers.get_vec(i);
     real    numerator(0.f), denominator(0.f);
     for (int j = 0;j < get_elem_faces_n(elem_type);++j) {
         int nb = mesh().elems_neighbours0(i,j);
@@ -155,11 +156,17 @@ __global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new, int bnd1
             }
             //var_nb = real(2.f)*x-vars_old(i);
         }
-        dist = scalar_prod(mesh().elems_faces_norms.get_vec(i,j), nb_center - mesh().elems_centers.get_vec(i));
+        dist = scalar_prod(mesh().elems_faces_norms.get_vec(i,j), nb_center - center0);
 
         numerator += mesh().elems_faces_areas(i,j)*var_nb/dist;
         denominator += mesh().elems_faces_areas(i,j)/dist;
     }
+    real force = force_data().a;
+    for (int j = 0;j < dim;++j)
+    {
+        force *= sin(force_data().omega[j]*center0[j] + force_data().phi[j]);
+    }
+    numerator -= mesh().elems_vols(i,0)*force;
     vars_new(i) = numerator/denominator;
     //real x = mesh().elems_centers(i,0);
     //vars_new(i) = x;
@@ -323,7 +330,7 @@ int main(int argc, char **args)
     {
         log.info_f("iteration %d", i);
         //put result in vars1
-        ker_poisson_iteration<<<dimGrid, dimBlock>>>(vars0, vars1, bnd1, bnd2);
+        ker_poisson_iteration<<<dimGrid, dimBlock>>>(vars0, vars1);
         //vars0 := vars1
         ker_assign<<<dimGrid, dimBlock>>>(vars0, vars1);
     }
