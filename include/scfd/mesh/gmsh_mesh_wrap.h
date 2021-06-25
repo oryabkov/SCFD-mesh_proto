@@ -65,6 +65,11 @@ public:
     static const int          dim = Dim;
     static const ordinal_type special_id = std::numeric_limits<ordinal_type>::max();
 
+    /// ISSUE not sure about exmplicit usage of these in BasicMesh 
+    /// I mean we explicitly add them to BasicMesh concept, is it right?
+    using vec_type = static_vec::vec<scalar_type,dim>;
+    using mat_type = static_mat::mat<scalar_type,dim,dim>;
+
 public:
     /// No 'empty' state
     gmsh_mesh_wrap()
@@ -428,6 +433,15 @@ public:
     {
         return virt_pairs_num_;
     }
+    /// ISSUE What is better? these ones, or explicit matrix/vector pair?
+    vec_type virt_pair_transform(Ord virt_pair_i, const vec_type &c)
+    {
+        return virt_pairs_mats_[virt_pair_i]*c + virt_pairs_vecs_[virt_pair_i];
+    }
+    vec_type virt_pair_inv_transform(Ord virt_pair_i, const vec_type &c)
+    {
+        return virt_pairs_inv_mats_[virt_pair_i]*(c - virt_pairs_vecs_[virt_pair_i]);
+    }
     Ord get_node_virt_master_id(Ord i)const
     {
         return nodes_virt_master_ids_arr_[i];
@@ -517,9 +531,6 @@ private:
     using nodes_virt_master_ids_arr_t =  detail::sparse_arr<Ord>;
     //using faces_virt_master_ids_arr_t =  detail::sparse_arr<Ord>;
 
-    using vec_t = static_vec::vec<scalar_type,dim>;
-    using mat_t = static_mat::mat<scalar_type,dim,dim>;
-
 private:
     mesh_elem_reference_type        mesh_elem_reference_;
 
@@ -541,6 +552,8 @@ private:
     std::map<face_key_t,Ord,face_key_less_func>        bnd_faces_group_ids_;
 
     Ord                             virt_pairs_num_;
+    std::vector<mat_type>           virt_pairs_mats_,virt_pairs_inv_mats_;
+    std::vector<vec_type>           virt_pairs_vecs_;
     /// 1st key is node_id (physical), 2nd key - virt_pair index,
     /// value - pair node id with respect to the given pair index 
     std::map<Ord,std::map<Ord,Ord>> nodes_virt_pair_node_ids_;
@@ -572,20 +585,20 @@ private:
     void add_virt_nodes_graph_connections
     (
         const std::set<Ord> &nodes, Ord virt_pair_i,
-        const mat_t &a, const vec_t &b,
+        const mat_type &a, const vec_type &b,
         const std::set<Ord> &ref_all_nodes,
         std::map<Ord,std::set<Ord>> &graph
     )
     {
         for (auto node_id : nodes)
         {
-            vec_t  c;
+            vec_type  c;
             get_node_coords(node_id,c.d);
             bool    node_pair_id_found = false;
             Ord     node_pair_id;
             for (auto node1_id : ref_all_nodes)
             {
-                vec_t  c1, c1_pair, c_diff;
+                vec_type  c1, c1_pair, c_diff;
                 get_node_coords(node1_id,c1.d);
                 c1_pair = a*c1 + b;
                 c_diff = c1_pair - c;
@@ -728,6 +741,9 @@ private:
                 );
 
         virt_pairs_num_ = subordinates_periodic_g_faces_tags.size();
+        virt_pairs_mats_.resize(virt_pairs_num_);
+        virt_pairs_inv_mats_.resize(virt_pairs_num_);
+        virt_pairs_vecs_.resize(virt_pairs_num_);
 
         /// Build nodes virtual connectivity graph
         /// First, build reference nodes set (must be replaced with kd-tree in future)
@@ -745,7 +761,7 @@ private:
                 }
             }
         }
-        /// Second, build graph itself
+        /// Second, build graph itself also store trasforms for pairs
         std::map<Ord,std::set<Ord>> graph;
         Ord virt_pair_i = 0;
         for (auto g_face_tag : subordinates_periodic_g_faces_tags)
@@ -754,10 +770,10 @@ private:
 
             auto at = f->affineTransform;
 
-            mat_t a(at[0],at[1],at[2],
-                    at[4],at[5],at[6],
-                    at[8],at[9],at[10]);
-            vec_t b(at[3],at[7],at[11]);
+            mat_type a(at[0],at[1],at[2],
+                       at[4],at[5],at[6],
+                       at[8],at[9],at[10]);
+            vec_type b(at[3],at[7],at[11]);
 
             for (int curr_dim = dim-1;curr_dim >= 0;--curr_dim)
             {
@@ -775,6 +791,11 @@ private:
                     );
                 }
             }
+
+            virt_pairs_mats_[virt_pair_i] = a;
+            virt_pairs_inv_mats_[virt_pair_i] = inv33(a);
+            virt_pairs_vecs_[virt_pair_i] = b;
+
             ++virt_pair_i;
         }
 
