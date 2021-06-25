@@ -568,6 +568,25 @@ struct device_mesh_funcs
         }
     };
 
+    /// NOTE this functor does not calc final results; additional transformation is needed for actual virt. neibs.
+    struct update_center_virt_neighbour
+    {
+        __DEVICE_TAG__ void operator()(const int &i)const
+        {
+            int elem_type = mesh().get_elem_type(i);
+            for (int face_i = 0;face_i < elem_ref().get_faces_n(elem_type);++face_i) 
+            {
+                int     nb = mesh().elems_virt_neighbours0(i, face_i);
+                if (nb != device_mesh_t::special_id) 
+                {
+                    t_vec   nb_center;
+                    mesh().elems_centers.get_vec(nb_center, nb);
+                    mesh().elems_virt_neighbours0_centers.set_vec(nb_center, i, face_i);
+                }
+            }
+        }
+    };
+
 };
 
 /*void copy_deform_2_cpu_mesh

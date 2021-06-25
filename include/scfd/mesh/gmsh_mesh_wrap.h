@@ -434,11 +434,11 @@ public:
         return virt_pairs_num_;
     }
     /// ISSUE What is better? these ones, or explicit matrix/vector pair?
-    vec_type virt_pair_transform(Ord virt_pair_i, const vec_type &c)
+    vec_type virt_pair_transform(Ord virt_pair_i, const vec_type &c)const
     {
         return virt_pairs_mats_[virt_pair_i]*c + virt_pairs_vecs_[virt_pair_i];
     }
-    vec_type virt_pair_inv_transform(Ord virt_pair_i, const vec_type &c)
+    vec_type virt_pair_inv_transform(Ord virt_pair_i, const vec_type &c)const
     {
         return virt_pairs_inv_mats_[virt_pair_i]*(c - virt_pairs_vecs_[virt_pair_i]);
     }

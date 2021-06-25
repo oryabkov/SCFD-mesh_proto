@@ -281,8 +281,8 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
         auto   elem_node_ids_view = elems_prim_nodes_ids.create_view(false);
         for(Ord i_ = 0;i_ < map_e.get_size();i_++) 
         {
-            int     i_glob = map_e.own_glob_ind(i_),
-                    i_loc = map_e.own_loc_ind(i_);
+            host_ordinal    i_glob = map_e.own_glob_ind(i_);
+            Ord             i_loc = map_e.own_loc_ind(i_);
             for (Ord vert_i = 0;vert_i < cpu_mesh.get_elem_prim_nodes_num(i_glob);++vert_i) 
             {
                 elem_node_ids_view(i_loc,vert_i) = map_n.glob2loc( cpu_mesh.get_elem_node(i_glob,vert_i) );
@@ -305,6 +305,52 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
     //TODO we need to sync all updated geometry features between processors 
     //(for those one which are stored not only for own elements, like element centers)
     for_each( typename device_mesh_funcs_t::update_center_neighbour(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
+    for_each( typename device_mesh_funcs_t::update_center_virt_neighbour(), own_elems_range.i0, own_elems_range.i0+own_elems_range.n );
+
+    /// Perform corrections for virt_neigbours
+    auto   elems_virt_neighbours0_centers_view = elems_virt_neighbours0_centers.create_view(true);
+    for(Ord i_ = 0;i_ < map_e.get_size();i_++) 
+    {
+        host_ordinal    i_glob = map_e.own_glob_ind(i_);
+        Ord             i_loc = map_e.own_loc_ind(i_);
+        host_ordinal    faces[cpu_mesh.get_elem_faces_num(i_glob)];
+        cpu_mesh.get_elem_faces(i_glob, faces);
+        host_ordinal    virt_neibs[cpu_mesh.get_elem_faces_num(i_glob)];
+        cpu_mesh.get_elem_virt_neighbours0(i_glob, virt_neibs);
+        host_ordinal    virt_neibs_loc_face_i[cpu_mesh.get_elem_faces_num(i_glob)];
+        cpu_mesh.get_elem_virt_neighbours0_loc_face_i(i_glob, virt_neibs_loc_face_i);
+        for (Ord j = 0;j < cpu_mesh.get_elem_faces_num(i_glob);++j) 
+        {
+            for (host_ordinal virt_pair_i = 0;virt_pair_i < cpu_mesh.get_virt_pairs_num();++virt_pair_i)
+            {
+                if (!cpu_mesh.check_face_has_virt_pair_face_id(faces[j], virt_pair_i)) continue;
+                host_ordinal face_virt_pair_id = cpu_mesh.get_face_virt_pair_face_id(faces[j], virt_pair_i);
+
+                elems_virt_neighbours0_centers_view.set_vec
+                (
+                    cpu_mesh.virt_pair_transform
+                    (
+                        virt_pair_i, elems_virt_neighbours0_centers_view.get_vec(i_loc,j)
+                    ),
+                    i_loc,j
+                );
+
+                if (!map_e.check_glob_owned(virt_neibs[j])) continue;
+
+                Ord neib_loc_i = map_e.glob2loc(virt_neibs[j]);
+
+                elems_virt_neighbours0_centers_view.set_vec
+                (
+                    cpu_mesh.virt_pair_inv_transform
+                    (
+                        virt_pair_i, elems_virt_neighbours0_centers_view.get_vec(neib_loc_i,virt_neibs_loc_face_i[j])
+                    ),
+                    neib_loc_i,virt_neibs_loc_face_i[j]
+                );
+            }
+        }
+    }
+    elems_virt_neighbours0_centers_view.release();
 }
 
 template<class T,class Memory,int Dim,class Ord>

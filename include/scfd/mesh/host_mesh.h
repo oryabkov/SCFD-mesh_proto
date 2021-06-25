@@ -212,7 +212,16 @@ private:
     faces_to_elems_graph_t          faces_to_elems_graph_;
     elems_to_neighbours0_graph_t    elems_to_neighbours0_graph_;
 
-    std::map<Ord,std::map<Ord,Ord>> faces_virt_pair_face_ids_;
+    //TODO hmm))
+    std::map
+    <
+        ordinal_type,
+        std::map
+        <
+            ordinal_type,
+            ordinal_type
+        >
+    >                               faces_virt_pair_face_ids_;
     faces_virt_master_ids_arr_t     faces_virt_master_ids_arr_;
 
     elems_to_faces_graph_t          elems_to_virt_faces_graph_;
