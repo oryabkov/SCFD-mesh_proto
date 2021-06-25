@@ -98,6 +98,19 @@ public:
     {
         return faces_virt_master_ids_arr_[i];
     }
+    bool         check_face_has_virt_pair_face_id(ordinal_type i, ordinal_type virt_pair_i)const
+    {
+        auto it1 = faces_virt_pair_face_ids_.find(i);
+        if (it1 == faces_virt_pair_face_ids_.end()) return false;
+        auto face_virt_pairs = it1->second;
+        auto it2 = face_virt_pairs.find(virt_pair_i);
+        if (it2 == face_virt_pairs.end()) return false;
+        return true;
+    }
+    ordinal_type get_face_virt_pair_face_id(ordinal_type i, ordinal_type virt_pair_i)const
+    {
+        return faces_virt_pair_face_ids_.at(i).at(virt_pair_i);
+    }
     /// No need to return number of virt_faces - use get_elem_faces_num
     void         get_elem_virt_faces(ordinal_type i, ordinal_type *virt_faces)const
     {
@@ -199,6 +212,7 @@ private:
     faces_to_elems_graph_t          faces_to_elems_graph_;
     elems_to_neighbours0_graph_t    elems_to_neighbours0_graph_;
 
+    std::map<Ord,std::map<Ord,Ord>> faces_virt_pair_face_ids_;
     faces_virt_master_ids_arr_t     faces_virt_master_ids_arr_;
 
     elems_to_faces_graph_t          elems_to_virt_faces_graph_;
@@ -252,6 +266,7 @@ protected:
                     has_virt_pair_face = true; 
                     virt_pair_face_key = face_key.create_virt_pair(*this, virt_pair_i);
                     virt_pair_face_id = faces[virt_pair_face_key];
+                    faces_virt_pair_face_ids_[face_id][virt_pair_i] = virt_pair_face_id;
                 }
             }
             if (has_virt_pair_face)
