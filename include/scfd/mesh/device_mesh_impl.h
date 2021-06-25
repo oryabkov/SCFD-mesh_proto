@@ -98,6 +98,7 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
     elems_types.init(own_elems_range.n, own_elems_range.i0);
     elems_centers.init(elems_range.n, elems_range.i0);  //ISSUE
     elems_neighbours0_centers.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+    elems_virt_neighbours0_centers.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
     elems_faces_centers.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
     elems_vertexes.init(elems_range.n,max_nodes_n,elems_range.i0,0);
     elems_neighbours0.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);

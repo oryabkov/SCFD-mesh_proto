@@ -93,6 +93,7 @@ struct device_mesh
     array<elem_type_ordinal_type,Memory>            elems_types;              //valid only if is_homogeneous == false
     tensor1_array<T,Memory,Dim>                     elems_centers;
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_neighbours0_centers;
+    tensor2_array<T,Memory,dyn_dim,Dim>             elems_virt_neighbours0_centers;
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_faces_centers;
     //TODO replace with var array
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_vertexes;
