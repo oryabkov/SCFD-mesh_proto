@@ -131,7 +131,7 @@ __global__ void ker_poisson_iteration(vars_t vars_old, vars_t vars_new)
         vec_t   nb_center;
         real    dist, var_nb;
         if (nb != device_mesh_t::special_id) {
-            mesh().elems_neighbours0_centers.get_vec(nb_center,i,j);
+            mesh().elems_virt_neighbours0_centers.get_vec(nb_center,i,j);
             var_nb = vars_old(nb);
         } else {
             nb_center = reflect_point(mesh().elems_faces_norms.get_vec(i,j), mesh().elems_faces_centers.get_vec(i,j), mesh().elems_centers.get_vec(i));
