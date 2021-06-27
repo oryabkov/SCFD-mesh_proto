@@ -98,9 +98,9 @@ TEST(TestHostMeshGMSHWrap, BasicRead)
             ordinal        elem_id = part->own_glob_ind(i_);
             ordinal        faces_n = host_mesh->get_elem_faces_num(elem_id);
             ordinal        neibs[faces_n];
-            host_mesh->get_elem_virt_neighbours0(elem_id, neibs);
+            host_mesh->get_elem_neighbours0(elem_id, neibs);
             ordinal        neibs_loc_face_i[faces_n];
-            host_mesh->get_elem_virt_neighbours0_loc_face_i(elem_id, neibs_loc_face_i);
+            host_mesh->get_elem_neighbours0_loc_face_i(elem_id, neibs_loc_face_i);
 
             /*for (ordinal j = 0;j < faces_n;++j)
                 std::cout << neibs[j] << " " << neibs_loc_face_i[j] << std::endl;*/
@@ -225,6 +225,48 @@ TEST(TestHostMeshGMSHWrap, BasicReadPeriodic1)
         for (ordinal i = 0;i < 4;++i)
         {
             ASSERT_EQ(elem_54_virt_neibs0[i],elem_54_virt_neibs0_ref[i]);
+        }
+
+        /// Test loc_face_i for neighbours
+        for(ordinal i_ = 0;i_ < part->get_size();i_++) 
+        {
+            ordinal        elem_id = part->own_glob_ind(i_);
+            ordinal        faces_n = host_mesh->get_elem_faces_num(elem_id);
+            ordinal        neibs[faces_n];
+            host_mesh->get_elem_neighbours0(elem_id, neibs);
+            ordinal        neibs_loc_face_i[faces_n];
+            host_mesh->get_elem_neighbours0_loc_face_i(elem_id, neibs_loc_face_i);
+
+            for (ordinal j = 0;j < faces_n;++j)
+            {
+                if (neibs[j] == host_mesh_t::special_id) continue;
+
+                /// using of face key is a little bit of a hack here (because it is placed in detail)
+                scfd::mesh::detail::face_key<ordinal>   face_key(*host_mesh,elem_id,j),
+                                                        nb_face_key(*host_mesh,neibs[j],neibs_loc_face_i[j]);
+                ASSERT_TRUE(scfd::mesh::detail::face_key_equal_func<ordinal>()(face_key,nb_face_key));
+            }
+        }
+
+        /// Test loc_face_i for virt neighbours
+        for(ordinal i_ = 0;i_ < part->get_size();i_++) 
+        {
+            ordinal        elem_id = part->own_glob_ind(i_);
+            ordinal        faces_n = host_mesh->get_elem_faces_num(elem_id);
+            ordinal        neibs[faces_n];
+            host_mesh->get_elem_virt_neighbours0(elem_id, neibs);
+            ordinal        neibs_loc_face_i[faces_n];
+            host_mesh->get_elem_virt_neighbours0_loc_face_i(elem_id, neibs_loc_face_i);
+
+            for (ordinal j = 0;j < faces_n;++j)
+            {
+                if (neibs[j] == host_mesh_t::special_id) continue;
+
+                /// using of face key is a little bit of a hack here (because it is placed in detail)
+                scfd::mesh::detail::face_key<ordinal>   face_key(*host_mesh,elem_id,j),
+                                                        nb_face_key(*host_mesh,neibs[j],neibs_loc_face_i[j]);
+                ASSERT_TRUE(scfd::mesh::detail::face_key_equal_func<ordinal>()(face_key,nb_face_key));
+            }
         }
     } 
     catch(const std::exception &e)
