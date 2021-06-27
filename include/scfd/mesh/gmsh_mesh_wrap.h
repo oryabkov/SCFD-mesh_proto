@@ -137,6 +137,7 @@ public:
                     "gmsh_mesh_wrap::read(): case of non-contigious tags is not supported yet"
                 );
         elements_index_shift_ = min_elem_tag;
+        //std::cout << "elements_index_shift_ = " << elements_index_shift_ << std::endl;
 
         /// Build entities tags map and nodes to elements graph
         //TODO would be usefull to call it but don't know how to efficently take nodes number from gmsh
@@ -794,6 +795,11 @@ private:
 
             virt_pairs_mats_[virt_pair_i] = a;
             virt_pairs_inv_mats_[virt_pair_i] = inv33(a);
+            /*mat_type m = virt_pairs_mats_[virt_pair_i]*virt_pairs_inv_mats_[virt_pair_i];
+            std::cout << 
+                m(0,0) << " " << m(0,1) << " " << m(0,2) << std::endl << 
+                m(1,0) << " " << m(1,1) << " " << m(1,2) << std::endl << 
+                m(2,0) << " " << m(2,1) << " " << m(2,2) << std::endl << std::endl;*/
             virt_pairs_vecs_[virt_pair_i] = b;
 
             ++virt_pair_i;

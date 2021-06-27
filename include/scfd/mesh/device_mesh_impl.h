@@ -309,6 +309,10 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
 
     /// Perform corrections for virt_neigbours
     auto   elems_virt_neighbours0_centers_view = elems_virt_neighbours0_centers.create_view(true);
+
+    /*auto tmp = elems_virt_neighbours0_centers_view.get_vec(1051,1);
+    std::cout << tmp[0] << " " << tmp[1] << " " << tmp[2] << std::endl;*/
+
     for(Ord i_ = 0;i_ < map_e.get_size();i_++) 
     {
         host_ordinal    i_glob = map_e.own_glob_ind(i_);
@@ -326,6 +330,21 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
                 if (!cpu_mesh.check_face_has_virt_pair_face_id(faces[j], virt_pair_i)) continue;
                 host_ordinal face_virt_pair_id = cpu_mesh.get_face_virt_pair_face_id(faces[j], virt_pair_i);
 
+                /*if (virt_neibs[j] == 1688-621)
+                {
+                    std::cout << "here0: " << std::to_string(j) << " " << std::to_string(virt_pair_i) << std::endl;
+                    std::cout << "i_loc " << i_loc << " j " << j << std::endl;
+                    auto nb_c = elems_virt_neighbours0_centers_view.get_vec(i_loc,j);
+                    std::cout << nb_c[0] << " " << nb_c[1] << " " << nb_c[2] << std::endl;
+                    auto nb_new_c = cpu_mesh.virt_pair_inv_transform(virt_pair_i, nb_c);
+                    std::cout << nb_new_c[0] << " " << nb_new_c[1] << " " << nb_new_c[2] << std::endl;
+                }*/
+
+                /*if ((i_loc == 1051)&&(j == 1))
+                {
+                    std::cout << "var1: virt_pair_i = " << std::to_string(virt_pair_i) << std::endl;
+                }*/
+
                 elems_virt_neighbours0_centers_view.set_vec
                 (
                     cpu_mesh.virt_pair_transform
@@ -335,9 +354,27 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
                     i_loc,j
                 );
 
-                if (!map_e.check_glob_owned(virt_neibs[j])) continue;
+                if (!map_e.check_glob_owned(virt_neibs[j])) 
+                {
+                    //std::cout << "map_e.check_glob_owned(virt_neibs[j]) false" << std::endl;
+                    continue;
+                }
 
                 Ord neib_loc_i = map_e.glob2loc(virt_neibs[j]);
+
+                /*if (virt_neibs[j] == 1688-621)
+                {
+                    std::cout << "here: " << std::to_string(virt_pair_i) << std::endl;
+                    auto nb_c = elems_virt_neighbours0_centers_view.get_vec(neib_loc_i,virt_neibs_loc_face_i[j]);
+                    std::cout << nb_c[0] << " " << nb_c[1] << " " << nb_c[2] << std::endl;
+                    auto nb_new_c = cpu_mesh.virt_pair_transform(virt_pair_i, nb_c);
+                    std::cout << nb_new_c[0] << " " << nb_new_c[1] << " " << nb_new_c[2] << std::endl;
+                }*/
+
+                /*if ((neib_loc_i == 1051)&&(virt_neibs_loc_face_i[j] == 1))
+                {
+                    std::cout << "var2: virt_pair_i = " << std::to_string(virt_pair_i) << std::endl;
+                }*/
 
                 elems_virt_neighbours0_centers_view.set_vec
                 (
