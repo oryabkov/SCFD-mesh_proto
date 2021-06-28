@@ -32,7 +32,7 @@ TEST(TestHostMeshGMSHWrap, BasicRead)
     {
         auto        part = std::make_shared<partitioner_t>();
         auto        host_mesh = std::make_shared<host_mesh_t>();
-        host_mesh->set_mesh_filename("test.msh");
+        host_mesh->set_mesh_filename("test_box3d.msh");
         host_mesh->read();
         *part = partitioner_t(host_mesh->get_total_elems_num(), 1, 0);
         host_mesh->set_partitioner(part);
