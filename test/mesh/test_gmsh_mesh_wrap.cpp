@@ -30,7 +30,7 @@ TEST(TestGMSHMeshWrap, BasicRead)
     {
         auto        part = std::make_shared<partitioner_t>();
         auto        gmsh_wrap = std::make_shared<gmsh_wrap_t>();
-        gmsh_wrap->set_mesh_filename("test.msh");
+        gmsh_wrap->set_mesh_filename("test_box3d.msh");
         gmsh_wrap->read();
         *part = partitioner_t(gmsh_wrap->get_total_elems_num(), 1, 0);
         gmsh_wrap->set_partitioner(part);
