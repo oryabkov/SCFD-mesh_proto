@@ -264,7 +264,10 @@ int main(int argc, char **args)
     if (argc < 6)
     {
         printf("Usage: ./gpu_poisson_solver.bin DEVICE_NUMBER MESH_FN BNDS_FN FORCE_FN ITERS_NUM\n");
-        printf("Example: ./gpu_poisson_solver.bin 0 test.msh 5 27 1000\n");
+        printf("Example: ./gpu_poisson_solver.bin 0 test_box3d.msh bnd_two_dirichle.cfg force_zero.cfg 1000\n");
+        printf("Example: ./gpu_poisson_solver.bin 0 test_box3d_period_big_mesh.msh bnd_two_dirichle.cfg force_zero.cfg 10000\n");
+        printf("Example: ./gpu_poisson_solver.bin 0 test_box3d_period_big_mesh.msh bnd_all_zero_dirichle.cfg force_period.cfg 1000\n");
+        printf("Example: ./gpu_poisson_solver.bin 0 test_box3d_period_big_mesh.msh bnd_all_period.cfg force_period_shift_0_3.cfg 1000\n");
         return 1;
     }
     device_number = atoi(args[1]);
