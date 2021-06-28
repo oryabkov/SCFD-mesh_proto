@@ -1,6 +1,6 @@
 
-file(COPY test.msh DESTINATION .)
-file(COPY test.geo DESTINATION .)
+file(COPY test_box3d.msh DESTINATION .)
+file(COPY test_box3d.geo DESTINATION .)
 file(COPY test_box3d_small_mesh.msh DESTINATION .)
 file(COPY test_box3d_period_small_mesh.msh DESTINATION .)
 
