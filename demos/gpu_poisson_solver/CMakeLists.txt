@@ -14,6 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
 
+file(COPY test_box3d.geo DESTINATION .)
+file(COPY test_box3d.msh DESTINATION .)
+file(COPY test_box3d_period.geo DESTINATION .)
+file(COPY test_box3d_period.msh DESTINATION .)
+file(COPY test_box3d_period_big_mesh.geo DESTINATION .)
+file(COPY test_box3d_period_big_mesh.msh DESTINATION .)
+
 set(GMSH_LIB_DIR "${GMSH_INSTALL_ROOT_DIR}/lib")
 set(GMSH_INCLUDE_DIR "${GMSH_INSTALL_ROOT_DIR}/include")
 
