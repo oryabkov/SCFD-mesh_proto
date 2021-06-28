@@ -21,6 +21,13 @@ file(COPY test_box3d_period.msh DESTINATION .)
 file(COPY test_box3d_period_big_mesh.geo DESTINATION .)
 file(COPY test_box3d_period_big_mesh.msh DESTINATION .)
 
+file(COPY bnd_all_period.cfg DESTINATION .)
+file(COPY bnd_two_dirichle.cfg DESTINATION .)
+file(COPY force_period_shift_0_3.cfg DESTINATION .)
+file(COPY bnd_all_zero_dirichle.cfg DESTINATION .)
+file(COPY force_period.cfg DESTINATION .)
+file(COPY force_zero.cfg DESTINATION .)
+
 set(GMSH_LIB_DIR "${GMSH_INSTALL_ROOT_DIR}/lib")
 set(GMSH_INCLUDE_DIR "${GMSH_INSTALL_ROOT_DIR}/include")
 
