@@ -571,7 +571,7 @@ protected:
     )
     {
         const auto &part = *parent_type::get_partitioner();
-        const auto &ref = parent_type::mesh_elem_reference();
+        //const auto &ref = parent_type::mesh_elem_reference();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
         ordinal_type nodes_n;
         ordinal_type nodes[parent_type::get_elems_max_prim_nodes_num()];
