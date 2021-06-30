@@ -477,6 +477,7 @@ protected:
                 neib0_id = it1->first;
             }
             auto it_range2 = curr_elems_to_faces_graph.get_range(neib0_id);
+            //TODO think we can use it1->second as loc_face_i
             ordinal_type loc_face_i = 0;
             bool         found_loc_face_i = false;
             for (auto it2 = it_range2.first;it2 != it_range2.second;++it2,++loc_face_i)
