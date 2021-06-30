@@ -170,7 +170,7 @@ public:
                         inelem_face_ind = it_range.first->second;
         const auto      &ref = parent_type::mesh_elem_reference();
         auto            elem_type = parent_type::get_elem_type(elem_id);
-        return ref.get_face_verts_n(elem_type, inelem_face_ind);
+        return ref.get_face_prim_verts_n(elem_type, inelem_face_ind);
     }
     ordinal_type get_face_prim_nodes
     (
@@ -185,12 +185,12 @@ public:
                         inelem_face_ind = it_range.first->second;
         const auto      &ref = parent_type::mesh_elem_reference();
         auto            elem_type = parent_type::get_elem_type(elem_id);
-        ordinal_type    prim_nodes_num_ = ref.get_face_verts_n(elem_type, inelem_face_ind);
+        ordinal_type    prim_nodes_num_ = ref.get_face_prim_verts_n(elem_type, inelem_face_ind);
         if (prim_nodes_num) *prim_nodes_num = prim_nodes_num_;
         ordinal_type    elem_prim_nodes[parent_type::get_elem_prim_nodes_num(elem_id)];
         parent_type::get_elem_prim_nodes(elem_id, elem_prim_nodes);
         for (ordinal_type face_vert_i = 0;face_vert_i < prim_nodes_num_;++face_vert_i)
-            prim_nodes[face_vert_i] = elem_prim_nodes[ref.get_face_vert_i(elem_type,inelem_face_ind,face_vert_i)];
+            prim_nodes[face_vert_i] = elem_prim_nodes[ref.get_face_prim_vert_i(elem_type,inelem_face_ind,face_vert_i)];
     }
 
     /// Neighbours0 interface
