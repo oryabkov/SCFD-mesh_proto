@@ -511,15 +511,17 @@ protected:
                 continue;
             }
             ordinal_type neib0_id;
+            ordinal_type loc_face_i;
             auto it_range1 = curr_faces_to_elems_graph.get_range(face_id);
             for (auto it1 = it_range1.first;it1 != it_range1.second;++it1)
             {
                 if (it1->first == elem_id) continue;
                 neib0_id = it1->first;
+                loc_face_i = it1->second;
             }
-            auto it_range2 = curr_elems_to_faces_graph.get_range(neib0_id);
+            //auto it_range2 = curr_elems_to_faces_graph.get_range(neib0_id);
             //TODO think we can use it1->second as loc_face_i
-            ordinal_type loc_face_i = 0;
+            /*ordinal_type loc_face_i = 0;
             bool         found_loc_face_i = false;
             for (auto it2 = it_range2.first;it2 != it_range2.second;++it2,++loc_face_i)
             {
@@ -536,7 +538,7 @@ protected:
                     (
                         "host_mesh::fill_neib_graph_for_elem: found_loc_face_i is false for "
                         "elem_id = " + std::to_string(elem_id) + " face_id = " + std::to_string(face_id)
-                    );
+                    );*/
             curr_elems_to_neighbours0_graph.add_to_range
             (
                 elem_id, std::pair<ordinal_type,ordinal_type>(neib0_id,loc_face_i)
