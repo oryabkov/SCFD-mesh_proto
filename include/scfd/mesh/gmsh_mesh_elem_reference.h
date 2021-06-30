@@ -191,7 +191,7 @@ struct gmsh_mesh_elem_reference
             vertexes[i] = get_face_vert(elem_type,face_i, i);
         }
     }
-    __DEVICE_TAG__ int              get_prim_face_vert_i(int elem_type,int face_i, int face_vert_i)const
+    __DEVICE_TAG__ int              get_face_prim_vert_i(int elem_type,int face_i, int face_vert_i)const
     {
         return face_prim_verts[elem_type][face_i][face_vert_i];
     }
