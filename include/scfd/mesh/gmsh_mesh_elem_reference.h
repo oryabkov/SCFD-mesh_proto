@@ -397,46 +397,46 @@ struct gmsh_mesh_elem_reference
         faces_n[6] = 5;
         faces_n[7] = 5;
 
-        verts_n[2] = 3;
-        verts_n[3] = 4;
-        verts_n[4] = 4;
-        verts_n[5] = 8;
-        verts_n[6] = 6;
-        verts_n[7] = 5;
+        prim_verts_n[2] = verts_n[2] = 3;
+        prim_verts_n[3] = verts_n[3] = 4;
+        prim_verts_n[4] = verts_n[4] = 4;
+        prim_verts_n[5] = verts_n[5] = 8;
+        prim_verts_n[6] = verts_n[6] = 6;
+        prim_verts_n[7] = verts_n[7] = 5;
 
         //NOTE reference vertexes coordinates are taken
         //from gmsh source files, i.e. Geo/MTetrahedron.h, Geo/MHexahedron.h, etc (getNode method)
 
         //triangle vertexes
-        verts[2][0] = vec(0., 0., 0.);
-        verts[2][1] = vec(1., 0., 0.);
-        verts[2][2] = vec(0., 1., 0.);
+        prim_verts[2][0] = verts[2][0] = vec(0., 0., 0.);
+        prim_verts[2][1] = verts[2][1] = vec(1., 0., 0.);
+        prim_verts[2][2] = verts[2][2] = vec(0., 1., 0.);
         //quadrangle vertexes
-        verts[3][0] = vec(-1., -1., 0.);
-        verts[3][1] = vec( 1., -1., 0.);
-        verts[3][2] = vec( 1.,  1., 0.);
-        verts[3][3] = vec(-1.,  1., 0.);
+        prim_verts[3][0] = verts[3][0] = vec(-1., -1., 0.);
+        prim_verts[3][1] = verts[3][1] = vec( 1., -1., 0.);
+        prim_verts[3][2] = verts[3][2] = vec( 1.,  1., 0.);
+        prim_verts[3][3] = verts[3][3] = vec(-1.,  1., 0.);
         //tetrahedron vertexes
-        verts[4][0] = vec(0., 0., 0.);
-        verts[4][1] = vec(1., 0., 0.);
-        verts[4][2] = vec(0., 1., 0.);
-        verts[4][3] = vec(0., 0., 1.);
+        prim_verts[4][0] = verts[4][0] = vec(0., 0., 0.);
+        prim_verts[4][1] = verts[4][1] = vec(1., 0., 0.);
+        prim_verts[4][2] = verts[4][2] = vec(0., 1., 0.);
+        prim_verts[4][3] = verts[4][3] = vec(0., 0., 1.);
         //hexahedron vertexes
-        verts[5][0] = vec(-1., -1., -1.);
-        verts[5][1] = vec( 1., -1., -1.);
-        verts[5][2] = vec( 1.,  1., -1.);
-        verts[5][3] = vec(-1.,  1., -1.);
-        verts[5][4] = vec(-1., -1.,  1.);
-        verts[5][5] = vec( 1., -1.,  1.);
-        verts[5][6] = vec( 1.,  1.,  1.);
-        verts[5][7] = vec(-1.,  1.,  1.);
+        prim_verts[5][0] = verts[5][0] = vec(-1., -1., -1.);
+        prim_verts[5][1] = verts[5][1] = vec( 1., -1., -1.);
+        prim_verts[5][2] = verts[5][2] = vec( 1.,  1., -1.);
+        prim_verts[5][3] = verts[5][3] = vec(-1.,  1., -1.);
+        prim_verts[5][4] = verts[5][4] = vec(-1., -1.,  1.);
+        prim_verts[5][5] = verts[5][5] = vec( 1., -1.,  1.);
+        prim_verts[5][6] = verts[5][6] = vec( 1.,  1.,  1.);
+        prim_verts[5][7] = verts[5][7] = vec(-1.,  1.,  1.);
         //prism vertexes
-        verts[6][0] = vec( 0.,  0., -1.);
-        verts[6][1] = vec( 1.,  0., -1.);
-        verts[6][2] = vec( 0.,  1., -1.);
-        verts[6][3] = vec( 0.,  0.,  1.);
-        verts[6][4] = vec( 1.,  0.,  1.);
-        verts[6][5] = vec( 0.,  1.,  1.);
+        prim_verts[6][0] = verts[6][0] = vec( 0.,  0., -1.);
+        prim_verts[6][1] = verts[6][1] = vec( 1.,  0., -1.);
+        prim_verts[6][2] = verts[6][2] = vec( 0.,  1., -1.);
+        prim_verts[6][3] = verts[6][3] = vec( 0.,  0.,  1.);
+        prim_verts[6][4] = verts[6][4] = vec( 1.,  0.,  1.);
+        prim_verts[6][5] = verts[6][5] = vec( 0.,  1.,  1.);
         //TODO other types
 
         //faces types
@@ -467,26 +467,26 @@ struct gmsh_mesh_elem_reference
         //Geo/MHexahedron.h (static int faces_hexa), etc.
         //TODO 6 (prism)
         //faces verts numbers
-        face_verts_n[4][0] = 3;
-        face_verts_n[4][1] = 3;
-        face_verts_n[4][2] = 3;
-        face_verts_n[4][3] = 3;
-        face_verts_n[5][0] = 4;
-        face_verts_n[5][1] = 4;
-        face_verts_n[5][2] = 4;
-        face_verts_n[5][3] = 4;
-        face_verts_n[5][4] = 4;
-        face_verts_n[5][5] = 4;
-        face_verts_n[6][0] = 3;
-        face_verts_n[6][1] = 3;
-        face_verts_n[6][2] = 4;
-        face_verts_n[6][3] = 4;
-        face_verts_n[6][4] = 4;
-        face_verts_n[7][0] = 3;
-        face_verts_n[7][1] = 3;
-        face_verts_n[7][2] = 3;
-        face_verts_n[7][3] = 3;
-        face_verts_n[7][4] = 4;
+        face_prim_verts_n[4][0] = face_verts_n[4][0] = 3;
+        face_prim_verts_n[4][1] = face_verts_n[4][1] = 3;
+        face_prim_verts_n[4][2] = face_verts_n[4][2] = 3;
+        face_prim_verts_n[4][3] = face_verts_n[4][3] = 3;
+        face_prim_verts_n[5][0] = face_verts_n[5][0] = 4;
+        face_prim_verts_n[5][1] = face_verts_n[5][1] = 4;
+        face_prim_verts_n[5][2] = face_verts_n[5][2] = 4;
+        face_prim_verts_n[5][3] = face_verts_n[5][3] = 4;
+        face_prim_verts_n[5][4] = face_verts_n[5][4] = 4;
+        face_prim_verts_n[5][5] = face_verts_n[5][5] = 4;
+        face_prim_verts_n[6][0] = face_verts_n[6][0] = 3;
+        face_prim_verts_n[6][1] = face_verts_n[6][1] = 3;
+        face_prim_verts_n[6][2] = face_verts_n[6][2] = 4;
+        face_prim_verts_n[6][3] = face_verts_n[6][3] = 4;
+        face_prim_verts_n[6][4] = face_verts_n[6][4] = 4;
+        face_prim_verts_n[7][0] = face_verts_n[7][0] = 3;
+        face_prim_verts_n[7][1] = face_verts_n[7][1] = 3;
+        face_prim_verts_n[7][2] = face_verts_n[7][2] = 3;
+        face_prim_verts_n[7][3] = face_verts_n[7][3] = 3;
+        face_prim_verts_n[7][4] = face_verts_n[7][4] = 4;
         /*face_verts_n[6][0] = 4;
         face_verts_n[6][1] = 4;
         face_verts_n[6][2] = 4;
@@ -507,79 +507,79 @@ struct gmsh_mesh_elem_reference
         face_verts[4][3][2] = 2;*/
         //tetrahedron faces verts
         //TODO first tetrahedron face in gmsh source is 0,2,1 (change for it?)
-        face_verts[4][0][0] = 0;
-        face_verts[4][0][1] = 1;
-        face_verts[4][0][2] = 2;
-        face_verts[4][1][0] = 0;
-        face_verts[4][1][1] = 1;
-        face_verts[4][1][2] = 3;
-        face_verts[4][2][0] = 0;
-        face_verts[4][2][1] = 3;
-        face_verts[4][2][2] = 2;
-        face_verts[4][3][0] = 3;
-        face_verts[4][3][1] = 1;
-        face_verts[4][3][2] = 2;
+        face_prim_verts[4][0][0] = face_verts[4][0][0] = 0;
+        face_prim_verts[4][0][1] = face_verts[4][0][1] = 1;
+        face_prim_verts[4][0][2] = face_verts[4][0][2] = 2;
+        face_prim_verts[4][1][0] = face_verts[4][1][0] = 0;
+        face_prim_verts[4][1][1] = face_verts[4][1][1] = 1;
+        face_prim_verts[4][1][2] = face_verts[4][1][2] = 3;
+        face_prim_verts[4][2][0] = face_verts[4][2][0] = 0;
+        face_prim_verts[4][2][1] = face_verts[4][2][1] = 3;
+        face_prim_verts[4][2][2] = face_verts[4][2][2] = 2;
+        face_prim_verts[4][3][0] = face_verts[4][3][0] = 3;
+        face_prim_verts[4][3][1] = face_verts[4][3][1] = 1;
+        face_prim_verts[4][3][2] = face_verts[4][3][2] = 2;
         //hexahedron faces verts
-        face_verts[5][0][0] = 0;
-        face_verts[5][0][1] = 3;
-        face_verts[5][0][2] = 2;
-        face_verts[5][0][3] = 1;
-        face_verts[5][1][0] = 0;
-        face_verts[5][1][1] = 1;
-        face_verts[5][1][2] = 5;
-        face_verts[5][1][3] = 4;
-        face_verts[5][2][0] = 0;
-        face_verts[5][2][1] = 4;
-        face_verts[5][2][2] = 7;
-        face_verts[5][2][3] = 3;
-        face_verts[5][3][0] = 1;
-        face_verts[5][3][1] = 2;
-        face_verts[5][3][2] = 6;
-        face_verts[5][3][3] = 5;
-        face_verts[5][4][0] = 2;
-        face_verts[5][4][1] = 3;
-        face_verts[5][4][2] = 7;
-        face_verts[5][4][3] = 6;
-        face_verts[5][5][0] = 4;
-        face_verts[5][5][1] = 5;
-        face_verts[5][5][2] = 6;
-        face_verts[5][5][3] = 7;
+        face_prim_verts[5][0][0] = face_verts[5][0][0] = 0;
+        face_prim_verts[5][0][1] = face_verts[5][0][1] = 3;
+        face_prim_verts[5][0][2] = face_verts[5][0][2] = 2;
+        face_prim_verts[5][0][3] = face_verts[5][0][3] = 1;
+        face_prim_verts[5][1][0] = face_verts[5][1][0] = 0;
+        face_prim_verts[5][1][1] = face_verts[5][1][1] = 1;
+        face_prim_verts[5][1][2] = face_verts[5][1][2] = 5;
+        face_prim_verts[5][1][3] = face_verts[5][1][3] = 4;
+        face_prim_verts[5][2][0] = face_verts[5][2][0] = 0;
+        face_prim_verts[5][2][1] = face_verts[5][2][1] = 4;
+        face_prim_verts[5][2][2] = face_verts[5][2][2] = 7;
+        face_prim_verts[5][2][3] = face_verts[5][2][3] = 3;
+        face_prim_verts[5][3][0] = face_verts[5][3][0] = 1;
+        face_prim_verts[5][3][1] = face_verts[5][3][1] = 2;
+        face_prim_verts[5][3][2] = face_verts[5][3][2] = 6;
+        face_prim_verts[5][3][3] = face_verts[5][3][3] = 5;
+        face_prim_verts[5][4][0] = face_verts[5][4][0] = 2;
+        face_prim_verts[5][4][1] = face_verts[5][4][1] = 3;
+        face_prim_verts[5][4][2] = face_verts[5][4][2] = 7;
+        face_prim_verts[5][4][3] = face_verts[5][4][3] = 6;
+        face_prim_verts[5][5][0] = face_verts[5][5][0] = 4;
+        face_prim_verts[5][5][1] = face_verts[5][5][1] = 5;
+        face_prim_verts[5][5][2] = face_verts[5][5][2] = 6;
+        face_prim_verts[5][5][3] = face_verts[5][5][3] = 7;
         //prism faces verts
-        face_verts[6][0][0] = 0;
-        face_verts[6][0][1] = 2;
-        face_verts[6][0][2] = 1;
-        face_verts[6][1][0] = 3;
-        face_verts[6][1][1] = 4;
-        face_verts[6][1][2] = 5;
-        face_verts[6][2][0] = 0;
-        face_verts[6][2][1] = 1;
-        face_verts[6][2][2] = 4;
-        face_verts[6][2][3] = 3;
-        face_verts[6][3][0] = 0;
-        face_verts[6][3][1] = 3;
-        face_verts[6][3][2] = 5;
-        face_verts[6][3][3] = 2;
-        face_verts[6][4][0] = 1;
-        face_verts[6][4][1] = 2;
-        face_verts[6][4][2] = 5;
-        face_verts[6][4][3] = 4;
+        face_prim_verts[6][0][0] = face_verts[6][0][0] = 0;
+        face_prim_verts[6][0][1] = face_verts[6][0][1] = 2;
+        face_prim_verts[6][0][2] = face_verts[6][0][2] = 1;
+        face_prim_verts[6][1][0] = face_verts[6][1][0] = 3;
+        face_prim_verts[6][1][1] = face_verts[6][1][1] = 4;
+        face_prim_verts[6][1][2] = face_verts[6][1][2] = 5;
+        face_prim_verts[6][2][0] = face_verts[6][2][0] = 0;
+        face_prim_verts[6][2][1] = face_verts[6][2][1] = 1;
+        face_prim_verts[6][2][2] = face_verts[6][2][2] = 4;
+        face_prim_verts[6][2][3] = face_verts[6][2][3] = 3;
+        face_prim_verts[6][3][0] = face_verts[6][3][0] = 0;
+        face_prim_verts[6][3][1] = face_verts[6][3][1] = 3;
+        face_prim_verts[6][3][2] = face_verts[6][3][2] = 5;
+        face_prim_verts[6][3][3] = face_verts[6][3][3] = 2;
+        face_prim_verts[6][4][0] = face_verts[6][4][0] = 1;
+        face_prim_verts[6][4][1] = face_verts[6][4][1] = 2;
+        face_prim_verts[6][4][2] = face_verts[6][4][2] = 5;
+        face_prim_verts[6][4][3] = face_verts[6][4][3] = 4;
         //pyramid faces verts
-        face_verts[7][0][0] = 0;
-        face_verts[7][0][1] = 1; 
-        face_verts[7][0][2] = 4;
-        face_verts[7][1][0] = 3; 
-        face_verts[7][1][1] = 0; 
-        face_verts[7][1][2] = 4;
-        face_verts[7][2][0] = 1; 
-        face_verts[7][2][1] = 2; 
-        face_verts[7][2][2] = 4;
-        face_verts[7][3][0] = 2; 
-        face_verts[7][3][1] = 3; 
-        face_verts[7][3][2] = 4;
-        face_verts[7][4][0] = 0; 
-        face_verts[7][4][1] = 3; 
-        face_verts[7][4][2] = 2; 
-        face_verts[7][4][3] = 1;
+        face_prim_verts[7][0][0] = face_verts[7][0][0] = 0;
+        face_prim_verts[7][0][1] = face_verts[7][0][1] = 1; 
+        face_prim_verts[7][0][2] = face_verts[7][0][2] = 4;
+        face_prim_verts[7][1][0] = face_verts[7][1][0] = 3; 
+        face_prim_verts[7][1][1] = face_verts[7][1][1] = 0; 
+        face_prim_verts[7][1][2] = face_verts[7][1][2] = 4;
+        face_prim_verts[7][2][0] = face_verts[7][2][0] = 1; 
+        face_prim_verts[7][2][1] = face_verts[7][2][1] = 2; 
+        face_prim_verts[7][2][2] = face_verts[7][2][2] = 4;
+        face_prim_verts[7][3][0] = face_verts[7][3][0] = 2; 
+        face_prim_verts[7][3][1] = face_verts[7][3][1] = 3; 
+        face_prim_verts[7][3][2] = face_verts[7][3][2] = 4;
+        face_prim_verts[7][4][0] = face_verts[7][4][0] = 0; 
+        face_prim_verts[7][4][1] = face_verts[7][4][1] = 3; 
+        face_prim_verts[7][4][2] = face_verts[7][4][2] = 2; 
+        face_prim_verts[7][4][3] = face_verts[7][4][3] = 1;
         //TODO other types
     }
 };
