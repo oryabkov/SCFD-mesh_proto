@@ -161,6 +161,38 @@ public:
         }
     }
 
+    ordinal_type get_face_prim_nodes_num(ordinal_type face_id)const
+    {
+        auto            it_range = faces_to_elems_graph_.get_range(face_id);
+        /// Take 1st elemets index
+        //TODO looks not very good
+        ordinal_type    elem_id = it_range.first->first,
+                        inelem_face_ind = it_range.first->second;
+        const auto      &ref = parent_type::mesh_elem_reference();
+        auto            elem_type = parent_type::get_elem_type(elem_id);
+        return ref.get_face_verts_n(elem_type, inelem_face_ind);
+    }
+    ordinal_type get_face_prim_nodes
+    (
+        ordinal_type face_id, ordinal_type *prim_nodes, ordinal_type *prim_nodes_num = nullptr
+    )
+    const
+    {
+        auto            it_range = faces_to_elems_graph_.get_range(face_id);
+        /// Take 1st elemets index
+        //TODO looks not very good
+        ordinal_type    elem_id = it_range.first->first,
+                        inelem_face_ind = it_range.first->second;
+        const auto      &ref = parent_type::mesh_elem_reference();
+        auto            elem_type = parent_type::get_elem_type(elem_id);
+        ordinal_type    prim_nodes_num_ = ref.get_face_verts_n(elem_type, inelem_face_ind);
+        if (prim_nodes_num) *prim_nodes_num = prim_nodes_num_;
+        ordinal_type    elem_prim_nodes[parent_type::get_elem_prim_nodes_num(elem_id)];
+        parent_type::get_elem_prim_nodes(elem_id, elem_prim_nodes);
+        for (ordinal_type face_vert_i = 0;face_vert_i < prim_nodes_num_;++face_vert_i)
+            prim_nodes[face_vert_i] = elem_prim_nodes[ref.get_face_vert_i(elem_type,inelem_face_ind,face_vert_i)];
+    }
+
     /// Neighbours0 interface
     /// No need to return number of neighbours0 - use get_elem_faces_num
     void get_elem_neighbours0(ordinal_type i, ordinal_type *elems)const
