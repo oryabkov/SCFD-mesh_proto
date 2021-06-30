@@ -98,10 +98,14 @@ struct gmsh_mesh_elem_reference
 
     int             faces_n[ElemTypesNum];
     int             verts_n[ElemTypesNum];
+    int             prim_verts_n[ElemTypesNum];
     vec             verts[ElemTypesNum][MaxVertsNum];
+    vec             prim_verts[ElemTypesNum][MaxVertsNum];
     int             face_elem_type[ElemTypesNum][MaxFacesNum];
     int             face_verts_n[ElemTypesNum][MaxFacesNum];
+    int             face_prim_verts_n[ElemTypesNum][MaxFacesNum];
     int             face_verts[ElemTypesNum][MaxFacesNum][FaceMaxVertsNum];
+    int             face_prim_verts[ElemTypesNum][MaxFacesNum][FaceMaxVertsNum];
 
     __DEVICE_TAG__ int              get_faces_n(int elem_type)const
     {
@@ -111,6 +115,11 @@ struct gmsh_mesh_elem_reference
     __DEVICE_TAG__ int              get_verts_n(int elem_type)const
     {
         return verts_n[elem_type];
+        //TODO elem_type error
+    }
+    __DEVICE_TAG__ int              get_prim_verts_n(int elem_type)const
+    {
+        return prim_verts_n[elem_type];
         //TODO elem_type error
     }
     __DEVICE_TAG__ const vec        &get_vert(int elem_type,int vert_i)const
@@ -128,6 +137,21 @@ struct gmsh_mesh_elem_reference
         return verts[elem_type][vert_i][j];
         //TODO elem_type/vert_i/j error
     }
+    __DEVICE_TAG__ const vec        &get_prim_vert(int elem_type,int vert_i)const
+    {
+        return prim_verts[elem_type][vert_i];
+        //TODO elem_type/vert_i error
+    }
+    __DEVICE_TAG__ void             get_prim_vert(int elem_type,int vert_i, vec &res)const
+    {
+        res = prim_verts[elem_type][vert_i];
+        //TODO elem_type/vert_i error
+    }
+    __DEVICE_TAG__ T                get_prim_vert(int elem_type,int vert_i, int j)const
+    {
+        return prim_verts[elem_type][vert_i][j];
+        //TODO elem_type/vert_i/j error
+    }
     __DEVICE_TAG__ int              get_face_elem_type(int elem_type, int face_i)const
     {
         return face_elem_type[elem_type][face_i];
@@ -135,6 +159,11 @@ struct gmsh_mesh_elem_reference
     __DEVICE_TAG__ int              get_face_verts_n(int elem_type, int face_i)const
     {
         return face_verts_n[elem_type][face_i];
+        //TODO elem_type/face_i error
+    }
+    __DEVICE_TAG__ int              get_face_prim_verts_n(int elem_type, int face_i)const
+    {
+        return face_prim_verts_n[elem_type][face_i];
         //TODO elem_type/face_i error
     }
     __DEVICE_TAG__ int              get_face_vert_i(int elem_type,int face_i, int face_vert_i)const
@@ -160,6 +189,31 @@ struct gmsh_mesh_elem_reference
         for (int i = 0;i < FaceMaxVertsNum;++i) {
             if (i == get_face_verts_n(elem_type, face_i)) break;
             vertexes[i] = get_face_vert(elem_type,face_i, i);
+        }
+    }
+    __DEVICE_TAG__ int              get_prim_face_vert_i(int elem_type,int face_i, int face_vert_i)const
+    {
+        return face_prim_verts[elem_type][face_i][face_vert_i];
+    }
+    __DEVICE_TAG__ const vec        &get_face_prim_vert(int elem_type,int face_i, int vert_i)const
+    {
+        return prim_verts[elem_type][ face_verts[elem_type][face_i][vert_i] ];
+    }
+    __DEVICE_TAG__ void             get_face_prim_vert(int elem_type,int face_i, int vert_i, vec &res)const
+    {
+        res = prim_verts[elem_type][ face_prim_verts[elem_type][face_i][vert_i] ];
+    }
+    __DEVICE_TAG__ T                get_face_prim_vert(int elem_type,int face_i, int vert_i, int j)const
+    {
+        return prim_verts[elem_type][ face_prim_verts[elem_type][face_i][vert_i] ][j];
+    }
+    __DEVICE_TAG__ void             get_face_prim_verts(int elem_type,int face_i, vec vertexes[FaceMaxVertsNum])const
+    {
+        //to make unroll possible
+        //TODO excplicit unroll??
+        for (int i = 0;i < FaceMaxVertsNum;++i) {
+            if (i == get_face_prim_verts_n(elem_type, face_i)) break;
+            vertexes[i] = get_face_prim_vert(elem_type,face_i, i);
         }
     }
 
