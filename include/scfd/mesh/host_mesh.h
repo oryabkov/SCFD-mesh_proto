@@ -136,6 +136,15 @@ public:
             elems[j] = it->first;
         }
     }
+    void         get_face_elems_inelem_face_inds(ordinal_type i,ordinal_type inelem_face_inds[2])const
+    {
+        auto it_range = faces_to_elems_graph_.get_range(i);
+        ordinal_type j = 0;
+        for (auto it = it_range.first;it != it_range.second;++it,++j)
+        {
+            inelem_face_inds[j] = it->second;
+        }
+    }
     /// Actually it can return either 1 or 2
     ordinal_type get_virt_face_elems_num(ordinal_type i)const
     {
