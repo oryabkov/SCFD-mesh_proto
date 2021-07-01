@@ -81,6 +81,7 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
 )
 {
     using vec_t = static_vec::vec<T,dim>;
+    using mat_t = static_mat::mat<T,dim,dim>;
     using host_mesh_t = host_mesh<BasicMesh>;
     using host_ordinal = typename host_mesh_t::ordinal_type;
     using elem_reference_t = gmsh_mesh_elem_reference<T>;
@@ -388,6 +389,39 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
         }
     }
     elems_virt_neighbours0_centers_view.release();
+
+
+    /// Virtual pairs 
+
+    virt_pairs_mats.init(cpu_mesh.get_virt_pairs_num());
+    virt_pairs_inv_mats.init(cpu_mesh.get_virt_pairs_num());
+    virt_pairs_vecs.init(cpu_mesh.get_virt_pairs_num());
+
+    auto   virt_pairs_mats_view = virt_pairs_mats.create_view(false);
+    auto   virt_pairs_inv_mats_view = virt_pairs_inv_mats.create_view(false);
+    auto   virt_pairs_vecs_view = virt_pairs_vecs.create_view(false);
+
+    for(Ord i = 0;i < cpu_mesh.get_virt_pairs_num();++i) 
+    {
+        mat_t mat = cpu_mesh.get_virt_pair_transform_mat(i);
+        mat_t inv_mat = cpu_mesh.get_virt_pair_transform_inv_mat(i);
+        vec_t vec = cpu_mesh.get_virt_pair_transform_vec(i);
+
+        for (int i1 = 0;i1 < dim;++i1)
+        for (int i2 = 0;i2 < dim;++i2)
+            virt_pairs_mats_view(i,i1,i2) = mat(i1,i2);
+
+        for (int i1 = 0;i1 < dim;++i1)
+        for (int i2 = 0;i2 < dim;++i2)
+            virt_pairs_inv_mats_view(i,i1,i2) = inv_mat(i1,i2);
+
+        for (int i1 = 0;i1 < dim;++i1)
+            virt_pairs_vecs_view(i,i1) = vec(i1);
+    }
+
+    virt_pairs_mats_view.release();
+    virt_pairs_inv_mats_view.release();
+    virt_pairs_vecs_view.release();
 }
 
 template<class T,class Memory,int Dim,class Ord>

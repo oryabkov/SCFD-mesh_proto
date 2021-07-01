@@ -139,6 +139,7 @@ struct device_mesh
 
     /// Virtual pairs data part
     tensor3_array<T,Memory,dyn_dim,Dim,Dim>         virt_pairs_mats;
+    tensor3_array<T,Memory,dyn_dim,Dim,Dim>         virt_pairs_inv_mats;
     tensor2_array<T,Memory,dyn_dim,Dim>             virt_pairs_vecs;
 
     __DEVICE_TAG__ elem_type_ordinal_type  get_elem_type(Ord i)const
