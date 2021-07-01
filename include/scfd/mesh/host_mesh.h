@@ -98,6 +98,8 @@ public:
     {
         return faces_virt_master_ids_arr_[i];
     }
+    /// NOTE each face can only have maximum 1 virt_pair
+    //ISSUE this interface is done as analogy to nodes interface but it seems unappropriate here
     bool         check_face_has_virt_pair_face_id(ordinal_type i, ordinal_type virt_pair_i)const
     {
         auto it1 = faces_virt_pair_face_ids_.find(i);

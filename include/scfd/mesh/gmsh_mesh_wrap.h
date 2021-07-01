@@ -435,6 +435,8 @@ public:
         return virt_pairs_num_;
     }
     /// ISSUE What is better? these ones, or explicit matrix/vector pair?
+    /// I think it's better to leave mat/vec interface (it's requered by some solvers)
+    /// + move transform interface (next two methods) into host_mesh (not add it into BasicMesh)
     vec_type virt_pair_transform(Ord virt_pair_i, const vec_type &c)const
     {
         return virt_pairs_mats_[virt_pair_i]*c + virt_pairs_vecs_[virt_pair_i];
@@ -442,6 +444,18 @@ public:
     vec_type virt_pair_inv_transform(Ord virt_pair_i, const vec_type &c)const
     {
         return virt_pairs_inv_mats_[virt_pair_i]*(c - virt_pairs_vecs_[virt_pair_i]);
+    }
+    mat_type get_virt_pair_transform_mat(Ord virt_pair_i)const
+    {
+        return virt_pairs_mats_[virt_pair_i];
+    }
+    mat_type get_virt_pair_transform_inv_mat(Ord virt_pair_i)const
+    {
+        return virt_pairs_inv_mats_[virt_pair_i];
+    }
+    vec_type get_virt_pair_transform_vec(Ord virt_pair_i)const
+    {
+        return virt_pairs_vecs_[virt_pair_i];
     }
     Ord get_node_virt_master_id(Ord i)const
     {
