@@ -106,10 +106,15 @@ struct device_mesh
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_faces_norms;
     tensor1_array<T,Memory,dyn_dim>                 elems_faces_areas;
     tensor1_array<T,Memory,1>                       elems_vols;
-    //elements to nodes graphs
+    /// Elements to nodes graphs
     tensor1_array<Ord,Memory,dyn_dim>               elems_prim_nodes_ids;
     //TODO replace with var array
     tensor1_array<Ord,Memory,dyn_dim>               elems_nodes_ids;
+    /// Elements to faces graphs
+    tensor1_array<Ord,Memory,dyn_dim>               elems_faces_ids;
+    tensor1_array<Ord,Memory,dyn_dim>               elems_virt_faces_ids;
+    /// Only faces with actual virt pairs have values here - other ones have special_id here
+    tensor1_array<Ord,Memory,dyn_dim>               elems_virt_faces_virt_pairs_ids;
 
     /// Nodes data part
 
@@ -131,6 +136,10 @@ struct device_mesh
 
     index_range_descr_type                          faces_range, 
                                                     own_faces_range;
+
+    /// Virtual pairs data part
+    tensor3_array<T,Memory,dyn_dim,Dim,Dim>         virt_pairs_mats;
+    tensor2_array<T,Memory,dyn_dim,Dim>             virt_pairs_vecs;
 
     __DEVICE_TAG__ elem_type_ordinal_type  get_elem_type(Ord i)const
     {
