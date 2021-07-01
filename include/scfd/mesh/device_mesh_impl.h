@@ -114,6 +114,10 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
     elems_prim_nodes_ids.init(own_elems_range.n,max_prim_nodes_n);
     elems_nodes_ids.init(own_elems_range.n,max_nodes_n);
 
+    elems_faces_ids.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+    elems_virt_faces_ids.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+    elems_virt_faces_virt_pairs_ids.init(own_elems_range.n,max_faces_n,own_elems_range.i0,0);
+
     //TODO why only local?
     auto                    elem_type_view = elems_types.create_view(false);
     for(Ord i_ = 0;i_ < map_e.get_size();++i_) 

@@ -114,6 +114,7 @@ struct device_mesh
     tensor1_array<Ord,Memory,dyn_dim>               elems_faces_ids;
     tensor1_array<Ord,Memory,dyn_dim>               elems_virt_faces_ids;
     /// Only faces with actual virt pairs have values here - other ones have special_id here
+    /// ISSUE this interface is excessive - we may use corresponding array for faces only
     tensor1_array<Ord,Memory,dyn_dim>               elems_virt_faces_virt_pairs_ids;
 
     /// Nodes data part

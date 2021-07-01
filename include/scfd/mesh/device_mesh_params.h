@@ -39,6 +39,9 @@ struct device_mesh_params
     bool has_elems_vols_data = true;
     bool has_elems_nodes_data = true;
     bool has_elems_prim_nodes_data = true;
+    bool has_elems_faces_data = true;
+    bool has_elems_virt_faces_data = true;
+    bool has_elems_virt_faces_virt_pairs_data = true;
 
     /// Nodes data 
 
