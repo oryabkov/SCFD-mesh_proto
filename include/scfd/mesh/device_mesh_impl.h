@@ -281,7 +281,7 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
     }
     vol_id_view.release();
 
-    if (params.has_elems_nodes_data)
+    if (params.has_elems_prim_nodes_data)
     {
         auto   elem_node_ids_view = elems_prim_nodes_ids.create_view(false);
         for(Ord i_ = 0;i_ < map_e.get_size();i_++) 
@@ -290,11 +290,75 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
             Ord             i_loc = map_e.own_loc_ind(i_);
             for (Ord vert_i = 0;vert_i < cpu_mesh.get_elem_prim_nodes_num(i_glob);++vert_i) 
             {
-                elem_node_ids_view(i_loc,vert_i) = map_n.glob2loc( cpu_mesh.get_elem_node(i_glob,vert_i) );
+                elem_node_ids_view(i_loc,vert_i) = map_n.glob2loc( cpu_mesh.get_elem_prim_node(i_glob,vert_i) );
             }
         }
         elem_node_ids_view.release();
     }
+
+    if (params.has_elems_faces_data)
+    {
+        auto   elems_faces_ids_view = elems_faces_ids.create_view(false);
+        for(Ord i_ = 0;i_ < map_e.get_size();i_++) 
+        {
+            host_ordinal    i_glob = map_e.own_glob_ind(i_);
+            Ord             i_loc = map_e.own_loc_ind(i_);
+            host_ordinal    faces[cpu_mesh.get_elem_faces_num(i_glob)];
+            cpu_mesh.get_elem_faces(i_glob, faces);
+            for (Ord face_i = 0;face_i < cpu_mesh.get_elem_faces_num(i_glob);++face_i) 
+            {
+                elems_faces_ids_view(i_loc,face_i) = map_f.glob2loc( faces[face_i] );
+            }
+        }
+        elems_faces_ids_view.release();
+    }
+    if (params.has_elems_virt_faces_data)
+    {
+        auto   elems_virt_faces_ids_view = elems_virt_faces_ids.create_view(false);
+        for(Ord i_ = 0;i_ < map_e.get_size();i_++) 
+        {
+            host_ordinal    i_glob = map_e.own_glob_ind(i_);
+            Ord             i_loc = map_e.own_loc_ind(i_);
+            host_ordinal    faces[cpu_mesh.get_elem_faces_num(i_glob)];
+            cpu_mesh.get_elem_virt_faces(i_glob, faces);
+            for (Ord face_i = 0;face_i < cpu_mesh.get_elem_faces_num(i_glob);++face_i) 
+            {
+                elems_virt_faces_ids_view(i_loc,face_i) = map_f.glob2loc( faces[face_i] );
+            }
+        }
+        elems_virt_faces_ids_view.release();
+    }
+    if (params.has_elems_virt_faces_virt_pairs_data)
+    {
+        auto   elems_virt_faces_virt_pairs_ids_view = elems_virt_faces_virt_pairs_ids.create_view(false);
+        for(Ord i_ = 0;i_ < map_e.get_size();i_++) 
+        {
+            host_ordinal    i_glob = map_e.own_glob_ind(i_);
+            Ord             i_loc = map_e.own_loc_ind(i_);
+            host_ordinal    faces[cpu_mesh.get_elem_faces_num(i_glob)];
+            cpu_mesh.get_elem_faces(i_glob, faces);
+            for (Ord face_i = 0;face_i < cpu_mesh.get_elem_faces_num(i_glob);++face_i) 
+            {
+                /// TODO this search here is bacuse of bad face_virt_pair interface in host_mesh
+                bool    has_virt_pair_face = false;
+                Ord     pair_i;
+                for (pair_i = 0;pair_i < cpu_mesh.get_virt_pairs_num();++pair_i) 
+                {
+                    if (!cpu_mesh.check_face_has_virt_pair_face_id(faces[face_i], pair_i)) continue;
+                    has_virt_pair_face = true;
+                    break;
+                }
+
+                if (has_virt_pair_face)                
+                    elems_virt_faces_virt_pairs_ids_view(i_loc,face_i) = 
+                        map_f.glob2loc( cpu_mesh.get_face_virt_pair_face_id(faces[face_i], pair_i) );
+                else 
+                    elems_virt_faces_virt_pairs_ids_view(i_loc,face_i) = host_mesh_t::special_id;
+            }
+        }
+        elems_virt_faces_virt_pairs_ids_view.release();
+    }
+
 
     elem_reference_t        elem_ref_;
     detail::copy_data_to_const_buf(elem_ref_,*this);
