@@ -30,7 +30,7 @@ namespace communication
 
 //supposed to satisfy PARTITIONER concept
 
-struct nodes_partitioner
+struct faces_partitioner
 {
     int                     total_size;
     int                     my_rank;
@@ -41,11 +41,11 @@ struct nodes_partitioner
     std::vector<int>        own_glob_indices;
     std::map<int,int>       own_glob_indices_2_ind;
 
-    nodes_partitioner() {}
+    faces_partitioner() {}
     //map_elem could be at 'before complete' stage
     //mesh must have all nodes incident(to owned by map_elen) and 2nd order incident (to owned by map_elem) elements nodes-elem graph
     template<class CPU_MESH, class MAP>
-    nodes_partitioner(int comm_size, int _my_rank, const CPU_MESH &mesh, const MAP &map_elem) : my_rank(_my_rank), is_complete(false)
+    faces_partitioner(int comm_size, int _my_rank, const CPU_MESH &mesh, const MAP &map_elem) : my_rank(_my_rank), is_complete(false)
     {
         total_size = mesh.nodes.size();
         for (int i = 0;i < map_elem.get_size();++i) {
@@ -117,7 +117,7 @@ struct nodes_partitioner
         assert(is_complete);
         std::map<int,int>::const_iterator it = ranks.find(i_glob);
         assert(it != ranks.end());
-        if (it->second == -1) throw std::logic_error("nodes_partitioner:: not realized yet!!");
+        if (it->second == -1) throw std::logic_error("faces_partitioner:: not realized yet!!");
         return it->second;
     }
     //for (rank == get_own_rank()) result and behavoiur coincides with check_glob_owned(i_glob)
