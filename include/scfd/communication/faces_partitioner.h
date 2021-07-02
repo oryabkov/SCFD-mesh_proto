@@ -44,8 +44,8 @@ struct faces_partitioner
     faces_partitioner() {}
     //map_elem could be at 'before complete' stage
     //mesh must have all nodes incident(to owned by map_elen) and 2nd order incident (to owned by map_elem) elements nodes-elem graph
-    template<class CPU_MESH, class MAP>
-    faces_partitioner(int comm_size, int _my_rank, const CPU_MESH &mesh, const MAP &map_elem) : my_rank(_my_rank), is_complete(false)
+    template<class HostMesh, class Map>
+    faces_partitioner(int comm_size, int _my_rank, const HostMesh &mesh, const Map &map_elem) : my_rank(_my_rank), is_complete(false)
     {
         total_size = mesh.nodes.size();
         for (int i = 0;i < map_elem.get_size();++i) {
