@@ -21,6 +21,8 @@
 #include <map>
 #include <algorithm>
 
+namespace scfd
+{
 namespace communication
 {
 
@@ -133,6 +135,7 @@ struct nodes_partitioner
     }
 };
 
-}
+}  /// namespace communication
+}  /// namespace scfd
 
 #endif

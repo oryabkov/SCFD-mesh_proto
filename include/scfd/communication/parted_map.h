@@ -27,6 +27,8 @@
 #include <boost/range/algorithm/sort.hpp>
 #include <boost/range/algorithm/find.hpp>
 
+namespace scfd
+{
 namespace communication
 {
 
@@ -152,6 +154,7 @@ struct parted_map
     }
 };
 
-}
+}  /// namespace communication
+}  /// namespace scfd
 
 #endif
