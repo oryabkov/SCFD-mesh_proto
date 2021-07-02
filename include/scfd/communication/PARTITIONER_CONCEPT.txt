@@ -1,0 +1,84 @@
+// Copyright © 2016 Ryabkov Oleg Igorevich, Evstigneev Nikolay Mikhaylovitch
+
+// This file is part of SimpleCFD.
+
+// SimpleCFD is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2 only of the License.
+
+// SimpleCFD is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
+
+
+//PARTITIONER represents support objects that define distribution of some set of 1d indices (global indices) among
+//several owners-processes; PARTITIONER takes part of MAP functions (distribution of eleemnts), but formally it is
+//not a subconcept of MAP because of one additional method.
+//for now PARTITIONER used only in t_parted_map_tml template map 
+
+//description is partially taken from MAP concept description
+
+//Owners are identified by their ranks distributed form 0 to COMM_SIZE-1, where COMM_SIZE is number of owners.
+//For now we don't have any special class like COMMUNICATOR.
+
+//Each process has set of elements which it owns plus set of so called stencil elements. These stencil elements are 
+//elements not owned by process but for them PARTITIONER can return number of owning process. (see also MAP 
+//description to see what stencil elements mean for MAP objects).
+
+//distribution between global indices and owners is 1-to-1 (1 global index owned by 1 and only 1 process)
+
+//concept itself does not use declare any limitations on global indices
+//they are not supposed to be in any dense ranges (like from 0 to get_total_size()-1) or be dense in some range
+//however, in the contex of most solvers we have following reasonable assumption:
+//1) global indices are dense placed in range [0, get_total_size()-1]
+
+//PARTITIONER objects is supposed to be used in large scale applications, so information about overall partition is
+//not accessible for all objects. However for organization of communication process we have to know owners at least for
+//some needed 'foreign' elements.
+//So specific sequence of PARTITIONER object life is supposed (at's totally analogus to MAP life sequence):
+//First, after creation (at may be some initialization, which is not determined by concept),
+//PARTITIONER must 'know' which global elements belong to calling process.
+//Methods responsilbe for access to this information is placed below to section "'read' before construction part"
+//At this stage PARTITIONER users could define stencil through methods from  "'construction' part".
+//complete() method should be called once at the end of construction
+//After complete() is called methods from "'read' after construction part" could be used
+//to extract information about owners of stencil elemnts
+
+//NOTE other variant of function also was considered, where 'read on demand' could be used.
+
+//For now, PARTITIONER objects reusage (several calls to complete()) is not supposed   
+
+//PARTITIONER concept:
+
+//copy-constructable
+
+//'read' before construction part:
+//int	get_own_rank()const returns rank of calling process
+//bool  check_glob_owned(int i)const returns, whether global index owned by calling process
+//int   get_total_size()const returns number of global indices
+//int   get_size()const returns number of local indices (owned by calling process)
+//int   own_glob_ind(int i)const 
+//in own_glob_ind i is number between 0 and get_size()-1; it's not local or global index - it's a way of 
+//enumerating process owned elements; otherwise we could define some kind of iterator; so own_glob_ind 
+//enumerates global indices owned by calling process
+//int   own_glob_ind_2_ind(int i_glob)const is reverse method for own_glob_ind(i), which takes global index
+//and returns local enumeration number between 0 and get_size()-1, so that own_glob_ind_2_ind( own_glob_ind(i) ) == i
+//
+//'construction' part:
+//void  add_stencil_element(int i)
+//void  complete()
+//
+//'read' after construction part:
+//int   get_rank(int i)const returns rank of process-owner that owns specified global index
+//i here could only be index onwed by calling process or index from its stencil
+//bool  check_glob_owned(int i, int rank)const returns, whether global index owned by process 'rank' 
+//for rank != get_own_rank(), i could only be index onwed by calling process or index from its stencil;
+//for rank == get_own_rank(), behavoiur and result must coincide with check_glob_owned(i)
+
+//check_glob_owned methods kind of abandant WRT get_rank, but they are added, as perhaps, in some cases
+//they could be faster then get_rank  
+

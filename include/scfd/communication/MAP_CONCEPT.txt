@@ -1,0 +1,96 @@
+// Copyright © 2016 Ryabkov Oleg Igorevich, Evstigneev Nikolay Mikhaylovitch
+
+// This file is part of SimpleCFD.
+
+// SimpleCFD is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2 only of the License.
+
+// SimpleCFD is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
+
+
+//MAP represents objects that defines distribution of some set of 1d indices (global indices) among
+//several owners-processes; also it defines mapping from the global indices to local indices.
+
+//Owners are identified by their ranks distributed form 0 to COMM_SIZE-1, where COMM_SIZE is number of owners.
+//For now we don't have any special class like COMMUNICATOR.
+
+//Each process has set of elements which it owns plus set of so called stencil elements. These stencil elements are 
+//elements not owned by process but for them mapping between global indices and local indices is defined.   
+
+//distribution between global indices and owners is 1-to-1 (1 global index owned by 1 and only 1 process)
+//map between local indices and global indices is 1-to-1 on set of local elements and stencil elements
+//(of couse it's only true for a given process and it's local enumeration; stencil elements could have 
+//different local indices from the POV of other processes) 
+
+//concept itself does not use declare any limitations on global and local indices
+//they are not supposed to be in any dense ranges (like from 0 to get_size()-1) or be dense in some range
+//however, in the contex of the most solvers we have following reasonable assumptions:
+//1) global indices are dense placed in range [0, get_total_size()-1]
+//2) local indices of process-owned elements are dense placed in range [0, get_size()-1] (of course for same process that owns them)
+//Map between global and local indices for owned elements doesnot have to be simple shift because of possible partitioning
+
+//local enumeration(at least on set of stencil elements) may not exist before usage stencil is defined
+//on the other hand, objects that determine stencil (ordinary it should be mpi_distributor) at least
+//need to know distribution of elements between processors. 
+//So specific sequence of map object life is supposed:
+//
+//First, after creation (at may be some initialization, which is not determined by concept),
+//map must 'know' distribution of elements between processors (it's 1st function).
+//Methods responsilbe for access to this information is placed below to section "'read' before construction part"
+//NOTE at this stage each process can only access information about elements owned by it, but not about other processes
+//elements. This is done because of 'read only local information' strategy to support better scaling and possible need of
+//'partititoning' (i.e. complex strategy of elements distribution between processes).  
+//
+//At this stage MAP users could define stencil through methods from  "'construction' part".
+//complete() method should be called once at the end of construction
+//
+//After complete() is called methods from "'read' after construction part" could be used
+//to extract local enumeration data and also information about precesses that own elements 
+//from stencil (get_rank and check_glob_owned methods from 'read' after construction part).
+
+//For now, MAP objects reusage (several calls to complete()) is not supposed   
+
+//TODO what about int?
+//ISSUE loc2glob, glob2loc, loc_ind, glob_ind need versions with rank id?? or not??
+
+//MAP concept:
+
+//'read' before construction part:
+//int	get_own_rank()const returns rank of calling process
+//bool  check_glob_owned(int i)const returns, whether global index owned by calling process
+//int   get_total_size()const returns number of global indices
+//int   get_size()const returns number of local indices (owned by calling process)
+//int   own_glob_ind(int i)const see own_loc_ind
+//
+//'construction' part:
+//void  add_stencil_element(int i)
+//void  complete()
+//
+//'read' after construction part:
+//int   get_rank(int i)const calc rank of process-owner that owns specified global index
+//bool  check_glob_owned(int i, int rank)const returns, whether global index owned by process 'rank' 
+//check_glob_owned methods kind of abandant WRT get_rank, but they are added, as perhaps, in some cases
+//they could be faster then get_rank  
+//int	loc2glob(int i_loc)const convert local index (in calling process enumeration) to global index
+//int   glob2loc(int i_glob)const convert global index to local index (in calling process enumeration)
+//int	own_loc_ind(int i)const
+//in own_loc_ind and own_glob_ind i is number between 0 and get_size()-1; it's not local or global index - it's a way of 
+//enumerating process owned elements; otherwise we could define some kind of iterator; own_loc_ind enumerates local indices
+//owned by calling process; own_glob_ind enumerates corresponding global indices
+//int   min_loc_ind()const
+//int   max_loc_ind()const
+//int   min_own_loc_ind()const
+//int   max_own_loc_ind()const
+//bool  check_glob_has_loc_ind(int i_glob)const
+//bool  check_loc_has_loc_ind(int i_loc)const
+//bool  is_loc_glob_ind_order_preserv()const
+//returns true if local and global enumeration mapping is monotone on each set of elements owned by one process (in any process
+enumeration).
+
