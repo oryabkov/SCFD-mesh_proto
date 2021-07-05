@@ -23,9 +23,6 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <boost/foreach.hpp>
-#include <boost/range/algorithm/sort.hpp>
-#include <boost/range/algorithm/find.hpp>
 
 namespace scfd
 {
