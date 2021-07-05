@@ -33,11 +33,11 @@ namespace communication
 {
 
 //supposed to satisfy MAP concept
-//PARTITIONER must satisfy PARTITIONER concept
-template<class PARTITIONER>
+//Partitioner must satisfy Partitioner concept
+template<class Partitioner>
 struct parted_map
 {
-    PARTITIONER             part;
+    Partitioner             part;
     bool                    r_stencil_only;
     std::map<int,int>       stencil_glob_2_loc;
     std::vector<int>        l_stencil_loc_2_glob;
@@ -46,7 +46,7 @@ struct parted_map
     //creates uninitialized map
     parted_map() {}
     //dummy constructor
-    parted_map(const PARTITIONER &_part,bool _r_stencil_only = false) : part(_part), r_stencil_only(_r_stencil_only)
+    parted_map(const Partitioner &_part,bool _r_stencil_only = false) : part(_part), r_stencil_only(_r_stencil_only)
     {                
     }
 
