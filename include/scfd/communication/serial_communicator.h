@@ -41,6 +41,11 @@ public:
     {
         return local_val;
     }
+    template<class T>
+    T   reduce_sum(const T &local_val)const
+    {
+        return local_val;
+    }
 };
 
 }  /// namespace communication
