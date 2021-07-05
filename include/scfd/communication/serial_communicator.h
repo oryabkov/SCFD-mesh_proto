@@ -17,8 +17,6 @@
 #ifndef __SCFD_SERIAL_COMMUNICATOR_H__
 #define __SCFD_SERIAL_COMMUNICATOR_H__
 
-#include "communicator.h"
-
 namespace scfd
 {
 namespace communication

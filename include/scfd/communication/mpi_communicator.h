@@ -19,7 +19,6 @@
 
 #include <stdexcept>
 #include <mpi.h>
-#include "communicator.h"
 
 namespace scfd
 {
