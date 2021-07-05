@@ -81,6 +81,13 @@ public:
     }
 
     /// Faces interface
+    /// TODO not sure if we need to leave this method here 
+    /// because in general case calculation of total_faces_num is hard and
+    /// is performed in faces_partitioner anyway
+    /*ordinal_type get_total_faces_num()const
+    {
+        return total_faces_num_;
+    }*/
     ordinal_type get_elem_faces_num(ordinal_type i)const
     {
         return elems_to_faces_graph_.get_range_size(i);
