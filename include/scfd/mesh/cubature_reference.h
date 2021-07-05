@@ -1,5 +1,5 @@
-#ifndef __T_CUBATURE_REFERENCE_TML_H__
-#define __T_CUBATURE_REFERENCE_TML_H__
+#ifndef __SCFD_CUBATURE_REFERENCE_H__
+#define __SCFD_CUBATURE_REFERENCE_H__
 
 //TODO mesh/device_tag.h is temporal
 
