@@ -13,3 +13,33 @@
 
 // You should have received a copy of the GNU General Public License
 // along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
+
+#ifndef __SCFD_SERIAL_COMMUNICATOR_H__
+#define __SCFD_SERIAL_COMMUNICATOR_H__
+
+#include "communicator.h"
+
+namespace scfd
+{
+namespace communication
+{
+
+class serial_communicator
+{
+public:
+    int size()const
+    {
+        return 1;
+    }
+    int my_rank()const
+    {
+        return 0;
+    }
+    
+};
+
+}  /// namespace communication
+}  /// namespace scfd
+
+#endif
+

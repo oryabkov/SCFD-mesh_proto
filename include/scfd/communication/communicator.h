@@ -13,3 +13,24 @@
 
 // You should have received a copy of the GNU General Public License
 // along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
+
+#ifndef __SCFD_COMMUNICATOR_H__
+#define __SCFD_COMMUNICATOR_H__
+
+namespace scfd
+{
+namespace communication
+{
+
+class communicator
+{
+public:
+    virtual std::size_t size()const = 0;
+    virtual std::size_t my_rank()const = 0;
+};
+
+}  /// namespace communication
+}  /// namespace scfd
+
+#endif
+

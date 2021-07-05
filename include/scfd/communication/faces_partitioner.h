@@ -20,6 +20,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include "communicator.h"
 
 namespace scfd
 {
@@ -30,6 +31,7 @@ namespace communication
 
 //supposed to satisfy PARTITIONER concept
 
+template<class Ord>
 struct faces_partitioner
 {
     int                     total_size;
