@@ -78,10 +78,13 @@ struct parted_map
         //typedef std::pair<const int,int> pair_int_int;
         for (const auto &e, stencil_glob_2_loc) 
         {
-            if (e.first < median_elem) {
+            if (e.first < median_elem) 
+            {
                 //to the left
                 l_stencil_loc_2_glob.push_back(e.first);
-            } else {
+            } 
+            else 
+            {
                 //to the right
                 r_stencil_loc_2_glob.push_back(e.first);
             } 
@@ -107,11 +110,16 @@ struct parted_map
     bool                check_glob_owned(int i, int rank)const { return part.check_glob_owned(i, rank); }
     glob_ordinal_type   loc2glob(loc_ordinal_type i_loc)const
     {
-        if (i_loc < 0) {
+        if (i_loc < 0) 
+        {
             return l_stencil_loc_2_glob[i_loc + l_stencil_loc_2_glob.size()];
-        } else if (i_loc >= get_size()) {
+        } 
+        else if (i_loc >= get_size()) 
+        {
             return r_stencil_loc_2_glob[i_loc - get_size()];
-        } else {
+        } 
+        else 
+        {
             return part.own_glob_ind(i_loc);
         }
     }
