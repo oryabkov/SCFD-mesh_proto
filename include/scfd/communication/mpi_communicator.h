@@ -47,6 +47,11 @@ public:
     {
         throw std::logic_error("mpi_communicator::reduce_max: not supported for given type");
     }
+    template<class T>
+    T   reduce_sum(const T &local_val)const
+    {
+        throw std::logic_error("mpi_communicator::reduce_sum: not supported for given type");
+    }
     //TODO MPI handle
 };
 
@@ -71,6 +76,30 @@ int      mpi_communicator::reduce_max<int>(const int &local_val)const
 {
     int       res_val;
     MPI_Allreduce( &local_val, &res_val, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );
+    return res_val;
+}
+
+template<>
+float   mpi_communicator::reduce_sum<float>(const float &local_val)const
+{
+    float       res_val;
+    MPI_Allreduce( &local_val, &res_val, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD );
+    return res_val;
+}
+
+template<>
+double   mpi_communicator::reduce_sum<double>(const double &local_val)const
+{
+    double       res_val;
+    MPI_Allreduce( &local_val, &res_val, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+    return res_val;
+}
+
+template<>
+int      mpi_communicator::reduce_sum<int>(const int &local_val)const
+{
+    int       res_val;
+    MPI_Allreduce( &local_val, &res_val, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
     return res_val;
 }
 
