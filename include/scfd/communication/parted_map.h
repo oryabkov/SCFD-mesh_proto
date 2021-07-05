@@ -70,7 +70,7 @@ struct parted_map
     void    complete()
     {
         part.complete();
-        int median_elem = 0;
+        glob_ordinal_type median_elem = 0;
         if (get_size() > 0) 
         {
             if (!r_stencil_only) median_elem = own_glob_ind(0); else median_elem = 0;
