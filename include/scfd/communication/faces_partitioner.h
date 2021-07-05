@@ -34,7 +34,7 @@ namespace communication
 template<class Ord>
 struct faces_partitioner
 {
-    using ordinal_type = Ord;
+    using glob_ordinal_type = Ord;
 
     Ord                     total_size;
     int                     my_rank;
@@ -56,7 +56,7 @@ struct faces_partitioner
         {
             Ord elem_glob_i = map_elem.own_glob_ind(i);
 
-            ordinal_type faces[mesh.get_elem_faces_num(elem_glob_i)];
+            Ord faces[mesh.get_elem_faces_num(elem_glob_i)];
             mesh.get_elem_faces(elem_glob_i, faces);
 
             for (Ord face_i = 0;face_i < mesh.get_elem_faces_num(elem_glob_i);++face_i) 
