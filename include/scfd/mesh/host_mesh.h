@@ -258,6 +258,9 @@ private:
     //std::shared_ptr<const BasicMesh>  basic_mesh_;
 
 private:
+    /// TODO see get_total_faces_num() commneted code
+    //ordinal_type                    total_faces_num_;
+
     elems_to_faces_graph_t          elems_to_faces_graph_;
     faces_to_elems_graph_t          faces_to_elems_graph_;
     elems_to_neighbours0_graph_t    elems_to_neighbours0_graph_;
