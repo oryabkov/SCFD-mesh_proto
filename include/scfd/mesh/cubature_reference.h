@@ -121,7 +121,7 @@ struct face_cubature_reference_max_pnts_n<5>
 template<int max_order, class T>
 struct elem_cubature_reference
 {
-    typedef t_vec_tml<T,3>  t_vec;
+    typedef t_vec_tml<T,3>  vec_t;
 
     static const int max_pnts_n = cubature_reference_max_pnts_n<max_order>::value;
 
@@ -129,7 +129,7 @@ struct elem_cubature_reference
 
     unsigned char   pnts_n[max_order+1];
     T       weights[max_order+1][max_pnts_n];
-    t_vec       pnts[max_order+1][max_pnts_n];
+    vec_t       pnts[max_order+1][max_pnts_n];
 
         __DEVICE_TAG__ unsigned char    get_pnts_n(unsigned char order)const
     {
@@ -140,11 +140,11 @@ struct elem_cubature_reference
         return weights[order][pnt_i];
     }
     //several interfaces to get cubature points coordinates
-    __DEVICE_TAG__ const t_vec  &get_pnt(unsigned char order, unsigned char pnt_i)const
+    __DEVICE_TAG__ const vec_t  &get_pnt(unsigned char order, unsigned char pnt_i)const
     {
         return pnts[order][pnt_i];
     }
-    __DEVICE_TAG__ void     get_pnt(unsigned char order, unsigned char pnt_i, t_vec &res)const
+    __DEVICE_TAG__ void     get_pnt(unsigned char order, unsigned char pnt_i, vec_t &res)const
     {
         res = pnts[order][pnt_i];
     }
@@ -716,7 +716,7 @@ struct elem_cubature_reference
     }
 
     void    init_for_coords(const elem_cubature_reference &q_ref, int elem_type,
-                const t_mesh_elem_reference_tml<T> &e, const t_vec *vertexes)
+                const t_mesh_elem_reference_tml<T> &e, const vec_t *vertexes)
     {
         for (unsigned char ord = 0;ord <= max_order;++ord) {
             pnts_n[ord] = q_ref.pnts_n[ord];
@@ -734,14 +734,14 @@ struct elem_cubature_reference
 template<int max_order, class T>
 struct cubature_reference
 {
-    typedef t_vec_tml<T,3>                  t_vec;
+    typedef t_vec_tml<T,3>                  vec_t;
     typedef elem_cubature_reference<max_order,T>  t_elem_cubature;
 
     static const int                    max_pnts_n = cubature_reference_max_pnts_n<max_order>::value;
 
     /*int       pnts_n[CUBATURE_REFERENCE_ELEM_TYPES_N][max_order+1];
     T       weights[CUBATURE_REFERENCE_ELEM_TYPES_N][max_order+1][max_pnts_n];
-    t_vec       pnts[CUBATURE_REFERENCE_ELEM_TYPES_N][max_order+1][max_pnts_n];*/
+    vec_t       pnts[CUBATURE_REFERENCE_ELEM_TYPES_N][max_order+1][max_pnts_n];*/
     t_elem_cubature cubatures[CUBATURE_REFERENCE_ELEM_TYPES_N];
 
     __DEVICE_TAG__ unsigned char        get_pnts_n(int elem_type, unsigned char order)const
@@ -753,11 +753,11 @@ struct cubature_reference
         return cubatures[elem_type].weights[order][pnt_i];
     }
     //several interfaces to get cubature points coordinates
-    __DEVICE_TAG__ const t_vec  &get_pnt(int elem_type, unsigned char order, unsigned char pnt_i)const
+    __DEVICE_TAG__ const vec_t  &get_pnt(int elem_type, unsigned char order, unsigned char pnt_i)const
     {
         return cubatures[elem_type].pnts[order][pnt_i];
     }
-    __DEVICE_TAG__ void     get_pnt(int elem_type, unsigned char order, unsigned char pnt_i, t_vec &res)const
+    __DEVICE_TAG__ void     get_pnt(int elem_type, unsigned char order, unsigned char pnt_i, vec_t &res)const
     {
         res = cubatures[elem_type].pnts[order][pnt_i];
     }
