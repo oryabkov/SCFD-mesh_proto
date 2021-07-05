@@ -34,41 +34,53 @@ namespace communication
 template<class Ord>
 struct faces_partitioner
 {
-    int                     total_size;
+    Ord                     total_size;
     int                     my_rank;
     bool                    is_complete;
-    //first int is global index of node, second int is rank
-    std::map<int,int>       ranks;
+    //first Ord is global index of face, second int is rank
+    std::map<Ord,int>       ranks;
     //supposed to be sorted
-    std::vector<int>        own_glob_indices;
-    std::map<int,int>       own_glob_indices_2_ind;
+    std::vector<Ord>        own_glob_indices;
+    std::map<Ord,Ord>       own_glob_indices_2_ind;
 
     faces_partitioner() {}
     //map_elem could be at 'before complete' stage
     //mesh must have all nodes incident(to owned by map_elen) and 2nd order incident (to owned by map_elem) elements nodes-elem graph
-    template<class HostMesh, class Map>
-    faces_partitioner(int comm_size, int _my_rank, const HostMesh &mesh, const Map &map_elem) : my_rank(_my_rank), is_complete(false)
+    template<class Communicator, class HostMesh, class Map>
+    faces_partitioner(const Communicator &comm, const HostMesh &mesh, const Map &map_elem) : my_rank(comm.my_rank()), is_complete(false)
     {
-        total_size = mesh.nodes.size();
-        for (int i = 0;i < map_elem.get_size();++i) {
-            int elem_glob_i = map_elem.own_glob_ind(i);
-            for (int vert_i = 0;vert_i < mesh.cv_2_node_ids[elem_glob_i].vert_n;++vert_i) {
-                int node_i = mesh.cv_2_node_ids[elem_glob_i].ids[vert_i];
-                if (ranks.find(node_i) != ranks.end()) continue;
-                std::pair<int,int> ref_range = mesh.node_2_cv_ids_ref[node_i];
-                int min_elem_id = -1;
-                for (int j = ref_range.first;j < ref_range.second;++j) {
-                    int nb_elem_glob_i = mesh.node_2_cv_ids_data[j];
-                    if ((min_elem_id == -1)||(nb_elem_glob_i < min_elem_id)) min_elem_id = nb_elem_glob_i;
+        //total_size = mesh.nodes.size();
+        for (Ord i = 0;i < map_elem.get_size();++i) 
+        {
+            Ord elem_glob_i = map_elem.own_glob_ind(i);
+
+            ordinal_type faces[mesh.get_elem_faces_num(elem_glob_i)];
+            mesh.get_elem_faces(elem_glob_i, faces);
+
+            for (Ord face_i = 0;face_i < mesh.get_elem_faces_num(elem_glob_i);++face_i) 
+            {
+                //Ord node_i = mesh.cv_2_node_ids[elem_glob_i].ids[vert_i];
+                if (ranks.find(faces[face_i]) != ranks.end()) continue;
+
+                Ord face_elems[2];
+                mesh.get_face_elems(faces[face_i],face_elems);
+
+                //std::pair<int,int> ref_range = mesh.node_2_cv_ids_ref[node_i];
+                Ord min_elem_id = face_elems[0];
+                for (Ord j = 0;j < mesh.get_face_elems_num(faces[face_i]);++j) 
+                {
+                    if (face_elems[j] < min_elem_id) min_elem_id = face_elems[j];
                 }
-                if (map_elem.check_glob_owned(min_elem_id)) {
-                    ranks[node_i] = my_rank;
-                    own_glob_indices.push_back(node_i);
+                if (map_elem.check_glob_owned(min_elem_id)) 
+                {
+                    ranks[faces[face_i]] = my_rank;
+                    own_glob_indices.push_back(faces[face_i]);
                 }
             }
         }
         std::sort(own_glob_indices.begin(), own_glob_indices.end());
-        for (int i = 0;i < own_glob_indices.size();++i) {
+        for (Ord i = 0;i < own_glob_indices.size();++i) 
+        {
             own_glob_indices_2_ind[ own_glob_indices[i] ] = i;
         }
         //my_rank = part.my_rank;
@@ -78,29 +90,29 @@ struct faces_partitioner
     //'read' before construction part:
     int     get_own_rank()const { return my_rank; }
     //i_glob here could be any global index both before and after construction part
-    bool    check_glob_owned(int i_glob)const 
+    bool    check_glob_owned(Ord i_glob)const 
     {
-        std::map<int,int>::const_iterator       it = ranks.find(i_glob);
+        std::map<Ord,int>::const_iterator       it = ranks.find(i_glob);
         if (it == ranks.end()) return false;
         return it->second == get_own_rank();
     }
-    int     get_total_size()const { return total_size; }
+    Ord     get_total_size()const { return total_size; }
     //get_size is not part of PARTITIONER concept
-    int     get_size()const { return own_glob_indices.size(); }
-    int     own_glob_ind(int i)const
+    Ord     get_size()const { return own_glob_indices.size(); }
+    Ord     own_glob_ind(Ord i)const
     {
         assert((i >= 0)&&(i < get_size()));
         return own_glob_indices[i];
     }
-    int     own_glob_ind_2_ind(int i_glob)const
+    Ord     own_glob_ind_2_ind(Ord i_glob)const
     {
-        std::map<int,int>::const_iterator       it = own_glob_indices_2_ind.find(i_glob);
+        std::map<Ord,Ord>::const_iterator       it = own_glob_indices_2_ind.find(i_glob);
         assert(it != own_glob_indices_2_ind.end());
         return it->second;
     }
 
     //'construction' part:
-    void    add_stencil_element(int i_glob)
+    void    add_stencil_element(Ord i_glob)
     {
         if (check_glob_owned(i_glob)) return;
         ranks[i_glob] = -1;
@@ -114,10 +126,10 @@ struct faces_partitioner
     //'read' after construction part:
     //i_glob is ether index owner by calling process, ether index from stencil, otherwise behavoiur is  undefined
     //returns rank of process that owns i_glob index
-    int     get_rank(int i_glob)const
+    int     get_rank(Ord i_glob)const
     {
         assert(is_complete);
-        std::map<int,int>::const_iterator it = ranks.find(i_glob);
+        std::map<Ord,int>::const_iterator it = ranks.find(i_glob);
         assert(it != ranks.end());
         if (it->second == -1) throw std::logic_error("faces_partitioner:: not realized yet!!");
         return it->second;
@@ -126,7 +138,7 @@ struct faces_partitioner
     //for rank != get_own_rank():
     //i_glob is ether index owner by calling process, ether index from stencil, otherwise behavoiur is  undefined
     //returns, if index i_glob is owned by rank processor
-    bool    check_glob_owned(int i_glob, int rank)const 
+    bool    check_glob_owned(Ord i_glob, int rank)const 
     { 
         assert(is_complete);
         if (rank == get_own_rank()) {
