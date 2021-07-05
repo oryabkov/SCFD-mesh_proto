@@ -83,6 +83,11 @@ struct faces_partitioner
         {
             own_glob_indices_2_ind[ own_glob_indices[i] ] = i;
         }
+
+        Ord own_size = own_glob_indices.size();
+
+        total_size = comm.reduce_sum<Ord>(own_size);
+
         //my_rank = part.my_rank;
         //is_complete = part.is_complete;
     }
