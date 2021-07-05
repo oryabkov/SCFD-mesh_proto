@@ -34,6 +34,8 @@ namespace communication
 template<class Ord>
 struct faces_partitioner
 {
+    using ordinal_type = Ord;
+
     Ord                     total_size;
     int                     my_rank;
     bool                    is_complete;

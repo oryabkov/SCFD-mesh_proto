@@ -37,11 +37,14 @@ namespace communication
 template<class Partitioner>
 struct parted_map
 {
-    Partitioner             part;
-    bool                    r_stencil_only;
-    std::map<int,int>       stencil_glob_2_loc;
-    std::vector<int>        l_stencil_loc_2_glob;
-    std::vector<int>        r_stencil_loc_2_glob;
+    using loc_ordinal_type = int;
+    using glob_ordinal_type = typename Partitioner::ordinal_type;
+
+    Partitioner                                         part;
+    bool                                                r_stencil_only;
+    std::map<glob_ordinal_type,loc_ordinal_type>        stencil_glob_2_loc;
+    std::vector<glob_ordinal_type>                      l_stencil_loc_2_glob;
+    std::vector<glob_ordinal_type>                      r_stencil_loc_2_glob;
 
     //creates uninitialized map
     parted_map() {}
@@ -51,16 +54,16 @@ struct parted_map
     }
 
     //'read' before construction part:
-    int     get_own_rank()const { return part.get_own_rank(); }
-    bool    check_glob_owned(int i)const { return part.check_glob_owned(i); }
-    int     get_total_size()const { return part.get_total_size(); }
-    int     get_size()const { return part.get_size(); }
-    int     own_glob_ind(int i)const { return part.own_glob_ind(i); }
+    int                     get_own_rank()const { return part.get_own_rank(); }
+    bool                    check_glob_owned(int i)const { return part.check_glob_owned(i); }
+    glob_ordinal_type       get_total_size()const { return part.get_total_size(); }
+    loc_ordinal_type        get_size()const { return part.get_size(); }
+    glob_ordinal_type       own_glob_ind(loc_ordinal_type i)const { return part.own_glob_ind(i); }
 
     //'construction' part:
     //t_simple_map just ignores this information
     //i is global index here
-    void    add_stencil_element(int i)
+    void    add_stencil_element(glob_ordinal_type i)
     {
         if (check_glob_owned(i)) return;
         part.add_stencil_element(i);
@@ -71,11 +74,13 @@ struct parted_map
     {
         part.complete();
         int median_elem = 0;
-        if (get_size() > 0) {
+        if (get_size() > 0) 
+        {
             if (!r_stencil_only) median_elem = own_glob_ind(0); else median_elem = 0;
         }
-        typedef std::pair<const int,int> pair_int_int;
-        BOOST_FOREACH(pair_int_int &e, stencil_glob_2_loc) {
+        //typedef std::pair<const int,int> pair_int_int;
+        for (const auto &e, stencil_glob_2_loc) 
+        {
             if (e.first < median_elem) {
                 //to the left
                 l_stencil_loc_2_glob.push_back(e.first);
@@ -84,24 +89,26 @@ struct parted_map
                 r_stencil_loc_2_glob.push_back(e.first);
             } 
         }
-        boost::sort(l_stencil_loc_2_glob);
-        boost::sort(r_stencil_loc_2_glob);
-        for (int i = 0;i < l_stencil_loc_2_glob.size();++i) {
-            int     glob_ind = l_stencil_loc_2_glob[i],
-                loc_ind = -l_stencil_loc_2_glob.size() + i;
+        std::sort(l_stencil_loc_2_glob.begin(),l_stencil_loc_2_glob.end());
+        std::sort(r_stencil_loc_2_glob.begin(),r_stencil_loc_2_glob.end());
+        for (loc_ordinal_type i = 0;i < l_stencil_loc_2_glob.size();++i) 
+        {
+            glob_ordinal_type     glob_ind = l_stencil_loc_2_glob[i];
+            loc_ordinal_type      loc_ind = -l_stencil_loc_2_glob.size() + i;
             stencil_glob_2_loc[glob_ind] = loc_ind;
         }
-        for (int i = 0;i < r_stencil_loc_2_glob.size();++i) {
-            int     glob_ind = r_stencil_loc_2_glob[i],
-                loc_ind = get_size() + i;
+        for (loc_ordinal_type i = 0;i < r_stencil_loc_2_glob.size();++i) 
+        {
+            glob_ordinal_type     glob_ind = r_stencil_loc_2_glob[i];
+            loc_ordinal_type      loc_ind = get_size() + i;
             stencil_glob_2_loc[glob_ind] = loc_ind;
         }
     }
 
     //'read' after construction part:
-    int     get_rank(int i)const { return part.get_rank(i); }
-    bool    check_glob_owned(int i, int rank)const { return part.check_glob_owned(i, rank); }
-    int     loc2glob(int i_loc)const
+    int                 get_rank(int i)const { return part.get_rank(i); }
+    bool                check_glob_owned(int i, int rank)const { return part.check_glob_owned(i, rank); }
+    glob_ordinal_type   loc2glob(loc_ordinal_type i_loc)const
     {
         if (i_loc < 0) {
             return l_stencil_loc_2_glob[i_loc + l_stencil_loc_2_glob.size()];
@@ -111,7 +118,7 @@ struct parted_map
             return part.own_glob_ind(i_loc);
         }
     }
-    int     glob2loc(int i_glob)const
+    loc_ordinal_type    glob2loc(glob_ordinal_type i_glob)const
     {
         if (check_glob_owned(i_glob))
             return part.own_glob_ind_2_ind(i_glob);
@@ -119,32 +126,32 @@ struct parted_map
             return stencil_glob_2_loc.at(i_glob);
             //return stencil_glob_2_loc[i_glob];
     }
-    int     own_loc_ind(int i)const
+    loc_ordinal_type    own_loc_ind(loc_ordinal_type i)const
     {
         return i;
     }
-    int     min_loc_ind()const
+    loc_ordinal_type    min_loc_ind()const
     {
         return -l_stencil_loc_2_glob.size();
     }
-    int     max_loc_ind()const
+    loc_ordinal_type    max_loc_ind()const
     {
         return r_stencil_loc_2_glob.size()-1 +  get_size();
     }
-    int     min_own_loc_ind()const
+    loc_ordinal_type    min_own_loc_ind()const
     {
         return 0;
     }
-    int     max_own_loc_ind()const
+    loc_ordinal_type    max_own_loc_ind()const
     {
         return get_size()-1;
     }
-    bool    check_glob_has_loc_ind(int i_glob)const
+    bool    check_glob_has_loc_ind(glob_ordinal_type i_glob)const
     {
         if (check_glob_owned(i_glob)) return true;
         return stencil_glob_2_loc.find(i_glob) != stencil_glob_2_loc.end();
     }
-    bool    check_loc_has_loc_ind(int i_loc)const
+    bool    check_loc_has_loc_ind(loc_ordinal_type i_loc)const
     {
         return (i_loc >= min_loc_ind())&&(i_loc <= max_loc_ind());
     }
