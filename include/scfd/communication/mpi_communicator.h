@@ -66,6 +66,14 @@ double   mpi_communicator::reduce_max<double>(const double &local_val)const
     return res_val;
 }
 
+template<>
+int      mpi_communicator::reduce_max<int>(const int &local_val)const
+{
+    int       res_val;
+    MPI_Allreduce( &local_val, &res_val, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );
+    return res_val;
+}
+
 }  /// namespace communication
 }  /// namespace scfd
 

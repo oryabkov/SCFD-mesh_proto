@@ -36,6 +36,11 @@ public:
         return 0;
     }
     
+    template<class T>
+    T   reduce_max(const T &local_val)const
+    {
+        return local_val;
+    }
 };
 
 }  /// namespace communication
