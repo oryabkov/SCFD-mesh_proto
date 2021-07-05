@@ -6,7 +6,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <mesh/device_tag.h>
-#include <vecs_mats/t_vec_tml.h>
+#include <scfd/static_vec/vec.h>
 #include <mesh/t_mesh_elem_reference_tml.h>
 
 //NOTE element types and local coordinate systems are synced with t_mesh_elem_reference_tml.h (and, accordingly, with gmsh)
@@ -121,7 +121,7 @@ struct face_cubature_reference_max_pnts_n<5>
 template<int max_order, class T>
 struct elem_cubature_reference
 {
-    typedef t_vec_tml<T,3>  vec_t;
+    typedef static_vec::vec<T,3>  vec_t;
 
     static const int max_pnts_n = cubature_reference_max_pnts_n<max_order>::value;
 
@@ -734,7 +734,7 @@ struct elem_cubature_reference
 template<int max_order, class T>
 struct cubature_reference
 {
-    typedef t_vec_tml<T,3>                  vec_t;
+    typedef static_vec::vec<T,3>                  vec_t;
     typedef elem_cubature_reference<max_order,T>  elem_cubature_t;
 
     static const int                    max_pnts_n = cubature_reference_max_pnts_n<max_order>::value;
