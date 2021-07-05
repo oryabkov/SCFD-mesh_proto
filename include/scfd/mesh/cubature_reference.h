@@ -735,14 +735,14 @@ template<int max_order, class T>
 struct cubature_reference
 {
     typedef t_vec_tml<T,3>                  vec_t;
-    typedef elem_cubature_reference<max_order,T>  t_elem_cubature;
+    typedef elem_cubature_reference<max_order,T>  elem_cubature_t;
 
     static const int                    max_pnts_n = cubature_reference_max_pnts_n<max_order>::value;
 
     /*int       pnts_n[CUBATURE_REFERENCE_ELEM_TYPES_N][max_order+1];
     T       weights[CUBATURE_REFERENCE_ELEM_TYPES_N][max_order+1][max_pnts_n];
     vec_t       pnts[CUBATURE_REFERENCE_ELEM_TYPES_N][max_order+1][max_pnts_n];*/
-    t_elem_cubature cubatures[CUBATURE_REFERENCE_ELEM_TYPES_N];
+    elem_cubature_t cubatures[CUBATURE_REFERENCE_ELEM_TYPES_N];
 
     __DEVICE_TAG__ unsigned char        get_pnts_n(int elem_type, unsigned char order)const
     {
