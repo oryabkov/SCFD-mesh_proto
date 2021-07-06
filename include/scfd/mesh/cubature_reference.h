@@ -746,10 +746,11 @@ struct elem_cubature_reference
         //TODO
     }
 
+    /*template<class ElemRef>
     void    init_for_coords
     (
         const elem_cubature_reference &q_ref, int elem_type,
-        const t_mesh_elem_reference_tml<T> &e, const vec_t *vertexes
+        const ElemRef &e, const vec_t *vertexes
     )
     {
         for (unsigned char ord = 0;ord <= max_order;++ord) 
@@ -762,7 +763,7 @@ struct elem_cubature_reference
                 e.ref_to_phys(elem_type, vertexes, q_ref.pnts[ord][pnt_i], pnts[ord][pnt_i]);
             }
         }
-    }
+    }*/
 };
 
 //ISSUE what about dimension? divide it or make it 'all in one'?
