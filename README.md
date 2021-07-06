@@ -3,7 +3,7 @@
 This is prototype version for (presumably unstructured) mesh framework in SCFD.
 Previuos version (SimpleCFD/samples_n_protos/unstructured_mesh_framework) is 
 taken as basis for this new one. Also, most recent versions of 'communication' 
-(SimpleCFD/samples_n_protos/unstructured_mesh_framework) and 'for_each' 
+(SimpleCFD/samples_n_protos/communication) and 'for_each' 
 (SimpleCFD/samples_n_protos/for_each) are supposed to be used.
 Main goals are the following:
 * Getting rid of internal mesh format (both file fromat and CPU maintain structures) 
