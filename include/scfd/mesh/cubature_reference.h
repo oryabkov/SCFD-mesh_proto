@@ -1,3 +1,19 @@
+// Copyright © 2016-2021 Ryabkov Oleg Igorevich, Evstigneev Nikolay Mikhaylovitch
+
+// This file is part of SimpleCFD.
+
+// SimpleCFD is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2 only of the License.
+
+// SimpleCFD is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with SimpleCFD.  If not, see <http://www.gnu.org/licenses/>.
+
 #ifndef __SCFD_CUBATURE_REFERENCE_H__
 #define __SCFD_CUBATURE_REFERENCE_H__
 
@@ -16,6 +32,11 @@
 //TODO it would be useful also to have cubature structure for given element and given order (see for example some TODO's in t_DG_tml constructor)
 
 #define CUBATURE_REFERENCE_ELEM_TYPES_N 8
+
+namespace scfd
+{
+namespace mesh
+{
 
 template<int max_order>
 struct cubature_reference_max_pnts_n
@@ -817,5 +838,8 @@ struct cubature_reference
     }
 
 };
+
+}  /// namespace mesh
+}  /// namespace scfd
 
 #endif
