@@ -247,6 +247,7 @@ private:
     using face_key_t = detail::face_key<ordinal_type>;
     using face_key_equal_func = detail::face_key_equal_func<ordinal_type>;
     using face_key_less_func = detail::face_key_less_func<ordinal_type>;
+    using face_key_hash_func = detail::face_key_hash_func<ordinal_type>;
 
     using elems_to_faces_graph_t = detail::ranges_sparse_arr<ordinal_type,ordinal_type>;
     /// Here pair's first is id of incident element, second - local face index inside this element
@@ -294,7 +295,7 @@ protected:
         /// Create faces dict
 
         //std::cout << "create faces dict" << std::endl;
-        std::map<face_key_t,ordinal_type,face_key_less_func>    faces;
+        std::unordered_map<face_key_t,ordinal_type,face_key_hash_func,face_key_equal_func>    faces;
         /// Process own elements
         for (ordinal_type i = 0;i < part.get_size();++i)
         {
@@ -427,7 +428,7 @@ protected:
     void build_faces_for_elem
     (
         ordinal_type elem_id, 
-        std::map<face_key_t,ordinal_type,face_key_less_func> &faces
+        std::unordered_map<face_key_t,ordinal_type,face_key_hash_func,face_key_equal_func> &faces
     )
     {
         const auto &ref = parent_type::mesh_elem_reference();
@@ -462,7 +463,7 @@ protected:
             }
         }
     }
-    void reserve_graphs_for_elem(ordinal_type elem_id, const std::map<face_key_t,ordinal_type,face_key_less_func> &faces)
+    void reserve_graphs_for_elem(ordinal_type elem_id, const std::unordered_map<face_key_t,ordinal_type,face_key_hash_func,face_key_equal_func> &faces)
     {
         const auto &ref = parent_type::mesh_elem_reference();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);
@@ -484,7 +485,7 @@ protected:
             virt_faces_to_elems_graph_.inc_max_range_size(virt_face_id,1);            
         }
     }
-    void fill_graphs_for_elem(ordinal_type elem_id, const std::map<face_key_t,ordinal_type,face_key_less_func> &faces)
+    void fill_graphs_for_elem(ordinal_type elem_id, const std::unordered_map<face_key_t,ordinal_type,face_key_hash_func,face_key_equal_func> &faces)
     {
         const auto &ref = parent_type::mesh_elem_reference();
         elem_type_ordinal_type  elem_type = parent_type::get_elem_type(elem_id);

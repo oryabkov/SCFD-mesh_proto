@@ -18,6 +18,7 @@
 #define __SCFD_MESH_FACE_KEY_H__
 
 #include <algorithm>
+#include <functional>
 
 namespace scfd
 {
@@ -132,6 +133,24 @@ struct face_key_less_func
         return false;
     }
 }; 
+
+template<class Ord>
+struct face_key_hash_func
+{
+    typedef face_key<Ord> argument_type;
+    typedef size_t result_type;
+
+    result_type operator()(const argument_type& a) const
+    {
+        std::hash<Ord> hasher;
+        result_type h = 0;
+        for (size_t i = 0; i < a.nodes_n(); ++i)
+        {
+            h = h * 31 + hasher(a.sorted_prim_node(i));
+        }
+        return h;
+    }
+};
 
 }  /// namespace detail
 }  /// namespace mesh
