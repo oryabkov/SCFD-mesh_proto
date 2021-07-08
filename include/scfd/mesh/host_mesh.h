@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <algorithm>
+#include <unordered_map>
 #include <scfd/static_vec/vec.h>
 #include "detail/face_key.h"
 

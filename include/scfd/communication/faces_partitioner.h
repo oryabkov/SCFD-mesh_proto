@@ -19,7 +19,7 @@
 
 #include <cassert>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <algorithm>
 
 namespace scfd
@@ -36,14 +36,14 @@ struct faces_partitioner
 {
     using glob_ordinal_type = Ord;
 
-    Ord                     total_size;
-    int                     my_rank;
-    bool                    is_complete;
+    Ord                             total_size;
+    int                             my_rank;
+    bool                            is_complete;
     //first Ord is global index of face, second int is rank
-    std::map<Ord,int>       ranks;
+    std::unordered_map<Ord,int>     ranks;
     //supposed to be sorted
-    std::vector<Ord>        own_glob_indices;
-    std::map<Ord,Ord>       own_glob_indices_2_ind;
+    std::vector<Ord>                own_glob_indices;
+    std::unordered_map<Ord,Ord>     own_glob_indices_2_ind;
 
     faces_partitioner() {}
     //map_elem could be at 'before complete' stage
