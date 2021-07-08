@@ -459,6 +459,7 @@ public:
     }
     Ord get_node_virt_master_id(Ord i)const
     {
+        if (!nodes_virt_master_ids_arr_.has(i)) return i;
         return nodes_virt_master_ids_arr_[i];
     }
     bool check_node_has_virt_pair_node_id(Ord i, Ord virt_pair_i)const
@@ -825,7 +826,7 @@ private:
             calc_node_virt_master_id(graph, node_id);
         }
         /// Build nodes_virt_master_ids_arr_ for dim nodes (trivial)
-        std::vector<GEntity *> entities;
+        /*std::vector<GEntity *> entities;
         g_model_->getEntities(entities, dim);
         for (auto entity : entities)
         {
@@ -842,7 +843,7 @@ private:
                 /// Add self reference
                 nodes_virt_master_ids_arr_.add(node_id,node_id);
             }
-        }
+        }*/
     }
 };
 

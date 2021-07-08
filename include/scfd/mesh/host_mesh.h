@@ -103,6 +103,7 @@ public:
     }
     ordinal_type get_face_virt_master_id(ordinal_type i)const
     {
+        if (!faces_virt_master_ids_arr_.has(i)) return i;
         return faces_virt_master_ids_arr_[i];
     }
     /// NOTE each face can only have maximum 1 virt_pair
@@ -292,6 +293,7 @@ protected:
 
         /// Create faces dict
 
+        //std::cout << "create faces dict" << std::endl;
         std::map<face_key_t,ordinal_type,face_key_less_func>    faces;
         /// Process own elements
         for (ordinal_type i = 0;i < part.get_size();++i)
@@ -305,6 +307,7 @@ protected:
             build_faces_for_elem(elem_id,faces);
         }
 
+        //std::cout << "faces virt masters " << std::endl;
         for (auto face_pair : faces)
         {
             face_key_t      face_key = face_pair.first;
@@ -337,12 +340,13 @@ protected:
             }
             else 
             {
-                faces_virt_master_ids_arr_.add(face_id, face_id);
+                //faces_virt_master_ids_arr_.add(face_id, face_id);
             }
         }
 
         /// Create graphs elems_to_faces_graph_ and faces_to_elems_graph_ based on dict
     
+        //std::cout << "create graphs structure " << std::endl;
         elems_to_faces_graph_.reserve(part.get_size()+stencil_ids.size());
         elems_to_neighbours0_graph_.reserve(part.get_size()+stencil_ids.size());
         faces_to_elems_graph_.reserve(faces.size());
@@ -368,6 +372,7 @@ protected:
         elems_to_virt_neighbours0_graph_.complete_structure();
         virt_faces_to_elems_graph_.complete_structure();
 
+        //std::cout << "fill graphs" << std::endl;
         /// Fill actual graphs elems_to_faces_graph_ and faces_to_elems_graph_
         /// Process own elements
         for (ordinal_type i = 0;i < part.get_size();++i)
