@@ -297,10 +297,12 @@ int main(int argc, char **args)
     MAIN_CATCH(2)
 
     MAIN_TRY("reading mesh from " + mesh_fn)
+    log.info("call read()");
     host_mesh->set_mesh_filename(mesh_fn);
     host_mesh->read(periodic_bnds);
     *part = partitioner_t(host_mesh->get_total_elems_num(), 1, 0);
     host_mesh->set_partitioner(part);
+    log.info("call enlarge_stencil(1)");
     host_mesh->enlarge_stencil(1);
     //init map object
     *map = map_t(host_mesh->get_total_elems_num());
