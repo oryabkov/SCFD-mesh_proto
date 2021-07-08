@@ -54,9 +54,12 @@ struct ranges_sparse_arr
         //TODO preffy dirty hack to use internals of sparse_arr. Mb, privatly inherit it instead?
         Ord curr_offset = 0;
         max_range_size_ = 0;
-        for (auto p : sparse_pairs_arr_.glob_ind_to_vec_ind)
+        //for (auto p : sparse_pairs_arr_.glob_ind_to_vec_ind)
+        for (auto obj_ind : sparse_pairs_arr_.glob_ind_to_vec_ind)
         {
-            auto &range_pair = sparse_pairs_arr_.objs_[p.second];
+            //auto &range_pair = sparse_pairs_arr_.objs_[p.second];
+            if (obj_ind == sparse_pairs_arr_t::special_ind) continue;
+            auto &range_pair = sparse_pairs_arr_.objs_[obj_ind];
             range_pair.second = curr_offset;
             curr_offset += range_pair.first;
             max_range_size_ = std::max(max_range_size_,range_pair.first);
