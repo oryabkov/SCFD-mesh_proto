@@ -35,7 +35,7 @@ template<class Partitioner>
 struct parted_map
 {
     using loc_ordinal_type = int;
-    using glob_ordinal_type = typename Partitioner::ordinal_type;
+    using glob_ordinal_type = typename Partitioner::glob_ordinal_type;
 
     Partitioner                                         part;
     bool                                                r_stencil_only;
@@ -76,7 +76,7 @@ struct parted_map
             if (!r_stencil_only) median_elem = own_glob_ind(0); else median_elem = 0;
         }
         //typedef std::pair<const int,int> pair_int_int;
-        for (const auto &e, stencil_glob_2_loc) 
+        for (const auto &e : stencil_glob_2_loc) 
         {
             if (e.first < median_elem) 
             {

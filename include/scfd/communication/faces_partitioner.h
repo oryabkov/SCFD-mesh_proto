@@ -17,10 +17,10 @@
 #ifndef __SCFD_NODES_PARTITIONER_H__
 #define __SCFD_NODES_PARTITIONER_H__
 
+#include <cassert>
 #include <vector>
 #include <map>
 #include <algorithm>
-#include "communicator.h"
 
 namespace scfd
 {
@@ -88,7 +88,7 @@ struct faces_partitioner
 
         Ord own_size = own_glob_indices.size();
 
-        total_size = comm.reduce_sum<Ord>(own_size);
+        total_size = comm.template reduce_sum<Ord>(own_size);
 
         //my_rank = part.my_rank;
         //is_complete = part.is_complete;
@@ -99,7 +99,7 @@ struct faces_partitioner
     //i_glob here could be any global index both before and after construction part
     bool    check_glob_owned(Ord i_glob)const 
     {
-        std::map<Ord,int>::const_iterator       it = ranks.find(i_glob);
+        auto  it = ranks.find(i_glob);
         if (it == ranks.end()) return false;
         return it->second == get_own_rank();
     }
@@ -113,7 +113,7 @@ struct faces_partitioner
     }
     Ord     own_glob_ind_2_ind(Ord i_glob)const
     {
-        std::map<Ord,Ord>::const_iterator       it = own_glob_indices_2_ind.find(i_glob);
+        auto  it = own_glob_indices_2_ind.find(i_glob);
         assert(it != own_glob_indices_2_ind.end());
         return it->second;
     }
@@ -136,7 +136,7 @@ struct faces_partitioner
     int     get_rank(Ord i_glob)const
     {
         assert(is_complete);
-        std::map<Ord,int>::const_iterator it = ranks.find(i_glob);
+        auto it = ranks.find(i_glob);
         assert(it != ranks.end());
         if (it->second == -1) throw std::logic_error("faces_partitioner:: not realized yet!!");
         return it->second;
