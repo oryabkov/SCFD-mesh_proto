@@ -104,6 +104,22 @@ struct cubature_reference_max_pnts_n<6>
     static const int value = 58;    //for hexahedron (HEXAHEDRON(9) from getfem++)
 };
 
+/// runtime version of cubature_reference_max_pnts_n structure
+__DEVICE_TAG__ int get_cubature_reference_max_pnts_n(int max_order)
+{
+    switch (max_order)
+    {
+        case 1: return cubature_reference_max_pnts_n<1>::value;
+        case 2: return cubature_reference_max_pnts_n<2>::value;
+        case 3: return cubature_reference_max_pnts_n<3>::value;
+        case 4: return cubature_reference_max_pnts_n<4>::value;
+        case 5: return cubature_reference_max_pnts_n<5>::value;
+        case 6: return cubature_reference_max_pnts_n<6>::value;
+        default: return -1;
+        /// TODO error
+    }
+}
+
 template<>
 struct face_cubature_reference_max_pnts_n<1>
 {
@@ -138,6 +154,21 @@ struct face_cubature_reference_max_pnts_n<5>
     //static const int value = 7;   //for triangle
     static const int value = 9;     //for quadrangle
 };
+
+/// runtime version of face_cubature_reference_max_pnts_n structure
+__DEVICE_TAG__ int get_face_cubature_reference_max_pnts_n(int max_order)
+{
+    switch (max_order)
+    {
+        case 1: return face_cubature_reference_max_pnts_n<1>::value;
+        case 2: return face_cubature_reference_max_pnts_n<2>::value;
+        case 3: return face_cubature_reference_max_pnts_n<3>::value;
+        case 4: return face_cubature_reference_max_pnts_n<4>::value;
+        case 5: return face_cubature_reference_max_pnts_n<5>::value;
+        default: return -1;
+        /// TODO error
+    }
+}
 
 template<int max_order, class T>
 struct elem_cubature_reference
