@@ -29,9 +29,12 @@
 #include <scfd/memory/cuda.h>
 #include <scfd/for_each/cuda.h>
 #include <scfd/for_each/cuda_impl.cuh>
+#include <scfd/communication/serial_communicator.h>
 #include <scfd/communication/linear_partitioner.h>
 //TODO add serial_map
 #include <scfd/communication/serial_map.h>
+#include <scfd/communication/faces_partitioner.h>
+#include <scfd/communication/parted_map.h>
 #include <scfd/mesh/gmsh_mesh_wrap.h>
 #include <scfd/mesh/host_mesh.h>
 #include <scfd/mesh/device_mesh.h>
@@ -54,8 +57,11 @@ using for_each_t = scfd::for_each::cuda<>;
 
 SCFD_DEVICE_MESH_INSTANTIATE(real,mem_t,dim,ordinal)
 
-typedef scfd::communication::serial_map  map_t;
-typedef scfd::arrays::array<real,mem_t>  vars_t;
+using comm_t = scfd::communication::serial_communicator;
+using map_t = scfd::communication::serial_map;
+using partitioner_f_t = scfd::communication::faces_partitioner<ordinal>;
+using map_f_t = scfd::communication::parted_map<partitioner_f_t>;
+using vars_t = scfd::arrays::array<real,mem_t>;
 
 DEFINE_CONSTANT_BUFFER(device_mesh_t, mesh)
 
@@ -250,7 +256,10 @@ int main(int argc, char **args)
     auto                part = std::make_shared<partitioner_t>();
     auto                host_mesh = std::make_shared<host_mesh_t>();
 
+    auto                comm = std::make_shared<comm_t>();
     auto                map = std::make_shared<map_t>();
+    auto                partitioner_f = std::make_shared<partitioner_f_t>();
+    auto                map_f = std::make_shared<map_f_t>();
     device_mesh_t       gpu_mesh;
     host_real_vector_t  vars_host;
     vars_t              vars0, vars1;
@@ -295,6 +304,8 @@ int main(int argc, char **args)
     host_mesh->enlarge_stencil(1);
     //init map object
     *map = map_t(host_mesh->get_total_elems_num());
+    *partitioner_f = partitioner_f_t(*comm, *host_mesh, *map);
+    *map_f = map_f_t(*partitioner_f);
     //TODO add 0th order stencil through add_stencil_element()
     map->complete();
     MAIN_CATCH(2)
@@ -308,9 +319,10 @@ int main(int argc, char **args)
     MAIN_TRY("allocate memory for mesh in device and copy mesh data to device")
     for_each_t  for_each;
     gpu_mesh.params.has_elems_nodes_data = false;
+    gpu_mesh.params.has_elems_prim_nodes_data = false;
     gpu_mesh.init_elems_data
     (
-        *host_mesh, *map, map_mock(), map_mock(), for_each
+        *host_mesh, *map, *map_f, map_mock(), for_each
     );
     COPY_TO_CONSTANT_BUFFER(mesh, gpu_mesh);
     MAIN_CATCH(4)
