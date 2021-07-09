@@ -572,7 +572,13 @@ private:
     std::vector<vec_type>           virt_pairs_vecs_;
     /// 1st key is node_id (physical), 2nd key - virt_pair index,
     /// value - pair node id with respect to the given pair index 
-    std::map<Ord,std::map<Ord,Ord>> nodes_virt_pair_node_ids_;
+    std::unordered_map
+    <
+        Ord,std::unordered_map
+        <
+            Ord,Ord
+        >
+    >                               nodes_virt_pair_node_ids_;
     nodes_virt_master_ids_arr_t     nodes_virt_master_ids_arr_;
 
     /// Converts internal gmsh tag into 'visible' element index

@@ -269,10 +269,10 @@ private:
     elems_to_neighbours0_graph_t    elems_to_neighbours0_graph_;
 
     //TODO hmm))
-    std::map
+    std::unordered_map
     <
         ordinal_type,
-        std::map
+        std::unordered_map
         <
             ordinal_type,
             ordinal_type
