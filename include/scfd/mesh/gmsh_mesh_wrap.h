@@ -152,7 +152,8 @@ public:
             {
                 MElement *s = e->getMeshElement(j);
                 Ord elem_id = elem_tag_to_elem_id(s->getNum());
-                elements_group_ids_[elem_id] = e->tag();
+                //elements_group_ids_[elem_id] = e->tag();
+                elements_group_ids_.add(elem_id,e->tag());
                 for (Ord elem_vert_i = 0; elem_vert_i < s->getNumVertices(); ++elem_vert_i) 
                 {
                     nodes_to_elems_graph_.inc_max_range_size
@@ -304,7 +305,8 @@ public:
     }
     Ord get_elem_group_id(Ord i)const
     {
-        return elements_group_ids_.at(i);
+        //return elements_group_ids_.at(i);
+        return elements_group_ids_[i];
     }
     Ord get_elems_max_prim_nodes_num()const
     {
@@ -544,6 +546,8 @@ private:
     /// Here pair's first is id of incident element, second - local node index inside this element
     using nodes_to_elems_graph_t = detail::ranges_sparse_arr<std::pair<Ord,Ord>,Ord>;
 
+    using elements_group_ids_t = detail::sparse_arr<Ord,Ord>;
+
     using nodes_virt_master_ids_arr_t =  detail::sparse_arr<Ord>;
     //using faces_virt_master_ids_arr_t =  detail::sparse_arr<Ord>;
 
@@ -562,7 +566,7 @@ private:
     nodes_to_elems_graph_t          nodes_to_elems_graph_;
     nodes_to_elems_graph_t          virt_nodes_to_elems_graph_;
     //TODO turn into sparse_arr?
-    std::map<Ord,Ord>               elements_group_ids_;
+    elements_group_ids_t            elements_group_ids_;
     Ord                             elems_max_faces_num_;
 
     std::map<face_key_t,Ord,face_key_less_func>        bnd_faces_group_ids_;
