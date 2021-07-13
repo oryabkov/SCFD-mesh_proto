@@ -833,24 +833,28 @@ struct cubature_reference
     vec_t       pnts[CUBATURE_REFERENCE_ELEM_TYPES_N][max_order+1][max_pnts_n];*/
     elem_cubature_t cubatures[CUBATURE_REFERENCE_ELEM_TYPES_N];
 
-    __DEVICE_TAG__ unsigned char        get_pnts_n(int elem_type, unsigned char order)const
+    __DEVICE_TAG__ const elem_cubature_t    &get_elem_cubature(int elem_type)const
+    {
+        return cubatures[elem_type];
+    }
+    __DEVICE_TAG__ unsigned char            get_pnts_n(int elem_type, unsigned char order)const
     {
         return cubatures[elem_type].pnts_n[order];
     }
-    __DEVICE_TAG__ T                    get_weight(int elem_type, unsigned char order, unsigned char pnt_i)const
+    __DEVICE_TAG__ T                        get_weight(int elem_type, unsigned char order, unsigned char pnt_i)const
     {
         return cubatures[elem_type].weights[order][pnt_i];
     }
     //several interfaces to get cubature points coordinates
-    __DEVICE_TAG__ const vec_t          &get_pnt(int elem_type, unsigned char order, unsigned char pnt_i)const
+    __DEVICE_TAG__ const vec_t              &get_pnt(int elem_type, unsigned char order, unsigned char pnt_i)const
     {
         return cubatures[elem_type].pnts[order][pnt_i];
     }
-    __DEVICE_TAG__ void                 get_pnt(int elem_type, unsigned char order, unsigned char pnt_i, vec_t &res)const
+    __DEVICE_TAG__ void                     get_pnt(int elem_type, unsigned char order, unsigned char pnt_i, vec_t &res)const
     {
         res = cubatures[elem_type].pnts[order][pnt_i];
     }
-        __DEVICE_TAG__ T                get_pnt(int elem_type, unsigned char order, unsigned char pnt_i, unsigned char j)const
+        __DEVICE_TAG__ T                    get_pnt(int elem_type, unsigned char order, unsigned char pnt_i, unsigned char j)const
     {
         return cubatures[elem_type].pnts[order][pnt_i][j];
     }
