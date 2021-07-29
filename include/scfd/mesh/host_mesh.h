@@ -89,6 +89,12 @@ public:
     {
         return total_faces_num_;
     }*/
+
+    elem_type_ordinal_type get_face_type(ordinal_type face_id)const
+    {
+        return faces_types_[face_id];
+    }
+
     ordinal_type get_elem_faces_num(ordinal_type i)const
     {
         return elems_to_faces_graph_.get_range_size(i);
@@ -172,36 +178,50 @@ public:
         }
     }
 
+    ordinal_type get_faces_max_prim_nodes_num()const
+    {
+        return faces_max_prim_nodes_num_;
+    }
     ordinal_type get_face_prim_nodes_num(ordinal_type face_id)const
     {
-        auto            it_range = faces_to_elems_graph_.get_range(face_id);
-        /// Take 1st elemets index
-        //TODO looks not very good
-        ordinal_type    elem_id = it_range.first->first,
-                        inelem_face_ind = it_range.first->second;
-        const auto      &ref = parent_type::mesh_elem_reference();
-        auto            elem_type = parent_type::get_elem_type(elem_id);
-        return ref.get_face_prim_verts_n(elem_type, inelem_face_ind);
+        return faces_to_prim_nodes_graph_.get_range_size(face_id);
     }
-    ordinal_type get_face_prim_nodes
+    void         get_face_prim_nodes
     (
         ordinal_type face_id, ordinal_type *prim_nodes, ordinal_type *prim_nodes_num = nullptr
     )
     const
     {
-        auto            it_range = faces_to_elems_graph_.get_range(face_id);
-        /// Take 1st elemets index
-        //TODO looks not very good
-        ordinal_type    elem_id = it_range.first->first,
-                        inelem_face_ind = it_range.first->second;
-        const auto      &ref = parent_type::mesh_elem_reference();
-        auto            elem_type = parent_type::get_elem_type(elem_id);
-        ordinal_type    prim_nodes_num_ = ref.get_face_prim_verts_n(elem_type, inelem_face_ind);
-        if (prim_nodes_num) *prim_nodes_num = prim_nodes_num_;
-        ordinal_type    elem_prim_nodes[parent_type::get_elem_prim_nodes_num(elem_id)];
-        parent_type::get_elem_prim_nodes(elem_id, elem_prim_nodes);
-        for (ordinal_type face_vert_i = 0;face_vert_i < prim_nodes_num_;++face_vert_i)
-            prim_nodes[face_vert_i] = elem_prim_nodes[ref.get_face_prim_vert_i(elem_type,inelem_face_ind,face_vert_i)];
+        auto it_range = faces_to_prim_nodes_graph_.get_range(face_id);
+        if (prim_nodes_num) *prim_nodes_num = get_face_prim_nodes_num(face_id);
+        ordinal_type j = 0;
+        for (auto it = it_range.first;it != it_range.second;++it,++j)
+        {
+            prim_nodes[j] = *it;
+        }
+    }
+
+    ordinal_type get_faces_max_nodes_num()const
+    {
+        return faces_max_nodes_num_;
+    }
+    ordinal_type get_face_nodes_num(ordinal_type face_id)const
+    {
+        return faces_to_nodes_graph_.get_range_size(face_id);
+    }
+    void         get_face_nodes
+    (
+        ordinal_type face_id, ordinal_type *nodes, ordinal_type *nodes_num = nullptr
+    )
+    const
+    {
+        auto it_range = faces_to_nodes_graph_.get_range(face_id);
+        if (nodes_num) *nodes_num = get_face_nodes_num(face_id);
+        ordinal_type j = 0;
+        for (auto it = it_range.first;it != it_range.second;++it,++j)
+        {
+            nodes[j] = *it;
+        }
     }
 
     /// Neighbours0 interface
@@ -250,6 +270,8 @@ private:
     using face_key_less_func = detail::face_key_less_func<ordinal_type>;
     using face_key_hash_func = detail::face_key_hash_func<ordinal_type>;
 
+    using faces_types_t = detail::sparse_arr<elem_type_ordinal_type,ordinal_type>;
+
     using elems_to_faces_graph_t = detail::ranges_sparse_arr<ordinal_type,ordinal_type>;
     /// Here pair's first is id of incident element, second - local face index inside this element
     using faces_to_elems_graph_t = detail::ranges_sparse_arr<std::pair<ordinal_type,ordinal_type>,ordinal_type>;
@@ -260,9 +282,16 @@ private:
 
     //std::shared_ptr<const BasicMesh>  basic_mesh_;
 
+    /// Value here is node_id
+    using faces_to_nodes_graph_t = detail::ranges_sparse_arr<ordinal_type,ordinal_type>;
+
 private:
     /// TODO see get_total_faces_num() commneted code
     //ordinal_type                    total_faces_num_;
+
+    ordinal_type                    faces_max_nodes_num_, faces_max_prim_nodes_num_;
+
+    faces_types_t                   faces_types_;
 
     elems_to_faces_graph_t          elems_to_faces_graph_;
     faces_to_elems_graph_t          faces_to_elems_graph_;
@@ -284,6 +313,8 @@ private:
     faces_to_elems_graph_t          virt_faces_to_elems_graph_;
     elems_to_neighbours0_graph_t    elems_to_virt_neighbours0_graph_;
 
+    faces_to_nodes_graph_t          faces_to_nodes_graph_, faces_to_prim_nodes_graph_;
+
 protected:
 
     //TODO virtual?
@@ -293,9 +324,11 @@ protected:
         calc_elems_stencil(ghost_level,stencil_ids);
         const auto &part = *parent_type::get_partitioner();
 
-        /// Create faces dict
+        /// Create faces dict + calc faces_max_nodes_num_, faces_max_prim_nodes_num_
 
         //std::cout << "create faces dict" << std::endl;
+        faces_max_nodes_num_ = 0; 
+        faces_max_prim_nodes_num_ = 0;
         std::unordered_map<face_key_t,ordinal_type,face_key_hash_func,face_key_equal_func>    faces;
         /// Process own elements
         for (ordinal_type i = 0;i < part.get_size();++i)
@@ -425,6 +458,30 @@ protected:
                 elem_id, elems_to_virt_faces_graph_, virt_faces_to_elems_graph_, elems_to_virt_neighbours0_graph_
             );
         }        
+
+        /// Estmate sizes of graphs faces_to_nodes_graph_ and faces_to_prim_nodes_graph_
+        for (auto face_pair : faces)
+        {
+            ordinal_type    face_id = face_pair.second;
+            reserve_nodes_graph_for_face(face_id);
+        }
+
+        /// Complete graphs structures
+        faces_to_nodes_graph_.complete_structure();
+        faces_to_prim_nodes_graph_.complete_structure();
+
+        /// Fill actual data for faces_to_nodes_graph_ and faces_to_prim_nodes_graph_ + fills faces_types_
+        for (auto face_pair : faces)
+        {
+            ordinal_type    face_id = face_pair.second;
+            fill_nodes_graph_for_face(face_id);
+        }
+
+        for (auto face_pair : faces)
+        {
+            ordinal_type    face_id = face_pair.second;
+            fix_faces_virt_pairs_nodes_order(face_id);
+        }
     }
     void build_faces_for_elem
     (
@@ -462,6 +519,9 @@ protected:
                 /// (i.e. one that was taken from element with minimal id)
                 face_it->second = std::min(face_it->second,face_id);
             }
+
+            faces_max_prim_nodes_num_ = std::max(faces_max_prim_nodes_num_,ref.get_face_prim_verts_n(elem_type,j));
+            faces_max_nodes_num_ = std::max(faces_max_nodes_num_,ref.get_face_verts_n(elem_type,j));
         }
     }
     void reserve_graphs_for_elem(ordinal_type elem_id, const std::unordered_map<face_key_t,ordinal_type,face_key_hash_func,face_key_equal_func> &faces)
@@ -562,6 +622,112 @@ protected:
             (
                 elem_id, std::pair<ordinal_type,ordinal_type>(neib0_id,loc_face_i)
             );
+        }
+    }
+    void reserve_nodes_graph_for_face(ordinal_type face_id)
+    {
+        auto            it_range = faces_to_elems_graph_.get_range(face_id);
+        /// Take 1st elemets index
+        ordinal_type    elem_id = it_range.first->first,
+                        inelem_face_ind = it_range.first->second;
+        const auto      &ref = parent_type::mesh_elem_reference();
+        auto            elem_type = parent_type::get_elem_type(elem_id);
+        faces_to_nodes_graph_.inc_max_range_size(face_id,ref.get_face_verts_n(elem_type, inelem_face_ind));
+        faces_to_prim_nodes_graph_.inc_max_range_size(face_id,ref.get_face_prim_verts_n(elem_type, inelem_face_ind));
+    }
+    void fill_nodes_graph_for_face(ordinal_type face_id)
+    {
+        auto            it_range = faces_to_elems_graph_.get_range(face_id);
+        /// Take 1st elemets index
+        //TODO looks not very good
+        ordinal_type    elem_id = it_range.first->first,
+                        inelem_face_ind = it_range.first->second;
+        const auto      &ref = parent_type::mesh_elem_reference();
+        auto            elem_type = parent_type::get_elem_type(elem_id);
+        ordinal_type    prim_nodes_num_ = ref.get_face_prim_verts_n(elem_type, inelem_face_ind),
+                        nodes_num_ = ref.get_face_verts_n(elem_type, inelem_face_ind);
+        ordinal_type    elem_prim_nodes[parent_type::get_elem_prim_nodes_num(elem_id)],
+                        elem_nodes[parent_type::get_elem_nodes_num(elem_id)];
+        parent_type::get_elem_prim_nodes(elem_id, elem_prim_nodes);
+        parent_type::get_elem_nodes(elem_id, elem_nodes);
+
+        ordinal_type    prim_nodes[prim_nodes_num_],
+                        nodes[nodes_num_];
+        for (ordinal_type face_vert_i = 0;face_vert_i < prim_nodes_num_;++face_vert_i)
+        {
+            prim_nodes[face_vert_i] = elem_prim_nodes[ref.get_face_prim_vert_i(elem_type,inelem_face_ind,face_vert_i)];
+        }
+        for (ordinal_type face_vert_i = 0;face_vert_i < nodes_num_;++face_vert_i)
+        {
+            nodes[face_vert_i] = elem_nodes[ref.get_face_vert_i(elem_type,inelem_face_ind,face_vert_i)];
+        }
+
+        for (ordinal_type face_vert_i = 0;face_vert_i < prim_nodes_num_;++face_vert_i)
+        {
+            faces_to_prim_nodes_graph_.add_to_range
+            (
+                face_id, prim_nodes[face_vert_i]
+            );
+        }
+        for (ordinal_type face_vert_i = 0;face_vert_i < nodes_num_;++face_vert_i)
+        {
+            faces_to_nodes_graph_.add_to_range
+            (
+                face_id, nodes[face_vert_i]
+            );
+        }
+
+        faces_types_.add(face_id, ref.get_face_elem_type(elem_type,inelem_face_ind));
+    }
+    /// Called only after faces_to_nodes_graph_ has been built 
+    void fix_faces_virt_pairs_nodes_order(ordinal_type face_id)
+    {
+        for (ordinal_type virt_pair_i = 0;virt_pair_i < parent_type::get_virt_pairs_num();++virt_pair_i)
+        {
+            if (!check_face_has_virt_pair_face_id(face_id, virt_pair_i)) continue;
+            ordinal_type face_virt_pair_id = get_face_virt_pair_face_id(face_id, virt_pair_i);
+
+            //auto  it_range = faces_to_prim_nodes_graph_.get_range(face_id);
+            
+            ordinal_type    prim_nodes_num_, nodes_num_;
+            ordinal_type    prim_nodes[get_faces_max_prim_nodes_num()],
+                            nodes[get_faces_max_nodes_num()];
+            get_face_prim_nodes( face_id, prim_nodes, &prim_nodes_num_ );
+            get_face_nodes( face_id, nodes, &nodes_num_ );
+            
+            /// Build dict
+            /// nodes_correspondence maps master node id into slave node id
+            std::unordered_map<ordinal_type,ordinal_type>   nodes_correspondence;
+            for (ordinal_type j = 0;j < nodes_num_;++j)
+            {
+                /// We assume here that all nodes has virt pairs if face has one 
+                ordinal_type virt_pair_node_id  = parent_type::get_node_virt_pair_node_id(nodes[j], virt_pair_i);
+                nodes_correspondence[virt_pair_node_id] = nodes[j];
+            }
+
+            ordinal_type    master_face_prim_nodes[prim_nodes_num_],
+                            master_face_nodes[nodes_num_];
+
+            get_face_prim_nodes( face_virt_pair_id, master_face_prim_nodes );
+            get_face_nodes( face_virt_pair_id, master_face_nodes );
+
+            ordinal_type j;
+
+            /// Reorder nodes accordind to master nodes order
+
+            auto prim_nodes_it_range = faces_to_prim_nodes_graph_.get_range(face_id);
+            j = 0;
+            for (auto it = prim_nodes_it_range.first;it != prim_nodes_it_range.second;++it,++j)
+            {
+                *it = nodes_correspondence[master_face_prim_nodes[j]];
+            }
+
+            auto nodes_it_range = faces_to_nodes_graph_.get_range(face_id);
+            j = 0;
+            for (auto it = nodes_it_range.first;it != nodes_it_range.second;++it,++j)
+            {
+                *it = nodes_correspondence[master_face_nodes[j]];
+            }
         }
     }
     void calc_elems_stencil(ordinal_type ghost_level,std::set<ordinal_type> &stencil_ids)

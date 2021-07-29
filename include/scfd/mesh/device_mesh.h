@@ -76,7 +76,8 @@ struct device_mesh
     //ISSUE neither n_cv
     //but i0, n_cv_all somehow does
 
-    ordinal_type        max_faces_n, max_prim_nodes_n;
+    ordinal_type        max_faces_n, max_prim_nodes_n, max_nodes_n;
+    ordinal_type        faces_max_prim_nodes_n, faces_max_nodes_n;
 
     /// Elements data part
 
@@ -90,7 +91,7 @@ struct device_mesh
     //if is_homogeneous == true then all elements in mesh have the same elem_type
     bool                                            is_homogeneous;
     elem_type_ordinal_type                          homogeneous_elem_type;  //valid only if is_homogeneous == true
-    array<elem_type_ordinal_type,Memory>            elems_types;              //valid only if is_homogeneous == false
+    array<elem_type_ordinal_type,Memory>            elems_types;            //valid only if is_homogeneous == false
     tensor1_array<T,Memory,Dim>                     elems_centers;
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_neighbours0_centers;
     tensor2_array<T,Memory,dyn_dim,Dim>             elems_virt_neighbours0_centers;
@@ -138,6 +139,19 @@ struct device_mesh
     index_range_descr_type                          faces_range, 
                                                     own_faces_range;
 
+    /// Elements types corresponding for faces
+    ///TODO there are issues with this - we cannot just use is_homogeneous flag - we need separate flag for faces
+    ///TODO for now homogeneous_face_type is not valid
+    elem_type_ordinal_type                          homogeneous_face_type;  //valid only if is_homogeneous == true
+    array<elem_type_ordinal_type,Memory>            faces_types;            //valid only if is_homogeneous == false
+    //TODO replace with var array
+    tensor2_array<T,Memory,dyn_dim,Dim>             faces_vertexes;
+    /// Faces to nodes graphs
+    tensor1_array<Ord,Memory,dyn_dim>               faces_prim_nodes_ids;
+    //TODO replace with var array
+    tensor1_array<Ord,Memory,dyn_dim>               faces_nodes_ids;
+
+
     /// Virtual pairs data part
     tensor2_array<T,Memory,Dim,Dim>                 virt_pairs_mats;
     tensor2_array<T,Memory,Dim,Dim>                 virt_pairs_inv_mats;
@@ -146,6 +160,12 @@ struct device_mesh
     __DEVICE_TAG__ elem_type_ordinal_type  get_elem_type(Ord i)const
     {
         if (is_homogeneous) return homogeneous_elem_type; else return elems_types(i);
+    }
+    __DEVICE_TAG__ elem_type_ordinal_type  get_face_type(Ord i)const
+    {
+        //if (is_homogeneous) return homogeneous_face_type; else return faces_types(i);
+        ///TODO there are issues with this - we cannot just use is_homogeneous flag - we need separate flag for faces
+        return faces_types(i);
     }
 
     //TODO change bane
@@ -242,6 +262,13 @@ struct device_mesh
     );
     template<class BasicMesh,class MapElems,class MapFaces,class MapNodes,class ForEach>
     void    init_nodes_data
+    (
+        const host_mesh<BasicMesh> &cpu_mesh,
+        const MapElems &map_e, const MapFaces &map_f, const MapNodes &map_n,
+        const ForEach &for_each = ForEach()
+    );
+    template<class BasicMesh,class MapElems,class MapFaces,class MapNodes,class ForEach>
+    void    init_faces_data
     (
         const host_mesh<BasicMesh> &cpu_mesh,
         const MapElems &map_e, const MapFaces &map_f, const MapNodes &map_n,

@@ -51,9 +51,9 @@ struct face_key
         mesh.get_elem_prim_nodes(elem_id, nodes);
         //TODO temporal solution (max 4 nodes) but will be enough for most cases
         Ord face_nodes[4];
-        for (Ord face_vert_i = 0;face_vert_i < ref.get_face_verts_n(elem_type,elem_face_i);++face_vert_i)
+        for (Ord face_vert_i = 0;face_vert_i < ref.get_face_prim_verts_n(elem_type,elem_face_i);++face_vert_i)
         {
-            face_nodes[face_vert_i] = nodes[ref.get_face_vert_i(elem_type,elem_face_i,face_vert_i)];
+            face_nodes[face_vert_i] = nodes[ref.get_face_prim_vert_i(elem_type,elem_face_i,face_vert_i)];
         }
         //TODO looks strange
         *this = face_key(ref.get_face_verts_n(elem_type,elem_face_i), face_nodes);

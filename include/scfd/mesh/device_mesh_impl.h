@@ -92,9 +92,9 @@ void    device_mesh<T,Memory,Dim,Ord>::init_elems_data
     elems_range.n = map_e.max_loc_ind() - map_e.min_loc_ind() + 1;
     elems_range.i0 = map_e.min_loc_ind();
 
-    ordinal_type    max_faces_n = cpu_mesh.get_elems_max_faces_num(),
-                    max_nodes_n = cpu_mesh.get_elems_max_nodes_num(),
-                    max_prim_nodes_n = cpu_mesh.get_elems_max_prim_nodes_num();
+    max_faces_n = cpu_mesh.get_elems_max_faces_num();
+    max_nodes_n = cpu_mesh.get_elems_max_nodes_num();
+    max_prim_nodes_n = cpu_mesh.get_elems_max_prim_nodes_num();
 
     elems_types.init(own_elems_range.n, own_elems_range.i0);
     elems_centers.init(elems_range.n, elems_range.i0);  //ISSUE
@@ -565,6 +565,64 @@ void    device_mesh<T,Memory,Dim,Ord>::init_nodes_data
     node_2_elem_graph_refs_view.release();
     node_2_elem_graph_elem_ids_view.release();
     node_2_elem_graph_node_ids_view.release();
+}
+
+template<class T,class Memory,int Dim,class Ord>
+template<class BasicMesh,class MapElems,class MapFaces,class MapNodes,class ForEach>
+void    device_mesh<T,Memory,Dim,Ord>::init_faces_data
+(
+    const host_mesh<BasicMesh> &cpu_mesh,
+    const MapElems &map_e, const MapFaces &map_f, const MapNodes &map_n,
+    const ForEach &for_each
+)
+{
+    using host_mesh_t = host_mesh<BasicMesh>;
+    using host_ordinal = typename host_mesh_t::ordinal_type;
+
+    own_faces_range.n = map_f.get_size();
+    own_faces_range.i0 = 0;
+    faces_range.n = map_f.max_loc_ind() - map_f.min_loc_ind() + 1;
+    faces_range.i0 = map_f.min_loc_ind();
+
+    faces_max_nodes_n = cpu_mesh.get_faces_max_nodes_num();
+    faces_max_prim_nodes_n = cpu_mesh.get_faces_max_prim_nodes_num();
+
+    ///TODO homogeneous_face_type;
+    faces_types.init(own_faces_range.n);
+    faces_vertexes.init(own_faces_range.n,faces_max_nodes_n);
+    faces_prim_nodes_ids.init(own_faces_range.n,faces_max_prim_nodes_n);
+    faces_nodes_ids.init(own_faces_range.n,faces_max_nodes_n);
+
+    auto                 faces_types_view = faces_types.create_view(false);
+    for(Ord i_ = 0;i_ < map_f.get_size();++i_) 
+    {
+        int     i_glob = map_f.own_glob_ind(i_),
+                i_loc = map_f.own_loc_ind(i_);
+        faces_types_view(i_loc) = cpu_mesh.get_face_type(i_glob);
+    }
+    faces_types_view.release();
+
+    auto                 faces_prim_nodes_ids_view = faces_prim_nodes_ids.create_view(false),
+                         faces_nodes_ids_view = faces_nodes_ids.create_view(false);
+    for(Ord i_ = 0;i_ < map_f.get_size();++i_) 
+    {
+        int     i_glob = map_f.own_glob_ind(i_),
+                i_loc = map_f.own_loc_ind(i_);
+
+        Ord             nodes_n = cpu_mesh.get_face_nodes_num(i_glob),
+                        prim_nodes_n = cpu_mesh.get_face_prim_nodes_num(i_glob);
+        host_ordinal    nodes[nodes_n], prim_nodes[prim_nodes_n];
+        cpu_mesh.get_face_nodes(i_glob, nodes);
+        cpu_mesh.get_face_prim_nodes(i_glob, prim_nodes);
+
+        for (Ord node_i = 0;node_i < prim_nodes_n;++node_i)
+            faces_prim_nodes_ids_view(i_loc,node_i) = prim_nodes[node_i];
+
+        for (Ord node_i = 0;node_i < nodes_n;++node_i)
+            faces_nodes_ids_view(i_loc,node_i) = nodes[node_i];
+    }
+    faces_prim_nodes_ids_view.release();
+    faces_nodes_ids_view.release();
 }
 
 }  /// namespace mesh

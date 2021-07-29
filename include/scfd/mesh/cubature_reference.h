@@ -21,9 +21,9 @@
 
 #include <cmath>
 #include <stdexcept>
-#include <mesh/device_tag.h>
+#include <scfd/utils/device_tag.h>
 #include <scfd/static_vec/vec.h>
-#include <mesh/t_mesh_elem_reference_tml.h>
+#include <scfd/mesh/gmsh_mesh_elem_reference.h>
 
 //NOTE element types and local coordinate systems are synced with t_mesh_elem_reference_tml.h (and, accordingly, with gmsh)
 

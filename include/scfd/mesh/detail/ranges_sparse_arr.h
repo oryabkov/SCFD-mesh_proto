@@ -31,8 +31,10 @@ template<class T,class Ord = int>
 struct ranges_sparse_arr
 {
     using sparse_pairs_arr_t = sparse_arr<std::pair<Ord,Ord>,Ord>;
-    using indices_iterator_t = typename std::vector<T>::const_iterator;
+    using indices_iterator_t = typename std::vector<T>::iterator;
     using indices_iterators_range_t = std::pair<indices_iterator_t,indices_iterator_t>;
+    using indices_const_iterator_t = typename std::vector<T>::const_iterator;
+    using indices_const_iterators_range_t = std::pair<indices_const_iterator_t,indices_const_iterator_t>;
 
     sparse_pairs_arr_t      sparse_pairs_arr_;
     std::vector<T>          objs_;
@@ -79,13 +81,25 @@ struct ranges_sparse_arr
     {
         return sparse_pairs_arr_.has(i);
     }
-    indices_iterators_range_t get_range(Ord i)const
+    indices_iterators_range_t get_range(Ord i)
     {
         auto range_pair = sparse_pairs_arr_[i];
         Ord  range_size = range_pair.first,
              range_offset = range_pair.second;
         return 
             indices_iterators_range_t
+            (
+                objs_.begin() + range_offset,
+                objs_.begin() + range_offset + range_size
+            );
+    }
+    indices_const_iterators_range_t get_range(Ord i)const
+    {
+        auto range_pair = sparse_pairs_arr_[i];
+        Ord  range_size = range_pair.first,
+             range_offset = range_pair.second;
+        return 
+            indices_const_iterators_range_t
             (
                 objs_.begin() + range_offset,
                 objs_.begin() + range_offset + range_size
