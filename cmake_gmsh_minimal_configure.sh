@@ -1,0 +1,30 @@
+#mesh_prepare was successfully compiled with gmsh 2.8.5 build with this configuration
+cmake                           \
+    -DCMAKE_BUILD_TYPE=Release  \
+    -DENABLE_FLTK=0             \
+    -DENABLE_OCC=0              \
+    -DENABLE_ANN=0              \
+    -DENABLE_DINTEGRATION=0     \
+    -DENABLE_BAMG=0             \
+    -DENABLE_DLOPEN=0           \
+    -DENABLE_BLAS_LAPACK=0      \
+    -DENABLE_KBIPACK=0          \
+    -DENABLE_GMP=0              \
+    -DENABLE_GMM=0              \
+    -DENABLE_CHACO=0            \
+    -DENABLE_TAUCS=0            \
+    -DENABLE_METIS=0            \
+    -DENABLE_MPEG_ENCODE=0      \
+    -DENABLE_SOLVER=0           \
+    -DENABLE_MESH=0		\
+    -DENABLE_OPTHOM=0		\
+    -DENABLE_PLUGINS=0		\
+    -DENABLE_NETGEN=0           \
+    -DENABLE_TETGEN=0           \
+    -DENABLE_BUILD_LIB=1        \
+    -DENABLE_PETSC=0		\
+    -DENABLE_SALOME=0		\
+    -DENABLE_WRAP_PYTHON=0	\
+    -DENABLE_PRIVATE_API=1      \
+    -DCMAKE_INSTALL_PREFIX=/usr/local/gmsh_all/gmsh-4.8.4-source-build/ \
+    ..
