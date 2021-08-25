@@ -9,3 +9,6 @@
 8. what about more intellectual hash in sparse_arr? (switch between vector/map or some more intellectual?)
 9. is it possible to optimize faces build? mb, preface with writing into msh file?
    parallel version?
+10. If some face or node is in own (or even in local) range of map then all its virual group have
+    to be in local range of map. Otherwise, {faces,nodes}_virt_master_ids cannot be built, perhaps
+    some other errors can occur.
